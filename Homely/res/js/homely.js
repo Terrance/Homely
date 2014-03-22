@@ -45,6 +45,8 @@ $(document).ready(function() {
                 btn = $("<a/>").addClass("btn btn-block btn-" + linkBtn.style).attr("href", linkBtn.url).text(linkBtn.title);
                 // workaround for accessing Chrome URLs
                 if (linkBtn.url.substring(0, "chrome://".length) === "chrome://") btn.addClass("link-chrome");
+                // always open in new tab
+                if (linkBtn.external) btn.addClass("link-external");
                 // menu overrides link
                 if (linkBtn.menu) warn = true;
             }
@@ -72,6 +74,8 @@ $(document).ready(function() {
                         var item = $("<a/>").attr("href", linkItem.url).text(linkItem.title);
                         // workaround for accessing Chrome URLs
                         if (linkItem.url.substring(0, "chrome://".length) === "chrome://") item.addClass("link-chrome");
+                        // always open in new tab
+                        if (linkItem.external) item.addClass("link-external");
                         menu.append($("<li/>").append(item));
                     }
                 }
@@ -101,12 +105,20 @@ $(document).ready(function() {
     });
     // open Chrome links via Tabs API
     $(".link-chrome").click(function(e) {
-        if (e.which === 1 && !ctrlDown) {
+        // normal click, not external
+        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
             chrome.tabs.update({url: this.href});
             e.preventDefault();
+        // middle click, Ctrl+click, or set as external
         } else if (e.which <= 2) {
-            chrome.tabs.create({url: this.href, active: false});
-            ctrlDown = false;
+            chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+            e.preventDefault();
+        }
+    });
+    // always open external links in a new tab
+    $(".link-external").click(function(e) {
+        if (!$(this).hasClass("link-chrome")) {
+            chrome.tabs.create({url: this.href, active: true});
             e.preventDefault();
         }
     });
@@ -182,24 +194,31 @@ $(document).ready(function() {
     /*
     History: quick drop-down of recent pages
     */
+    // initialize limit to 10
+    if (typeof(localStorage.history) === "undefined") {
+        localStorage.history = 10;
+    }
     var trim = function trim(str, len) {
         return str.length > len ? str.substring(0, len - 3) + "..." : str;
     }
-    // request 10 items from History API
-    chrome.history.search({text: "", maxResults: 10}, function historyCallback(results) {
-        // loop through history items
-        for (var i in results) {
-            var res = results[i];
-            // add to dropdown
-            $("#hst-list").append($("<li/>").append($("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50))));
-        }
-        $("#hst-title").show();
-    });
+    if (parseInt(localStorage.history)) {
+        // request items from History API
+        chrome.history.search({text: "", maxResults: parseInt(localStorage.history)}, function historyCallback(results) {
+            // loop through history items
+            for (var i in results) {
+                var res = results[i];
+                // add to dropdown
+                $("#hst-list").append($("<li/>").append($("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50))));
+            }
+            $("#hst-title").show();
+        });
+    }
     /*
     Settings: modal to customize links and options
     */
     // set to current data
     $("#settings-links-content").val(localStorage.links);
+    $("#settings-history-limit").val(localStorage.history);
     $("#settings").on("hide.bs.modal", function(e) {
         $("#settings-tab-links").removeClass("has-success has-error");
     });
@@ -217,6 +236,7 @@ $(document).ready(function() {
     // save and reload
     $("#settings-save").click(function(e) {
         localStorage.links = $("#settings-links-content").val();
+        localStorage.history = $("#settings-history-limit").val();
         $("#settings").on("hidden.bs.modal", function(e) {
             location.reload();
         }).modal("hide");

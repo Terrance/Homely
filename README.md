@@ -30,12 +30,13 @@ A block has a title, and holds one or more buttons.
 Button
 ------
 
-A button can either be a simple link, or a dropdown containing many links.
+A button can either be a simple link, or a dropdown containing many links.  Add `"external": true` to always open a link in a new tab.
 
 ```json
 {
     "title": "Google",
     "url": "http://www.google.co.uk",
+    "external": true,
     "style": "light"
 }
 ```
@@ -72,7 +73,12 @@ A menu is a list of links and headings, converted into groups of links (a new gr
     },
     {
         "title": "Maps",
-        "url": "http://maps.google.co.uk"
+        "url": "http://maps.google.co.uk",
+        "external": true
     }
 ]
 ```
+
+If all is well, you should end up with a dropdown like this:
+
+![Search Engines example](http://i.imgur.com/V6jkCoj.png)
