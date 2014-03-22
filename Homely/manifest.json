@@ -1,0 +1,20 @@
+{
+    "name": "Homely",
+    "description": "A custom New Tab page, aiming to provide a quick, customizable layout of links and menus, as well as simple bookmarks and history components.",
+    "version": "1.0",
+    "incognito": "split",
+    "chrome_url_overrides": {
+        "newtab": "homely.html"
+    },
+    "permissions": [
+        "bookmarks",
+        "tabs",
+        "history"
+    ],
+    "icons": {
+        "16": "res/img/icon-16.png",
+        "48": "res/img/icon-48.png",
+        "128": "res/img/icon-128.png"
+    },
+    "manifest_version": 2
+}

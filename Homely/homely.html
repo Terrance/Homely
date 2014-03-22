@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Home</title>
+        <link rel="stylesheet" href="lib/css/bootstrap.min.css">
+        <link rel="stylesheet" href="res/css/homely.css">
+        <link rel="icon" href="res/img/icon-16.png">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    </head>
+    <body class="container">
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <div id="time" class="navbar-brand"></div>
+                </div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li id="menu-links" class="active"><a>Links</a></li>
+                    <li id="menu-bookmarks" style="display: none;"><a>Bookmarks</a></li>
+                    <li class="dropdown">
+                        <a id="hst-title" class="dropdown-toggle" data-toggle="dropdown" style="display: none;">History <b class="caret"></b></a>
+                        <ul id="hst-list" class="dropdown-menu"></ul>
+                    </li>
+                    <li id="menu-settings"><a data-toggle="modal" data-target="#settings">Settings</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div id="links" class="main row"></div>
+        <div id="bookmarks" class="main panel panel-default" style="display: none;">
+            <div id="bookmarks-title" class="panel-heading"></div>
+            <div id="bookmarks-block" class="panel-body"></div>
+        </div>
+        <div id="settings" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Settings</h4>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a data-toggle="tab" data-target="#settings-tab-links">Links</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="settings-tab-links">
+                                <p>Specify which pages to display on the links page.</p>
+                                <textarea id="settings-links-content" class="form-control" rows="10"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="settings-save" type="button" class="btn btn-primary">Save and reload</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="lib/js/jquery.min.js"></script>
+        <script src="lib/js/bootstrap.min.js"></script>
+        <script src="res/js/homely.js"></script>
+    </body>
+</html>

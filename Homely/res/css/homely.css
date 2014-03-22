@@ -1,0 +1,110 @@
+html {
+    background: url(../img/bg.png);
+}
+body {
+    padding: 40px 0 30px;
+    background: none;
+    font-family: "Segoe UI";
+}
+.btn-light {
+    background-color: #ddd;
+    border-color: #d8d8d8;
+    color: #333;
+}
+.btn-light:hover,
+.btn-light:focus,
+.btn-light:active,
+.btn-light.active {
+    background-color: #cfcfcf;
+    border-color: #c3c3c3;
+}
+.btn-light.disabled:hover,
+.btn-light.disabled:focus,
+.btn-light.disabled:active,
+.btn-light.disabled.active,
+.btn-light[disabled]:hover,
+.btn-light[disabled]:focus,
+.btn-light[disabled]:active,
+.btn-light[disabled].active,
+fieldset[disabled] .btn-light:hover,
+fieldset[disabled] .btn-light:focus,
+fieldset[disabled] .btn-light:active,
+fieldset[disabled] .btn-light.active {
+    background-color: #ccc;
+    border-color: #ccc;
+}
+.btn-dark {
+    background-color: #444;
+    border-color: #404040;
+    color: #fff;
+}
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active,
+.btn-dark.active {
+    background-color: #333;
+    border-color: #222;
+    color: #fff;
+}
+.btn-dark.disabled:hover,
+.btn-dark.disabled:focus,
+.btn-dark.disabled:active,
+.btn-dark.disabled.active,
+.btn-dark[disabled]:hover,
+.btn-dark[disabled]:focus,
+.btn-dark[disabled]:active,
+.btn-dark[disabled].active,
+fieldset[disabled] .btn-dark:hover,
+fieldset[disabled] .btn-dark:focus,
+fieldset[disabled] .btn-dark:active,
+fieldset[disabled] .btn-dark.active {
+    background-color: #444;
+    border-color: #444;
+}
+.caret-right {
+    border-bottom: 4px solid transparent;
+    border-top: 4px solid transparent;
+    border-left: 4px solid #000000;
+    display: inline-block;
+    height: 0;
+    opacity: 0.3;
+    vertical-align: top;
+    width: 0;
+}
+li a {
+    cursor: pointer;
+}
+#links .panel-heading {
+    text-align: center;
+}
+.btn-block + .btn-block {
+    margin-top: 5px;
+}
+.dropdown-menu a small.text-muted {
+    margin-left: 10px;
+}
+#bookmarks .btn {
+    margin-bottom: 5px;
+    margin-right: 5px;
+}
+#bookmarks .panel-heading {
+    padding: 10px 10px 5px 15px;
+}
+#bookmarks .panel-body {
+    padding: 15px 10px 10px 15px;
+}
+#bookmarks .panel-heading {
+    padding: 10px 10px 5px 15px;
+}
+#bookmarks .panel-heading .caret-right {
+    margin: 11px 5px 0 0;
+}
+.modal {
+    overflow-y: auto;
+}
+.modal-footer {
+    margin-top: 0;
+}
+.nav-tabs {
+    margin-bottom: 15px;
+}
