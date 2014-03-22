@@ -37,7 +37,7 @@
                     </div>
                     <div class="modal-body">
                         <div id="settings-alerts"></div>
-                        <ul class="nav nav-tabs">
+                        <ul id="settings-tabs" class="nav nav-tabs nav-justified">
                             <li class="active"><a data-toggle="tab" data-target="#settings-tab-links">Links</a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-bookmarks">Bookmarks</a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-history">History</a></li>
@@ -45,9 +45,12 @@
                             <li><a data-toggle="tab" data-target="#settings-tab-about">About</a></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane active" id="settings-tab-links">
-                                <p>Specify which pages to display on the links page.  Check the <a href="https://github.com/OllieTerrance/Homely#links-format" class="link-external">readme</a> for the syntax.</p>
-                                <textarea id="settings-links-content" class="form-control" rows="10"></textarea>
+                            <div class="tab-pane active form" id="settings-tab-links">
+                                <div class="form-group">
+                                    <label for="settings-links-content" class="control-label">Main content</label>
+                                    <textarea id="settings-links-content" class="form-control" rows="10"></textarea>
+                                    <p class="help-block">Specify which pages to display on the links page.  Check the <a href="https://github.com/OllieTerrance/Homely#links-format" class="link-external">readme</a> for the syntax.</p>
+                                </div>
                             </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-bookmarks">
                                 <div class="form-group">
@@ -65,10 +68,10 @@
                             </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-history">
                                 <div class="form-group">
-                                    <label for="settings-history-limit" class="col-sm-3 control-label">List size</label>
+                                    <label for="settings-history-limit" class="col-sm-3 control-label">List size: <span id="settings-history-limit-value"></span></label>
                                     <div class="col-sm-8">
-                                        <input id="settings-history-limit" type="number" class="form-control" min="0" placeholder="10">
-                                        <p class="help-block">The number of items shown in the list, set to 0 to disable.</p>
+                                        <input id="settings-history-limit" type="range" min="0" max="50">
+                                        <p class="help-block">The number of items shown.  Set to 0 to disable.</p>
                                     </div>
                                 </div>
                             </div>

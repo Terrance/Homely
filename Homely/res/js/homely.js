@@ -256,6 +256,7 @@ $(document).ready(function() {
     $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
     $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
     $("#settings-history-limit").val(settings.history["limit"]);
+    $("#settings-history-limit-value").text(settings.history["limit"]);
     $("#settings-general-title").val(settings.general["title"]);
     // request list of fonts from FontSettings API
     chrome.fontSettings.getFontList(function fontsCallback(fonts) {
@@ -265,30 +266,32 @@ $(document).ready(function() {
         $("#settings-general-font").val(settings.general["font"]);
     });
     $("#settings-about-title").html(man.name + " <small>" + man.version + "</small>");
-    $("#settings").on("hide.bs.modal", function(e) {
+    // reset modal on hide
+    $("#settings").on("hidden.bs.modal", function(e) {
         $("#settings-alerts").empty();
-        $("#settings-tab-links, #settings-tab-history").removeClass("has-success has-error");
+        $(".form-group", "#settings-tab-links").removeClass("has-success has-error");
+        $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
+        $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
+        $("#settings-history-limit").val(settings.history["limit"]);
+        $("#settings-history-limit-value").text(settings.history["limit"]);
+        $("#settings-general-title").val(settings.general["title"]);
+        $("#settings-general-font").val(settings.general["font"]);
+        $($("#settings-tabs a")[0]).click();
     });
     $("#settings-links-content").focus(function(e) {
-        $("#settings-tab-links").removeClass("has-success has-error");
+        $("#settings-alerts").empty();
+        $(this).closest(".form-group").removeClass("has-success has-error");
     }).blur(function(e) {
         // validate JSON
         try {
             JSON.parse($(this).val());
-            $("#settings-tab-links").addClass("has-success");
+            $(this).closest(".form-group").addClass("has-success");
         } catch (e) {
-            $("#settings-tab-links").addClass("has-error");
+            $(this).closest(".form-group").addClass("has-error");
         }
     });
-    $("#settings-history-limit").focus(function(e) {
-        $("#settings-tab-history").removeClass("has-success has-error");
-    }).blur(function(e) {
-        // validate number
-        if (isNaN(parseInt($(this).val()))) {
-            $("#settings-tab-history").addClass("has-error");
-        } else {
-            $("#settings-tab-history").addClass("has-success");
-        }
+    $("#settings-history-limit").on("input change", function(e) {
+        $("#settings-history-limit-value").text($(this).val());
     });
     // save and reload
     $("#settings-save").click(function(e) {
@@ -303,10 +306,6 @@ $(document).ready(function() {
         settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
         if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
         settings.history["limit"] = parseInt($("#settings-history-limit").val());
-        if (isNaN(settings.history["limit"])) {
-            ok = false;
-            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The history entry limit is invalid."));
-        }
         if (!$("#settings-general-title").val()) $("#settings-general-title").val(man.name);
         settings.general["title"] = $("#settings-general-title").val();
         settings.general["font"] = $("#settings-general-font").val();
@@ -316,7 +315,7 @@ $(document).ready(function() {
                 localStorage[key] = JSON.stringify(settings[key]);
             }
             // reload
-            $("#settings").on("hidden.bs.modal", function(e) {
+            $("#settings").off("hidden.bs.modal").on("hidden.bs.modal", function(e) {
                 location.reload();
             }).modal("hide");
         }

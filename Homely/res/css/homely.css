@@ -100,8 +100,8 @@ li a {
     max-width: 100%;
     overflow: hidden;
 }
-input[type=file] {
-    width: 100%;
+input[type=range] {
+    margin-top: 6px;
 }
 .modal {
     overflow-y: auto;
