@@ -112,3 +112,12 @@ input.input-inline {
     display: inline;
     width: 70px;
 }
+#settings-tab-about {
+    text-align: center;
+}
+#settings-tab-about img {
+    margin-bottom: 5px;
+}
+#settings-tab-about h2 {
+    margin-top: 0;
+}

@@ -1,25 +1,37 @@
 $(document).ready(function() {
+    var settings = {
+        "links": {
+            "content": "[]"
+        },
+        "bookmarks": {
+            "bookmarklets": true
+        },
+        "history": {
+            "limit": 10
+        }
+    };
+    // attempt to parse settings from storage
+    var next;
+    for (var key in settings) {
+        next = key;
+        if (localStorage[key]) {
+            try {
+                $.extend(settings[key], JSON.parse(localStorage[key]));
+            } catch (e) {
+                $("nav").after($("<div/>").addClass("alert alert-danger").text("Unable to parse the " + next + " configuration!  Go to Settings to fix it."));
+            }
+        }
+    }
     /*
     Links: customizable grid of links and menus
     */
-    // initialize to an empty grid
-    if (!localStorage.links) {
-        localStorage.links = "[]";
-    }
-    var links = [];
-    // attempt to parse from storage
-    try {
-        links = JSON.parse(localStorage.links);
-    } catch (e) {
-        $("nav").after($("<div/>").addClass("alert alert-danger").text("Unable to parse saved links!  Go to Settings to fix them."));
-    }
-    if (!links.length) {
+    if (!settings.links["content"].length) {
         $("nav").after($("<div/>").addClass("alert alert-info").text("You don't have any links added yet!  Go to Settings to get started."));
     }
     var warn = false;
     // loop through blocks
-    for (var i in links) {
-        var linkBlk = links[i];
+    for (var i in settings.links["content"]) {
+        var linkBlk = settings.links["content"][i];
         if (!linkBlk.title) {
             linkBlk.title = "";
             warn = true;
@@ -32,7 +44,7 @@ $(document).ready(function() {
         blk.append($("<div/>").addClass("panel-heading").text(linkBlk.title));
         var body = $("<div/>").addClass("panel-body");
         // loop through buttons
-        for (var j in links[i].buttons) {
+        for (var j in linkBlk.buttons) {
             var linkBtn = linkBlk.buttons[j];
             if (!linkBtn.title) {
                 linkBtn.title = "";
@@ -153,11 +165,16 @@ $(document).ready(function() {
             $(root.children).each(function(i, el) {
                 // bookmark
                 if (el.url) {
-                    // disable bookmarklet
+                    // bookmarklet
                     if (el.url.substring(0, "javascript:".length) === "javascript:") {
-                        $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").text(el.title));
+                        if (settings.bookmarks["bookmarklets"]) {
+                            $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").text(el.title));
+                        }
                     } else {
-                        $("#bookmarks-block").append($("<a/>").addClass("btn btn-primary").attr("href", el.url).text(el.title));
+                        var link = $("<a/>").addClass("btn btn-primary").attr("href", el.url).text(el.title);
+                        // workaround for accessing Chrome URLs
+                        if (el.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
+                        $("#bookmarks-block").append(link);
                     }
                 // folder
                 } else if (el.children) {
@@ -165,6 +182,18 @@ $(document).ready(function() {
                         route.push(i);
                         populate(el);
                     }));
+                }
+            });
+            // open Chrome links via Tabs API
+            $(".link-chrome", "#bookmarks-block").click(function(e) {
+                // normal click, not external
+                if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                    chrome.tabs.update({url: this.href});
+                    e.preventDefault();
+                // middle click, Ctrl+click, or set as external
+                } else if (e.which <= 2) {
+                    chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                    e.preventDefault();
                 }
             });
             // breadcrumb navigation
@@ -195,15 +224,15 @@ $(document).ready(function() {
     History: quick drop-down of recent pages
     */
     // initialize limit to 10
-    if (typeof(localStorage.history) === "undefined") {
-        localStorage.history = 10;
+    if (typeof(settings.history["limit"]) === "undefined") {
+        settings.history["limit"] = 10;
     }
     var trim = function trim(str, len) {
         return str.length > len ? str.substring(0, len - 3) + "..." : str;
     }
-    if (parseInt(localStorage.history)) {
+    if (settings.history["limit"]) {
         // request items from History API
-        chrome.history.search({text: "", maxResults: parseInt(localStorage.history)}, function historyCallback(results) {
+        chrome.history.search({text: "", maxResults: settings.history["limit"]}, function historyCallback(results) {
             // loop through history items
             for (var i in results) {
                 var res = results[i];
@@ -217,10 +246,14 @@ $(document).ready(function() {
     Settings: modal to customize links and options
     */
     // set to current data
-    $("#settings-links-content").val(localStorage.links);
-    $("#settings-history-limit").val(localStorage.history);
+    $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
+    $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
+    $("#settings-history-limit").val(settings.history["limit"]);
+    var man = chrome.runtime.getManifest();
+    $("#settings-about-title").html(man.name + " <small>" + man.version + "</small>");
     $("#settings").on("hide.bs.modal", function(e) {
-        $("#settings-tab-links").removeClass("has-success has-error");
+        $("#settings-alerts").empty();
+        $("#settings-tab-links, #settings-tab-history").removeClass("has-success has-error");
     });
     $("#settings-links-content").focus(function(e) {
         $("#settings-tab-links").removeClass("has-success has-error");
@@ -233,12 +266,41 @@ $(document).ready(function() {
             $("#settings-tab-links").addClass("has-error");
         }
     });
+    $("#settings-history-limit").focus(function(e) {
+        $("#settings-tab-history").removeClass("has-success has-error");
+    }).blur(function(e) {
+        // validate number
+        if (isNaN(parseInt($(this).val()))) {
+            $("#settings-tab-history").addClass("has-error");
+        } else {
+            $("#settings-tab-history").addClass("has-success");
+        }
+    });
     // save and reload
     $("#settings-save").click(function(e) {
-        localStorage.links = $("#settings-links-content").val();
-        localStorage.history = $("#settings-history-limit").val();
-        $("#settings").on("hidden.bs.modal", function(e) {
-            location.reload();
-        }).modal("hide");
+        $("#settings-alerts").empty();
+        var ok = true;
+        try {
+            settings.links["content"] = JSON.parse($("#settings-links-content").val());
+        } catch (e) {
+            ok = false;
+            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The links content isn't valid JSON."));
+        }
+        settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
+        settings.history["limit"] = parseInt($("#settings-history-limit").val());
+        if (isNaN(settings.history.limit)) {
+            ok = false;
+            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The history entry limit is invalid."));
+        }
+        if (ok) {
+            // write to local storage
+            for (var key in settings) {
+                localStorage[key] = JSON.stringify(settings[key]);
+            }
+            // reload
+            $("#settings").on("hidden.bs.modal", function(e) {
+                location.reload();
+            }).modal("hide");
+        }
     });
 });

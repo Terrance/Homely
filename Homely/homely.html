@@ -37,17 +37,32 @@
                         <h4 class="modal-title">Settings</h4>
                     </div>
                     <div class="modal-body">
+                        <div id="settings-alerts"></div>
                         <ul class="nav nav-tabs">
                             <li class="active"><a data-toggle="tab" data-target="#settings-tab-links">Links</a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-bookmarks">Bookmarks</a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-history">History</a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-about">About</a></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="settings-tab-links">
                                 <p>Specify which pages to display on the links page.  Check the <a href="https://github.com/OllieTerrance/Homely" class="link-external">readme</a> for the syntax.</p>
                                 <textarea id="settings-links-content" class="form-control" rows="10"></textarea>
                             </div>
+                            <div class="tab-pane checkbox" id="settings-tab-bookmarks">
+                                <label>
+                                    <input id="settings-bookmarks-bookmarklets" type="checkbox">
+                                    <span>Show (but disable) bookmarklets in folders</span>
+                                </label>
+                            </div>
                             <div class="tab-pane" id="settings-tab-history">
-                                <p>Show <input id="settings-history-limit" type="number" min="0" placeholder="10" class="form-control input-sm input-inline"> entries in the dropdown (0 to disable).</p>
+                                <p>Show <input id="settings-history-limit" type="number" min="0" placeholder="10" class="form-control input-sm input-inline"> entries in the dropdown (0 to disable)</p>
+                            </div>
+                            <div class="tab-pane" id="settings-tab-about">
+                                <img src="res/img/icon-48.png"/>
+                                <h2 id="settings-about-title"></h2>
+                                <p>Written by <a class="link-external" href="http://terrance.uk.to">Ollie Terrance</a></p>
+                                <a class="btn btn-sm btn-default link-external" href="https://github.com/OllieTerrance/Homely">View on GitHub</a>
                             </div>
                         </div>
                     </div>
