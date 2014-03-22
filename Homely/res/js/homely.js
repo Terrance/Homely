@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    var man = chrome.runtime.getManifest();
     var settings = {
         "links": {
             "content": "[]"
@@ -8,6 +9,10 @@ $(document).ready(function() {
         },
         "history": {
             "limit": 10
+        },
+        "general": {
+            "title": man.name,
+            "font": "Segoe UI"
         }
     };
     // attempt to parse settings from storage
@@ -22,6 +27,8 @@ $(document).ready(function() {
             }
         }
     }
+    document.title = settings.general["title"];
+    $(document.body).css("font-family", settings.general["font"]);
     /*
     Links: customizable grid of links and menus
     */
@@ -156,7 +163,7 @@ $(document).ready(function() {
     });
     // request tree from Bookmarks API
     chrome.bookmarks.getTree(function bookmarksCallback(tree) {
-        tree[0].title = "Root";
+        tree[0].title = "Bookmarks";
         var route = [];
         var populate = function populate(root) {
             // clear current list
@@ -249,7 +256,14 @@ $(document).ready(function() {
     $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
     $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
     $("#settings-history-limit").val(settings.history["limit"]);
-    var man = chrome.runtime.getManifest();
+    $("#settings-general-title").val(settings.general["title"]);
+    // request list of fonts from FontSettings API
+    chrome.fontSettings.getFontList(function fontsCallback(fonts) {
+        for (var i in fonts) {
+            $("#settings-general-font").append($("<option/>").text(fonts[i].displayName));
+        }
+        $("#settings-general-font").val(settings.general["font"]);
+    });
     $("#settings-about-title").html(man.name + " <small>" + man.version + "</small>");
     $("#settings").on("hide.bs.modal", function(e) {
         $("#settings-alerts").empty();
@@ -287,11 +301,15 @@ $(document).ready(function() {
             $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The links content isn't valid JSON."));
         }
         settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
+        if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
         settings.history["limit"] = parseInt($("#settings-history-limit").val());
-        if (isNaN(settings.history.limit)) {
+        if (isNaN(settings.history["limit"])) {
             ok = false;
             $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The history entry limit is invalid."));
         }
+        if (!$("#settings-general-title").val()) $("#settings-general-title").val(man.name);
+        settings.general["title"] = $("#settings-general-title").val();
+        settings.general["font"] = $("#settings-general-font").val();
         if (ok) {
             // write to local storage
             for (var key in settings) {

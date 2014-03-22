@@ -2,6 +2,8 @@
     "name": "Homely",
     "description": "A custom New Tab page, aiming to provide a quick, customizable layout of links and menus, as well as simple bookmarks and history components.",
     "version": "1.0",
+    "author": "Ollie Terrance",
+    "homepage_url": "https://github.com/OllieTerrance/Homely",
     "incognito": "split",
     "chrome_url_overrides": {
         "newtab": "homely.html"
@@ -9,7 +11,8 @@
     "permissions": [
         "bookmarks",
         "tabs",
-        "history"
+        "history",
+        "fontSettings"
     ],
     "icons": {
         "16": "res/img/icon-16.png",

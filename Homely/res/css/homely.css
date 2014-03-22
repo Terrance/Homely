@@ -4,7 +4,6 @@ html {
 body {
     padding: 40px 0 30px;
     background: none;
-    font-family: "Segoe UI";
 }
 .btn-light {
     background-color: #ddd;
@@ -83,10 +82,6 @@ li a {
 .dropdown-menu a small.text-muted {
     margin-left: 10px;
 }
-#bookmarks .btn {
-    margin-bottom: 5px;
-    margin-right: 5px;
-}
 #bookmarks .panel-heading {
     padding: 10px 10px 5px 15px;
 }
@@ -99,6 +94,15 @@ li a {
 #bookmarks .panel-heading .caret-right {
     margin: 11px 5px 0 0;
 }
+#bookmarks .btn {
+    margin-bottom: 5px;
+    margin-right: 5px;
+    max-width: 100%;
+    overflow: hidden;
+}
+input[type=file] {
+    width: 100%;
+}
 .modal {
     overflow-y: auto;
 }
@@ -108,10 +112,6 @@ li a {
 .nav-tabs {
     margin-bottom: 15px;
 }
-input.input-inline {
-    display: inline;
-    width: 70px;
-}
 #settings-tab-about {
     text-align: center;
 }
@@ -120,4 +120,7 @@ input.input-inline {
 }
 #settings-tab-about h2 {
     margin-top: 0;
+}
+#settings .form-group:last-of-type {
+    margin-bottom: 0;
 }
