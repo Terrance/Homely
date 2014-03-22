@@ -20,8 +20,8 @@ Block
 
 ```json
 {
-    title: "Search Engines"
-    buttons: [/* ... */]
+    "title": "Search Engines",
+    "buttons": [...]
 }
 ```
 
@@ -34,17 +34,17 @@ A button can either be a simple link, or a dropdown containing many links.
 
 ```json
 {
-    title: "Google"
-    url: "http://www.google.co.uk",
-    style: "light"
+    "title": "Google",
+    "url": "http://www.google.co.uk",
+    "style": "light"
 }
 ```
 
 ```json
 {
-    title: "Google"
-    menu: [/* ... */],
-    style: "dark"
+    "title": "Google",
+    "menu": [...],
+    "style": "dark"
 }
 ```
 
@@ -58,21 +58,21 @@ A menu is a list of links and headings, converted into groups of links (a new gr
 ```json
 [
     {
-        title: "Worldwide",
-        url: "http://www.google.com"
+        "title": "Worldwide",
+        "url": "http://www.google.com"
     },
     {
-        title: "UK",
-        url: "http://www.google.co.uk"
+        "title": "UK",
+        "url": "http://www.google.co.uk"
     },
     "Tools",
     {
-        title: "Images",
-        url: "http://images.google.co.uk"
+        "title": "Images",
+        "url": "http://images.google.co.uk"
     },
     {
-        title: "Maps",
-        url: "http://maps.google.co.uk"
+        "title": "Maps",
+        "url": "http://maps.google.co.uk"
     }
 ]
 ```
