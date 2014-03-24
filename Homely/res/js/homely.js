@@ -1,8 +1,129 @@
 $(document).ready(function() {
-    var man = chrome.runtime.getManifest();
+    var manif = chrome.runtime.getManifest();
+    // default settings
     var settings = {
         "links": {
-            "content": "[]"
+            "content": [
+                {
+                    "title": "Chrome",
+                    "buttons": [
+                        {
+                            "title": "Web Store",
+                            "url": "https://chrome.google.com/webstore",
+                            "style": "primary"
+                        },
+                        {
+                            "title": "Settings",
+                            "menu": [
+                                {
+                                    "title": "Settings",
+                                    "url": "chrome://settings"
+                                },
+                                {
+                                    "title": "Extensions",
+                                    "url": "chrome://extensions"
+                                },
+                                {
+                                    "title": "Flags",
+                                    "url": "chrome://flags"
+                                }
+                            ],
+                            "style": "light"
+                        },
+                        {
+                            "title": "Content",
+                            "menu": [
+                                {
+                                    "title": "Apps",
+                                    "url": "chrome://apps"
+                                },
+                                {
+                                    "title": "Bookmarks",
+                                    "url": "chrome://bookmarks"
+                                },
+                                {
+                                    "title": "Downloads",
+                                    "url": "chrome://downloads"
+                                },
+                                {
+                                    "title": "History",
+                                    "url": "chrome://history"
+                                }
+                            ],
+                            "style": "default"
+                        }
+                    ]
+                },
+                {
+                    "title": "Storage",
+                    "buttons": [
+                        {
+                            "title": "Dropbox",
+                            "url": "https://www.dropbox.com",
+                            "style": "info"
+                        },
+                        {
+                            "title": "Google Drive",
+                            "url": "https://drive.google.com",
+                            "style": "warning"
+                        },
+                        {
+                            "title": "OneDrive",
+                            "url": "https://onedrive.live.com",
+                            "style": "primary"
+                        }
+                    ]
+                },
+                {
+                    "title": "Social",
+                    "buttons": [
+                        {
+                            "title": "Facebook",
+                            "url": "https://www.facebook.com",
+                            "style": "primary"
+                        },
+                        {
+                            "title": "Twitter",
+                            "menu": [
+                                {
+                                    "title": "Twitter",
+                                    "url": "https://twitter.com"
+                                },
+                                {
+                                    "title": "TweetDeck",
+                                    "url": "https://tweetdeck.twitter.com"
+                                }
+                            ],
+                            "style": "info"
+                        },
+                        {
+                            "title": "Google+",
+                            "url": "https://plus.google.com",
+                            "style": "danger"
+                        }
+                    ]
+                },
+                {
+                    "title": "Tips",
+                    "buttons": [
+                        {
+                            "title": "Lifehacker",
+                            "url": "http://lifehacker.com",
+                            "style": "success"
+                        },
+                        {
+                            "title": "AddictiveTips",
+                            "url": "http://www.addictivetips.com",
+                            "style": "primary"
+                        },
+                        {
+                            "title": "How-To Geek",
+                            "url": "http://www.howtogeek.com",
+                            "style": "dark"
+                        }
+                    ]
+                }
+            ]
         },
         "bookmarks": {
             "bookmarklets": true
@@ -11,20 +132,32 @@ $(document).ready(function() {
             "limit": 10
         },
         "general": {
-            "title": man.name,
+            "title": manif.name,
             "font": "Segoe UI"
         }
     };
     // attempt to parse settings from storage
     var next;
+    var firstRun = true;
     for (var key in settings) {
         next = key;
         if (localStorage[key]) {
             try {
                 $.extend(settings[key], JSON.parse(localStorage[key]));
+                firstRun = false;
             } catch (e) {
                 $("nav").after($("<div/>").addClass("alert alert-danger").text("Unable to parse the " + next + " configuration!  Go to Settings to fix it."));
             }
+        }
+    }
+    if (firstRun) {
+        var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
+        alert.append($("<button/>").addClass("close").attr("type", "button").attr("data-dismiss", "alert").html("&times;"));
+        alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  Feel free to head into the Settings to change them.</span>")
+        $("nav").after(alert);
+        // write to local storage
+        for (var key in settings) {
+            localStorage[key] = JSON.stringify(settings[key]);
         }
     }
     document.title = settings.general["title"];
@@ -265,7 +398,7 @@ $(document).ready(function() {
         }
         $("#settings-general-font").val(settings.general["font"]);
     });
-    $("#settings-about-title").html(man.name + " <small>" + man.version + "</small>");
+    $("#settings-about-title").html(manif.name + " <small>" + manif.version + "</small>");
     // reset modal on hide
     $("#settings").on("hidden.bs.modal", function(e) {
         $("#settings-alerts").empty();
@@ -306,7 +439,7 @@ $(document).ready(function() {
         settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
         if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
         settings.history["limit"] = parseInt($("#settings-history-limit").val());
-        if (!$("#settings-general-title").val()) $("#settings-general-title").val(man.name);
+        if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
         settings.general["title"] = $("#settings-general-title").val();
         settings.general["font"] = $("#settings-general-font").val();
         if (ok) {

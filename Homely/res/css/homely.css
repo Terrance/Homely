@@ -103,6 +103,10 @@ li a {
 input[type=range] {
     margin-top: 6px;
 }
+.input-mono {
+    font-family: monospace;
+    font-size: 11px;
+}
 .modal {
     overflow-y: auto;
 }

@@ -79,6 +79,6 @@ A menu is a list of links and headings, converted into groups of links (a new gr
 ]
 ```
 
-If all is well, you should end up with a dropdown like this:
+With the above steps, you should end up with a block and dropdown like this:
 
 ![Search Engines example](http://i.imgur.com/V6jkCoj.png)
