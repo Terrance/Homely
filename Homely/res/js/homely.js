@@ -136,7 +136,7 @@ $(document).ready(function() {
             "font": "Segoe UI",
             "topbar": false,
             "background": {
-                "image": "res/img/bg.png",
+                "image": "../img/bg.png",
                 "repeat": true
             }
         }
@@ -414,7 +414,7 @@ $(document).ready(function() {
         case "":
             $("#settings-general-background-image").prop("placeholder", "(none)");
             break;
-        case "res/img/bg.png":
+        case "../img/bg.png":
             $("#settings-general-background-image").prop("placeholder", "(default)");
             break;
     }
@@ -484,7 +484,7 @@ $(document).ready(function() {
     });
     // reset to default stripes
     $("#settings-general-background-default").on("click", function(e) {
-        $("#settings-general-background-image").data("val", "res/img/bg.png").prop("placeholder", "(default)").val("");
+        $("#settings-general-background-image").data("val", "../img/bg.png").prop("placeholder", "(default)").val("");
         $("#settings-general-background-repeat").prop("disabled", false).prop("checked", true).next().toggleClass("text-muted", false);
     });
     // save and reload

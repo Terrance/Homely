@@ -6,7 +6,7 @@
     "author": "Ollie Terrance",
     "homepage_url": "https://github.com/OllieTerrance/Homely",
     "chrome_url_overrides": {
-        "newtab": "homely.html"
+        "newtab": "res/html/homely.html"
     },
     "permissions": [
         "bookmarks",
