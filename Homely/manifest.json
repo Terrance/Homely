@@ -5,7 +5,6 @@
     "version": "1.0",
     "author": "Ollie Terrance",
     "homepage_url": "https://github.com/OllieTerrance/Homely",
-    "incognito": "split",
     "chrome_url_overrides": {
         "newtab": "homely.html"
     },
@@ -16,8 +15,8 @@
     ],
     "icons": {
         "16": "res/img/icon-16.png",
-        "48": "res/img/icon-48.png",
-        "128": "res/img/icon-128.png"
+        "48": "res/img/logo-48.png",
+        "128": "res/img/logo-128.png"
     },
     "manifest_version": 2
 }
