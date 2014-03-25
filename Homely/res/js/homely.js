@@ -133,7 +133,12 @@ $(document).ready(function() {
         },
         "general": {
             "title": manif.name,
-            "font": "Segoe UI"
+            "font": "Segoe UI",
+            "topbar": false,
+            "background": {
+                "image": "res/img/bg.png",
+                "repeat": true
+            }
         }
     };
     // attempt to parse settings from storage
@@ -160,8 +165,14 @@ $(document).ready(function() {
             localStorage[key] = JSON.stringify(settings[key]);
         }
     }
+    // apply custom styles
     document.title = settings.general["title"];
     $(document.body).css("font-family", settings.general["font"]);
+    if (settings.general["topbar"]) {
+        $("nav").addClass("navbar-fixed-top");
+        $("body").css("padding-top", "80px");
+    }
+    $("html").css("background-image", "url(" + settings.general["background"].image + ")").css("background-repeat", settings.general["background"].repeat ? "repeat" : "no-repeat");
     /*
     Links: customizable grid of links and menus
     */
@@ -386,11 +397,27 @@ $(document).ready(function() {
     Settings: modal to customize links and options
     */
     // set to current data
-    $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
-    $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
-    $("#settings-history-limit").val(settings.history["limit"]);
-    $("#settings-history-limit-value").text(settings.history["limit"]);
-    $("#settings-general-title").val(settings.general["title"]);
+    function prepSettingsModal() {
+        $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
+        $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
+        $("#settings-history-limit").val(settings.history["limit"]);
+        $("#settings-history-limit-value").text(settings.history["limit"]);
+        $("#settings-general-title").val(settings.general["title"]);
+        $("#settings-general-font").val(settings.general["font"]);
+        $("#settings-general-topbar").prop("checked", settings.general["topbar"]);
+        $("#settings-general-background-image").data("val", settings.general["background"].image).prop("placeholder", "(unchanged)");
+        $("#settings-general-background-repeat").prop("checked", settings.general["background"].repeat).prop("disabled", !settings.general["background"].image)
+                                                .next().toggleClass("text-muted", !settings.general["background"].image);
+    }
+    prepSettingsModal();
+    switch (settings.general["background"].image) {
+        case "":
+            $("#settings-general-background-image").prop("placeholder", "(none)");
+            break;
+        case "res/img/bg.png":
+            $("#settings-general-background-image").prop("placeholder", "(default)");
+            break;
+    }
     // request list of fonts from FontSettings API
     chrome.fontSettings.getFontList(function fontsCallback(fonts) {
         for (var i in fonts) {
@@ -403,14 +430,10 @@ $(document).ready(function() {
     $("#settings").on("hidden.bs.modal", function(e) {
         $("#settings-alerts").empty();
         $(".form-group", "#settings-tab-links").removeClass("has-success has-error");
-        $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
-        $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
-        $("#settings-history-limit").val(settings.history["limit"]);
-        $("#settings-history-limit-value").text(settings.history["limit"]);
-        $("#settings-general-title").val(settings.general["title"]);
-        $("#settings-general-font").val(settings.general["font"]);
+        prepSettingsModal();
         $($("#settings-tabs a")[0]).click();
     });
+    // links content editor
     $("#settings-links-content").focus(function(e) {
         $("#settings-alerts").empty();
         $(this).closest(".form-group").removeClass("has-success has-error");
@@ -425,6 +448,44 @@ $(document).ready(function() {
     });
     $("#settings-history-limit").on("input change", function(e) {
         $("#settings-history-limit-value").text($(this).val());
+    });
+    // background image selector
+    $("#settings-general-background-image").on("input change", function(e) {
+        // lose previous value on change
+        $(this).data("val", "").prop("placeholder", "(none)");
+        $("#settings-general-background-repeat").prop("disabled", !$(this).val()).next().toggleClass("text-muted", !$(this).val());
+    });
+    $("#settings-general-background-choose").on("click", function(e) {
+        // trigger hidden input field
+        $("#settings-alerts").empty();
+        $("#settings-general-background-file").click();
+    });
+    $("#settings-general-background-file").on("change", function(e) {
+        // if a file is selected
+        if (this.files.length) {
+            var file = this.files.item(0);
+            // if an image
+            if (file.type.match(/^image\//)) {
+                var reader = new FileReader;
+                reader.readAsDataURL(file);
+                reader.onload = function readerLoaded() {
+                   $("#settings-general-background-image").data("val", reader.result).prop("placeholder", file.name).val("");
+                   $("#settings-general-background-file").val("");
+                };
+            } else {
+                $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(file.name + " doesn't seem to be a valid image file."));
+            }
+        }
+    });
+    // clear image
+    $("#settings-general-background-none").on("click", function(e) {
+        $("#settings-general-background-image").data("val", "").prop("placeholder", "(none)").val("");
+        $("#settings-general-background-repeat").prop("disabled", true).next().toggleClass("text-muted", true);
+    });
+    // reset to default stripes
+    $("#settings-general-background-default").on("click", function(e) {
+        $("#settings-general-background-image").data("val", "res/img/bg.png").prop("placeholder", "(default)").val("");
+        $("#settings-general-background-repeat").prop("disabled", false).prop("checked", true).next().toggleClass("text-muted", false);
     });
     // save and reload
     $("#settings-save").click(function(e) {
@@ -442,6 +503,11 @@ $(document).ready(function() {
         if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
         settings.general["title"] = $("#settings-general-title").val();
         settings.general["font"] = $("#settings-general-font").val();
+        settings.general["topbar"] = $("#settings-general-topbar").prop("checked");
+        settings.general["background"] = {
+            image: $("#settings-general-background-image").val() ? $("#settings-general-background-image").val() : $("#settings-general-background-image").data("val"),
+            repeat: $("#settings-general-background-repeat").prop("checked")
+        };
         if (ok) {
             // write to local storage
             for (var key in settings) {

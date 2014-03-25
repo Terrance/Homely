@@ -32,7 +32,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <button class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                         <h4 class="modal-title">Settings</h4>
                     </div>
                     <div class="modal-body">
@@ -90,6 +90,45 @@
                                         <p class="help-block">The font used for all text on the page.</p>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">Top bar</label>
+                                    <div class="col-sm-8">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input id="settings-general-topbar" type="checkbox">
+                                                <span>Fix to top of page</span>
+                                            </label>
+                                        </div>
+                                        <p class="help-block">The top bar will remain at the top as the page is scrolled.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="settings-general-background-image" class="col-sm-3 control-label">Background</label>
+                                    <div class="col-sm-8">
+                                        <div class="input-group">
+                                            <input id="settings-general-background-image" type="text" class="form-control">
+                                            <div class="input-group-btn">
+                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+                                                <ul class="dropdown-menu pull-right">
+                                                    <li><a id="settings-general-background-choose">Choose file...</a></li>
+                                                    <li class="divider"></li>
+                                                    <li><a id="settings-general-background-none">No image (blank)</a></li>
+                                                    <li><a id="settings-general-background-default">Reset to default</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <input id="settings-general-background-file" type="file" class="hidden">
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-background-repeat" type="checkbox">
+                                            <span>Tile background</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <p class="help-block">Can be a data URI or link to a remote image.  Note that remote backgrounds will not load when working offline.</p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tab-pane" id="settings-tab-about">
                                 <img src="res/img/logo-128.png"/>
@@ -100,8 +139,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button id="settings-save" type="button" class="btn btn-primary">Save and reload</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button id="settings-save" class="btn btn-primary">Save and reload</button>
+                        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
                     </div>
                 </div>
             </div>
