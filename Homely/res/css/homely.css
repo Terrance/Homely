@@ -107,12 +107,16 @@ input[type=range] {
 .input-mono {
     font-family: monospace;
     font-size: 11px;
+    padding: 6px 8px;
 }
 .modal {
     overflow-y: auto;
 }
 .modal-footer {
     margin-top: 0;
+}
+.form-control-pad-bottom {
+    padding-bottom: 7px;
 }
 #settings .nav-tabs {
     margin-bottom: 15px;

@@ -138,6 +138,10 @@ $(document).ready(function() {
             "background": {
                 "image": "../img/bg.png",
                 "repeat": true
+            },
+            "customcss": {
+                "enable": false,
+                "content": ""
             }
         }
     };
@@ -173,6 +177,9 @@ $(document).ready(function() {
         $("body").css("padding-top", "80px");
     }
     $("html").css("background-image", "url(" + settings.general["background"].image + ")").css("background-repeat", settings.general["background"].repeat ? "repeat" : "no-repeat");
+    if (settings.general["customcss"].enable) {
+        $(document.head).append($("<style/>").html(settings.general["customcss"].content));
+    }
     /*
     Links: customizable grid of links and menus
     */
@@ -408,6 +415,8 @@ $(document).ready(function() {
         $("#settings-general-background-image").data("val", settings.general["background"].image).prop("placeholder", "(unchanged)");
         $("#settings-general-background-repeat").prop("checked", settings.general["background"].repeat).prop("disabled", !settings.general["background"].image)
                                                 .next().toggleClass("text-muted", !settings.general["background"].image);
+        $("#settings-general-customcss-enable").prop("checked", settings.general["customcss"].enable);
+        $("#settings-general-customcss-content").prop("disabled", !settings.general["customcss"].enable).val(settings.general["customcss"].content);
     }
     prepSettingsModal();
     switch (settings.general["background"].image) {
@@ -455,12 +464,12 @@ $(document).ready(function() {
         $(this).data("val", "").prop("placeholder", "(none)");
         $("#settings-general-background-repeat").prop("disabled", !$(this).val()).next().toggleClass("text-muted", !$(this).val());
     });
-    $("#settings-general-background-choose").on("click", function(e) {
+    $("#settings-general-background-choose").click(function(e) {
         // trigger hidden input field
         $("#settings-alerts").empty();
         $("#settings-general-background-file").click();
     });
-    $("#settings-general-background-file").on("change", function(e) {
+    $("#settings-general-background-file").change(function(e) {
         // if a file is selected
         if (this.files.length) {
             var file = this.files.item(0);
@@ -478,14 +487,18 @@ $(document).ready(function() {
         }
     });
     // clear image
-    $("#settings-general-background-none").on("click", function(e) {
+    $("#settings-general-background-none").click(function(e) {
         $("#settings-general-background-image").data("val", "").prop("placeholder", "(none)").val("");
         $("#settings-general-background-repeat").prop("disabled", true).next().toggleClass("text-muted", true);
     });
     // reset to default stripes
-    $("#settings-general-background-default").on("click", function(e) {
+    $("#settings-general-background-default").click(function(e) {
         $("#settings-general-background-image").data("val", "../img/bg.png").prop("placeholder", "(default)").val("");
         $("#settings-general-background-repeat").prop("disabled", false).prop("checked", true).next().toggleClass("text-muted", false);
+    });
+    // custom CSS editor
+    $("#settings-general-customcss-enable").change(function(e) {
+        $("#settings-general-customcss-content").prop("disabled", !$(this).prop("checked")).focus();
     });
     // save and reload
     $("#settings-save").click(function(e) {
@@ -507,6 +520,10 @@ $(document).ready(function() {
         settings.general["background"] = {
             image: $("#settings-general-background-image").val() ? $("#settings-general-background-image").val() : $("#settings-general-background-image").data("val"),
             repeat: $("#settings-general-background-repeat").prop("checked")
+        };
+        settings.general["customcss"] = {
+            enable: $("#settings-general-customcss-content").val() && $("#settings-general-customcss-enable").prop("checked"),
+            content: $("#settings-general-customcss-content").val()
         };
         if (ok) {
             // write to local storage
