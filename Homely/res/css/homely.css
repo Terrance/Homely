@@ -71,7 +71,7 @@ fieldset[disabled] .btn-dark.active {
     vertical-align: top;
     width: 0;
 }
-li a {
+a {
     cursor: pointer;
 }
 .modal-title input.input-lg {

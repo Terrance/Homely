@@ -173,12 +173,6 @@ $(document).ready(function() {
             }
         }
     }
-    if (firstRun) {
-        // write to local storage
-        for (var key in settings) {
-            localStorage[key] = JSON.stringify(settings[key]);
-        }
-    }
     // apply custom styles
     document.title = settings.general["title"];
     var css = [];
@@ -252,6 +246,14 @@ $(document).ready(function() {
             editRoot.append(editBtn);
             var editMenu = $("<ul/>").addClass("dropdown-menu");
             if (i > 0) {
+                editMenu.append($("<li/>").append($("<a/>").text("Move to start").click(function(e) {
+                    for (var x = i; x > 0; x--) {
+                        settings.links["content"][x] = settings.links["content"][x - 1];
+                    }
+                    settings.links["content"][0] = linkBlk;
+                    localStorage["links"] = JSON.stringify(settings.links);
+                    populateLinks();
+                })));
                 editMenu.append($("<li/>").append($("<a/>").text("Move left").click(function(e) {
                     settings.links["content"][i] = settings.links["content"][i - 1];
                     settings.links["content"][i - 1] = linkBlk;
@@ -259,14 +261,44 @@ $(document).ready(function() {
                     populateLinks();
                 })));
             }
-            if (i < settings.links["content"].length - 1) {
+            var max = settings.links["content"].length - 1;
+            if (i < max) {
                 editMenu.append($("<li/>").append($("<a/>").text("Move right").click(function(e) {
                     settings.links["content"][i] = settings.links["content"][i + 1];
                     settings.links["content"][i + 1] = linkBlk;
                     localStorage["links"] = JSON.stringify(settings.links);
                     populateLinks();
                 })));
+                editMenu.append($("<li/>").append($("<a/>").text("Move to end").click(function(e) {
+                    for (var x = i; x < max; x++) {
+                        settings.links["content"][x] = settings.links["content"][x + 1];
+                    }
+                    settings.links["content"][max] = linkBlk;
+                    localStorage["links"] = JSON.stringify(settings.links);
+                    populateLinks();
+                })));
             }
+            if (i > 0 || i < max) {
+                editMenu.append($("<li/>").addClass("divider"));
+            }
+            editMenu.append($("<li/>").append($("<a/>").text("New block before").click(function(e) {
+                settings.links["content"].splice(i, 0, {
+                    title: "",
+                    buttons: []
+                });
+                localStorage["links"] = JSON.stringify(settings.links);
+                populateLinks();
+                $("#links-editor").data("block", i).modal("show");
+            })));
+            editMenu.append($("<li/>").append($("<a/>").text("New block after").click(function(e) {
+                settings.links["content"].splice(i + 1, 0, {
+                    title: "",
+                    buttons: []
+                });
+                localStorage["links"] = JSON.stringify(settings.links);
+                populateLinks();
+                $("#links-editor").data("block", i + 1).modal("show");
+            })));
             editMenu.append($("<li/>").addClass("divider"));
             editMenu.append($("<li/>").append($("<a/>").text("Edit block").click(function(e) {
                 $("#links-editor").data("block", i).modal("show");
@@ -331,18 +363,6 @@ $(document).ready(function() {
             blk.append(body);
             $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(blk));
         });
-        var addBlk = $("<div/>").addClass("panel panel-default");
-        var addBtn = $("<button/>").addClass("btn btn-block btn-default").text("Add block...").click(function(e) {
-            settings.links["content"].push({
-                title: "New block",
-                buttons: []
-            });
-            localStorage["links"] = JSON.stringify(settings.links);
-            populateLinks();
-            $("#links-editor").data("block", settings.links["content"].length - 1).modal("show");
-        });
-        addBlk.append($("<div/>").addClass("panel-heading").append(addBtn));
-        $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(addBlk));
         fixLinkHandling();
     }
     populateLinks();
@@ -369,20 +389,35 @@ $(document).ready(function() {
                 btnRootLeft.append(optsBtn);
                 var optsMenu = $("<ul/>").addClass("dropdown-menu");
                 if (j > 0) {
+                    optsMenu.append($("<li/>").append($("<a/>").text("Move to top").click(function(e) {
+                        for (var x = j; x > 0; x--) {
+                            linkBlk.buttons[x] = linkBlk.buttons[x - 1];
+                        }
+                        linkBlk.buttons[0] = linkBtn;
+                        populateLinkEditor();
+                    })));
                     optsMenu.append($("<li/>").append($("<a/>").text("Move up").click(function(e) {
                         linkBlk.buttons[j] = linkBlk.buttons[j - 1];
                         linkBlk.buttons[j - 1] = linkBtn;
                         populateLinkEditor();
                     })));
                 }
-                if (j < linkBlk.buttons.length - 1) {
+                var max = linkBlk.buttons.length - 1;
+                if (j < max) {
                     optsMenu.append($("<li/>").append($("<a/>").text("Move down").click(function(e) {
                         linkBlk.buttons[j] = linkBlk.buttons[j + 1];
                         linkBlk.buttons[j + 1] = linkBtn;
                         populateLinkEditor();
                     })));
+                    optsMenu.append($("<li/>").append($("<a/>").text("Move to bottom").click(function(e) {
+                        for (var x = j; x < max; x++) {
+                            linkBlk.buttons[x] = linkBlk.buttons[x + 1];
+                        }
+                        linkBlk.buttons[max] = linkBtn;
+                        populateLinkEditor();
+                    })));
                 }
-                if (j > 0 || j < linkBlk.buttons.length - 1) {
+                if (j > 0 || j < max) {
                     optsMenu.append($("<li/>").addClass("divider"));
                 }
                 optsMenu.append($("<li/>").append($("<a/>").text("Delete button").click(function(e) {
@@ -555,12 +590,27 @@ $(document).ready(function() {
     });
     if (firstRun) {
         var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
-        alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;"));
-        alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  Feel free to head into the Settings to change them.</span>")
+        alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;").click(function(e) {
+            // write to local storage
+            for (var key in settings) {
+                localStorage[key] = JSON.stringify(settings[key]);
+            }
+        }));
+        alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  Feel free to change or add to them by hovering over the block headings for controls.  Head into Settings for more advanced options.</span>");
         $("#alerts").append(alert);
     }
     if (!settings.links["content"].length) {
-        $("#alerts").append($("<div/>").addClass("alert alert-info").text("You don't have any links added yet!  Go to Settings to get started."));
+        var text = $("<span><strong>You don't have any links added yet!</strong>  Get started by <a>adding a new block</a>.</span>");
+        $("a", text).click(function(e) {
+            settings.links["content"].push({
+                title: "",
+                buttons: []
+            });
+            localStorage["links"] = JSON.stringify(settings.links);
+            populateLinks();
+            $("#links-editor").data("block", settings.links["content"].length - 1).modal("show");
+        })
+        $("#alerts").append($("<div/>").addClass("alert alert-info").append(text));
     }
     // switch to links page
     $("#menu-links").click(function(e) {
