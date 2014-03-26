@@ -161,7 +161,7 @@ $(document).ready(function() {
     }
     if (firstRun) {
         var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
-        alert.append($("<button/>").addClass("close").attr("type", "button").attr("data-dismiss", "alert").html("&times;"));
+        alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;"));
         alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  Feel free to head into the Settings to change them.</span>")
         $("nav").after(alert);
         // write to local storage
@@ -171,12 +171,28 @@ $(document).ready(function() {
     }
     // apply custom styles
     document.title = settings.general["title"];
-    $(document.body).css("font-family", settings.general["font"]);
+    var css = [];
+    if (settings.general["font"]) {
+        css.push("* {\n"
+               + "    font-family: '" + settings.general["font"] + "';\n"
+               + "}");
+    }
     if (settings.general["topbar"]) {
         $("nav").addClass("navbar-fixed-top");
         $("body").css("padding-top", "80px");
+        css.push("body {\n"
+               + "    padding-top: 80px;\n"
+               + "}");
     }
-    $("html").css("background-image", "url(" + settings.general["background"].image + ")").css("background-repeat", settings.general["background"].repeat ? "repeat" : "no-repeat");
+    if (settings.general["background"].image) {
+        css.push("html {\n"
+               + "    background-image: url(" + settings.general["background"].image + ");\n"
+               + "    background-repeat: " + (settings.general["background"].repeat ? "" : "no-") + "-repeat;\n"
+               + "}");
+    }
+    if (css.length) {
+        $(document.head).append($("<style/>").html(css.join("\n")));
+    }
     if (settings.general["customcss"].enable) {
         $(document.head).append($("<style/>").html(settings.general["customcss"].content));
     }
@@ -316,7 +332,7 @@ $(document).ready(function() {
     chrome.bookmarks.getTree(function bookmarksCallback(tree) {
         tree[0].title = "Bookmarks";
         var route = [];
-        var populate = function populate(root) {
+        var populateBookmarks = function populateBookmarks(root) {
             // clear current list
             $("#bookmarks-block, #bookmarks-title").empty();
             // loop through folder children
@@ -338,7 +354,7 @@ $(document).ready(function() {
                 } else if (el.children) {
                     $("#bookmarks-block").append($("<button/>").addClass("btn btn-warning").text(el.title).click(function(e) {
                         route.push(i);
-                        populate(el);
+                        populateBookmarks(el);
                     }));
                 }
             });
@@ -363,7 +379,7 @@ $(document).ready(function() {
                         route.pop();
                     }
                     var els = traverse();
-                    populate(els[els.length - 1]);
+                    populateBookmarks(els[els.length - 1]);
                 }));
             });
         }
@@ -375,7 +391,7 @@ $(document).ready(function() {
             }
             return els;
         };
-        populate(tree[0]);
+        populateBookmarks(tree[0]);
         $("#menu-bookmarks").show();
     });
     /*
@@ -404,7 +420,7 @@ $(document).ready(function() {
     Settings: modal to customize links and options
     */
     // set to current data
-    function prepSettingsModal() {
+    var populateSettings = function populateSettings() {
         $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
         $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
         $("#settings-history-limit").val(settings.history["limit"]);
@@ -418,7 +434,6 @@ $(document).ready(function() {
         $("#settings-general-customcss-enable").prop("checked", settings.general["customcss"].enable);
         $("#settings-general-customcss-content").prop("disabled", !settings.general["customcss"].enable).val(settings.general["customcss"].content);
     }
-    prepSettingsModal();
     switch (settings.general["background"].image) {
         case "":
             $("#settings-general-background-image").prop("placeholder", "(none)");
@@ -435,11 +450,11 @@ $(document).ready(function() {
         $("#settings-general-font").val(settings.general["font"]);
     });
     $("#settings-about-title").html(manif.name + " <small>" + manif.version + "</small>");
-    // reset modal on hide
-    $("#settings").on("hidden.bs.modal", function(e) {
+    // reset modal on show
+    $("#settings").on("show.bs.modal", function(e) {
         $("#settings-alerts").empty();
         $(".form-group", "#settings-tab-links").removeClass("has-success has-error");
-        prepSettingsModal();
+        populateSettings();
         $($("#settings-tabs a")[0]).click();
     });
     // links content editor
