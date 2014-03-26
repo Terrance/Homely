@@ -1,5 +1,19 @@
 $(document).ready(function() {
+    // helper methods
+    var cap = function cap(s) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+    var pad = function pad(i) {
+        return i < 10 ? "0" + i : i.toString();
+    };
     var manif = chrome.runtime.getManifest();
+    // show current time in navbar
+    var tick = function tick() {
+        var now = new Date();
+        $("#time").text(pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()));
+    }
+    tick();
+    setInterval(tick, 1000);
     // default settings
     var settings = {
         "links": {
@@ -155,15 +169,11 @@ $(document).ready(function() {
                 $.extend(settings[key], JSON.parse(localStorage[key]));
                 firstRun = false;
             } catch (e) {
-                $("nav").after($("<div/>").addClass("alert alert-danger").text("Unable to parse the " + next + " configuration!  Go to Settings to fix it."));
+                $("#alerts").append($("<div/>").addClass("alert alert-danger").text("Unable to parse the " + next + " configuration!  Go to Settings to fix it."));
             }
         }
     }
     if (firstRun) {
-        var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
-        alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;"));
-        alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  Feel free to head into the Settings to change them.</span>")
-        $("nav").after(alert);
         // write to local storage
         for (var key in settings) {
             localStorage[key] = JSON.stringify(settings[key]);
@@ -199,81 +209,358 @@ $(document).ready(function() {
     /*
     Links: customizable grid of links and menus
     */
-    if (!settings.links["content"].length) {
-        $("nav").after($("<div/>").addClass("alert alert-info").text("You don't have any links added yet!  Go to Settings to get started."));
-    }
-    var warn = false;
-    // loop through blocks
-    for (var i in settings.links["content"]) {
-        var linkBlk = settings.links["content"][i];
-        if (!linkBlk.title) {
-            linkBlk.title = "";
-            warn = true;
-        };
-        if (!linkBlk.buttons) {
-            linkBlk.buttons = [];
-            warn = true;
-        };
-        var blk = $("<div/>").addClass("panel panel-default");
-        blk.append($("<div/>").addClass("panel-heading").text(linkBlk.title));
-        var body = $("<div/>").addClass("panel-body");
-        // loop through buttons
-        for (var j in linkBlk.buttons) {
-            var linkBtn = linkBlk.buttons[j];
-            if (!linkBtn.title) {
-                linkBtn.title = "";
-                warn = true;
+    // special link handling
+    var fixLinkHandling = function fixLinkHandling() {
+        // monitor Ctrl key to open links in a new tab
+        var ctrlDown = false;
+        $(window).keydown(function(e) {
+            if (e.keyCode === 17) ctrlDown = true;
+        }).keyup(function(e) {
+            if (e.keyCode === 17) ctrlDown = false;
+        });
+        // open Chrome links via Tabs API
+        $(".link-chrome").click(function(e) {
+            // normal click, not external
+            if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                chrome.tabs.update({url: this.href});
+                e.preventDefault();
+            // middle click, Ctrl+click, or set as external
+            } else if (e.which <= 2) {
+                chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                e.preventDefault();
             }
-            if (!linkBtn.url && !linkBtn.menu) warn = true;
-            if (!linkBtn.style) linkBtn.style = "default";
-            var btn;
-            if (linkBtn.url) {
-                btn = $("<a/>").addClass("btn btn-block btn-" + linkBtn.style).attr("href", linkBtn.url).text(linkBtn.title);
-                // workaround for accessing Chrome URLs
-                if (linkBtn.url.substring(0, "chrome://".length) === "chrome://") btn.addClass("link-chrome");
-                // always open in new tab
-                if (linkBtn.external) btn.addClass("link-external");
-                // menu overrides link
-                if (linkBtn.menu) warn = true;
+        });
+        // always open external links in a new tab
+        $(".link-external").click(function(e) {
+            if (!$(this).hasClass("link-chrome")) {
+                chrome.tabs.create({url: this.href, active: true});
+                e.preventDefault();
             }
-            if (linkBtn.menu) {
-                btn = $("<div/>").addClass("btn-group btn-block");
-                btn.append($("<button/>").addClass("btn btn-block btn-" + linkBtn.style + " dropdown-toggle").attr("type", "button").attr("data-toggle", "dropdown")
-                                         .text(linkBtn.title + " ").append($("<span/>").addClass("caret")));
-                var menu = $("<ul/>").addClass("dropdown-menu");
-                // loop through menu items
-                for (var k in linkBtn.menu) {
-                    var linkItem = linkBtn.menu[k];
-                    if (typeof(linkItem) === "string") {
-                        if (k > 0) {
-                            menu.append($("<li/>").addClass("divider"));
-                        }
-                        if (linkItem) {
-                            menu.append($("<li/>").addClass("dropdown-header").text(linkItem));
-                        }
-                    } else {
-                        if (!linkItem.title) {
-                            linkItem.title = "";
-                            warn = true;
-                        }
-                        if (!linkItem.url) warn = true;
-                        var item = $("<a/>").attr("href", linkItem.url).text(linkItem.title);
-                        // workaround for accessing Chrome URLs
-                        if (linkItem.url.substring(0, "chrome://".length) === "chrome://") item.addClass("link-chrome");
-                        // always open in new tab
-                        if (linkItem.external) item.addClass("link-external");
-                        menu.append($("<li/>").append(item));
-                    }
+        });
+    };
+    var populateLinks = function populateLinks() {
+        $("#alerts, #links").empty();
+        // loop through blocks
+        $(settings.links["content"]).each(function(i, linkBlk) {
+            if (!linkBlk.title) linkBlk.title = "";
+            if (!linkBlk.buttons) linkBlk.buttons = [];
+            var blk = $("<div/>").addClass("panel panel-default");
+            var head = $("<div/>").addClass("panel-heading").text(linkBlk.title);
+            if (!linkBlk.title) head.html("&nbsp;");
+            var editRoot = $("<div/>").addClass("btn-group pull-right");
+            var editBtn = $("<button/>").addClass("btn btn-xs btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")).hide();
+            editRoot.append(editBtn);
+            var editMenu = $("<ul/>").addClass("dropdown-menu");
+            if (i > 0) {
+                editMenu.append($("<li/>").append($("<a/>").text("Move left").click(function(e) {
+                    settings.links["content"][i] = settings.links["content"][i - 1];
+                    settings.links["content"][i - 1] = linkBlk;
+                    localStorage["links"] = JSON.stringify(settings.links);
+                    populateLinks();
+                })));
+            }
+            if (i < settings.links["content"].length - 1) {
+                editMenu.append($("<li/>").append($("<a/>").text("Move right").click(function(e) {
+                    settings.links["content"][i] = settings.links["content"][i + 1];
+                    settings.links["content"][i + 1] = linkBlk;
+                    localStorage["links"] = JSON.stringify(settings.links);
+                    populateLinks();
+                })));
+            }
+            editMenu.append($("<li/>").addClass("divider"));
+            editMenu.append($("<li/>").append($("<a/>").text("Edit block").click(function(e) {
+                $("#links-editor").data("block", i).modal("show");
+            })));
+            editMenu.append($("<li/>").append($("<a/>").text("Delete block").click(function(e) {
+                if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
+                    settings.links["content"].splice(i, 1);
+                    localStorage["links"] = JSON.stringify(settings.links);
+                    populateLinks();
                 }
-                btn.append(menu);
+            })));
+            editRoot.append(editMenu);
+            head.append(editRoot);
+            head.mouseenter(function(e) {
+                editBtn.show();
+            }).mouseleave(function(e) {
+                editBtn.hide();
+                if (editRoot.hasClass("open")) {
+                    editBtn.dropdown("toggle");
+                }
+            });
+            blk.append(head);
+            var body = $("<div/>").addClass("panel-body");
+            // loop through buttons
+            for (var j in linkBlk.buttons) {
+                var linkBtn = linkBlk.buttons[j];
+                if (!linkBtn.title) linkBtn.title = "";
+                if (!linkBtn.style) linkBtn.style = "default";
+                var btn;
+                if (linkBtn.url) {
+                    btn = $("<a/>").addClass("btn btn-block btn-" + linkBtn.style).attr("href", linkBtn.url).text(linkBtn.title);
+                    // workaround for accessing Chrome URLs
+                    if (linkBtn.url.substring(0, "chrome://".length) === "chrome://") btn.addClass("link-chrome");
+                    // always open in new tab
+                    if (linkBtn.external) btn.addClass("link-external");
+                }
+                if (linkBtn.menu) {
+                    btn = $("<div/>").addClass("btn-group btn-block");
+                    btn.append($("<button/>").addClass("btn btn-block btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown")
+                                             .text(linkBtn.title + " ").append($("<span/>").addClass("caret")));
+                    var menu = $("<ul/>").addClass("dropdown-menu");
+                    // loop through menu items
+                    for (var k in linkBtn.menu) {
+                        var linkItem = linkBtn.menu[k];
+                        if (typeof(linkItem) === "string") {
+                            if (k > 0) menu.append($("<li/>").addClass("divider"));
+                            if (linkItem) menu.append($("<li/>").addClass("dropdown-header").text(linkItem));
+                        } else {
+                            if (!linkItem.title) linkItem.title = "";
+                            var item = $("<a/>").attr("href", linkItem.url).text(linkItem.title);
+                            // workaround for accessing Chrome URLs
+                            if (linkItem.url.substring(0, "chrome://".length) === "chrome://") item.addClass("link-chrome");
+                            // always open in new tab
+                            if (linkItem.external) item.addClass("link-external");
+                            menu.append($("<li/>").append(item));
+                        }
+                    }
+                    btn.append(menu);
+                }
+                body.append(btn);
             }
-            body.append(btn);
-        }
-        blk.append(body);
-        $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(blk));
+            blk.append(body);
+            $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(blk));
+        });
+        var addBlk = $("<div/>").addClass("panel panel-default");
+        var addBtn = $("<button/>").addClass("btn btn-block btn-default").text("Add block...").click(function(e) {
+            settings.links["content"].push({
+                title: "New block",
+                buttons: []
+            });
+            localStorage["links"] = JSON.stringify(settings.links);
+            populateLinks();
+            $("#links-editor").data("block", settings.links["content"].length - 1).modal("show");
+        });
+        addBlk.append($("<div/>").addClass("panel-heading").append(addBtn));
+        $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(addBlk));
+        fixLinkHandling();
     }
-    if (warn) {
-        $("nav").after($("<div/>").addClass("alert alert-warning").text("Possible errors whilst parsing saved links.  Go to Settings and check the syntax."));
+    populateLinks();
+    // generate editor modal
+    $("#links-editor").on("show.bs.modal", function(e) {
+        var i = $(this).data("block");
+        // working copy
+        var linkBlk = $.extend(true, {}, settings.links["content"][i]);
+        $("#links-editor-title").val(linkBlk.title);
+        var populateLinkEditor = function populateLinkEditor(noscroll) {
+            // remember scroll position
+            var pos = noscroll ? 0 : document.body.scrollTop;
+            $("#links-editor-body").empty();
+            if (!linkBlk.buttons.length) {
+                $("#links-editor-body").append($("<div/>").addClass("alert alert-info").text("No buttons added yet."));
+            }
+            // loop through buttons in block
+            $(linkBlk.buttons).each(function(j, linkBtn) {
+                var blk = $("<div/>").addClass("well well-sm");
+                var group = $("<div/>").addClass("input-group form-control-pad-bottom");
+                // left menu
+                var btnRootLeft = $("<span/>").addClass("input-group-btn");
+                var optsBtn = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret"));
+                btnRootLeft.append(optsBtn);
+                var optsMenu = $("<ul/>").addClass("dropdown-menu");
+                if (j > 0) {
+                    optsMenu.append($("<li/>").append($("<a/>").text("Move up").click(function(e) {
+                        linkBlk.buttons[j] = linkBlk.buttons[j - 1];
+                        linkBlk.buttons[j - 1] = linkBtn;
+                        populateLinkEditor();
+                    })));
+                }
+                if (j < linkBlk.buttons.length - 1) {
+                    optsMenu.append($("<li/>").append($("<a/>").text("Move down").click(function(e) {
+                        linkBlk.buttons[j] = linkBlk.buttons[j + 1];
+                        linkBlk.buttons[j + 1] = linkBtn;
+                        populateLinkEditor();
+                    })));
+                }
+                if (j > 0 || j < linkBlk.buttons.length - 1) {
+                    optsMenu.append($("<li/>").addClass("divider"));
+                }
+                optsMenu.append($("<li/>").append($("<a/>").text("Delete button").click(function(e) {
+                    if (confirm("Are you sure you want to delete " + (linkBtn.title ? linkBtn.title : "this button") + "?")) {
+                        linkBlk.buttons.splice(j, 1);
+                        populateLinkEditor();
+                    }
+                })));
+                btnRootLeft.append(optsMenu);
+                group.append(btnRootLeft);
+                group.append($("<input>").attr("type", "text").addClass("form-control").val(linkBtn.title).change(function(e) {
+                    linkBtn.title = $(this).val();
+                }));
+                // right menus
+                var btnRootRight = $("<span/>").addClass("input-group-btn");
+                if (!linkBtn.style) {
+                    linkBtn.style = "default";
+                }
+                var stylesBtn = $("<button/>").addClass("btn btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown").text(cap(linkBtn.style));
+                btnRootRight.append(stylesBtn);
+                var stylesMenu = $("<ul/>").addClass("dropdown-menu pull-right");
+                var styles = ["default", "light", "dark", "primary", "info", "success", "warning", "danger"];
+                $(styles).each(function(k, style) {
+                    stylesMenu.append($("<li/>").append($("<a/>").text(cap(style)).click(function(e) {
+                        // remote all button style classes
+                        stylesBtn.removeClass(function(l, css) {
+                            return (css.match(/\bbtn-\S+/g) || []).join(" ");
+                        }).addClass("btn btn-" + styles[k]).text(cap(style));
+                    })));
+                });
+                btnRootRight.append(stylesMenu);
+                group.append(btnRootRight);
+                blk.append(group);
+                // link/menu options
+                if (linkBtn.menu) {
+                    var tbody = $("<tbody/>");
+                    $(linkBtn.menu).each(function(k, linkItem) {
+                        var tr = $("<tr/>");
+                        var menuOptsRoot = $("<div/>").addClass("btn-group btn-block");
+                        menuOptsRoot.append($("<button/>").addClass("btn btn-block btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")));
+                        var menuOptsMenu = $("<ul/>").addClass("dropdown-menu");
+                        if (k > 0) {
+                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move to top").click(function(e) {
+                                for (var x = k; x > 0; x--) {
+                                    linkBtn.menu[x] = linkBtn.menu[x - 1];
+                                }
+                                linkBtn.menu[0] = linkItem;
+                                populateLinkEditor();
+                            })));
+                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move up").click(function(e) {
+                                linkBtn.menu[k] = linkBtn.menu[k - 1];
+                                linkBtn.menu[k - 1] = linkItem;
+                                populateLinkEditor();
+                            })));
+                        }
+                        var max = linkBtn.menu.length - 1;
+                        if (k < max) {
+                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move down").click(function(e) {
+                                linkBtn.menu[k] = linkBtn.menu[k + 1];
+                                linkBtn.menu[k + 1] = linkItem;
+                                populateLinkEditor();
+                            })));
+                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move to bottom").click(function(e) {
+                                for (var x = k; x < max; x++) {
+                                    linkBtn.menu[x] = linkBtn.menu[x + 1];
+                                }
+                                linkBtn.menu[max] = linkItem;
+                                populateLinkEditor();
+                            })));
+                        }
+                        if (k > 0 || k < max) {
+                            menuOptsMenu.append($("<li/>").addClass("divider"));
+                        }
+                        menuOptsMenu.append($("<li/>").append($("<a/>").text("Delete item").click(function(e) {
+                            linkBtn.menu.splice(k, 1);
+                            populateLinkEditor();
+                        })));
+                        menuOptsRoot.append(menuOptsMenu);
+                        tr.append($("<td/>").append(menuOptsRoot));
+                        if (typeof(linkItem) === "string") {
+                            var title = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Section header (leave blank for none)").val(linkItem).change(function(e) {
+                                linkBtn.menu[k] = $(this).val();
+                            });
+                            tr.append($("<td/>").attr("colspan", 3).append(title));
+                        } else {
+                            var title = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Label").val(linkItem.title).change(function(e) {
+                                linkItem.title = $(this).val();
+                            });
+                            tr.append($("<td/>").append(title));
+                            var url = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "URL").val(linkItem.url).change(function(e) {
+                                linkItem.url = $(this).val();
+                            });
+                            tr.append($("<td/>").append(url));
+                            var external = $("<input>").attr("type", "checkbox").prop("checked", linkItem.external).change(function(e) {
+                                linkItem.external = $(this).prop("checked");
+                            });
+                            tr.append($("<td/>").append($("<label/>").addClass("checkbox-inline")
+                                                                     .append(external)
+                                                                     .append($("<span/>").text("External"))));
+                        }
+                        tbody.append(tr);
+                    });
+                    blk.append($("<table/>").addClass("table table-bordered table-condensed").append(tbody));
+                    var menuBtnsRoot = $("<div/>").addClass("btn-group");
+                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").text("Add link").click(function(e) {
+                        linkBtn.menu.push({
+                            title: "",
+                            url: ""
+                        });
+                        populateLinkEditor();
+                    }));
+                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").text("Add section").click(function(e) {
+                        linkBtn.menu.push("");
+                        populateLinkEditor();
+                    }));
+                    blk.append(menuBtnsRoot);
+                } else {
+                    blk.append($("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Link URL").val(linkBtn.url).change(function(e) {
+                        linkBtn.url = $(this).val();
+                    }));
+                    var check = $("<label/>").addClass("checkbox-inline");
+                    check.append($("<input>").attr("type", "checkbox").prop("checked", linkBtn.external).change(function(e) {
+                        linkBtn.external = $(this).val();
+                    }));
+                    check.append($("<span/>").text("Open link in new tab"));
+                    blk.append(check);
+                }
+                $("#links-editor-body").append(blk);
+            });
+            // reset scroll position
+            window.scrollTo(0, pos);
+        };
+        // add buttons to block
+        $("#links-editor-add-link").click(function(e) {
+            linkBlk.buttons.push({
+                title: "",
+                url: "",
+                style: "default"
+            });
+            populateLinkEditor();
+        })
+        $("#links-editor-add-menu").click(function(e) {
+            linkBlk.buttons.push({
+                title: "",
+                menu: [],
+                style: "default"
+            });
+            populateLinkEditor();
+        })
+        // save block
+        $("#links-editor-save").click(function(e) {
+            linkBlk.title = $("#links-editor-title").val();
+            settings.links["content"][i] = linkBlk;
+            localStorage["links"] = JSON.stringify(settings.links);
+            populateLinks();
+            $("#links-editor").modal("hide");
+        })
+        // delete block
+        $("#links-editor-delete").click(function(e) {
+            if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
+                settings.links["content"].splice(i, 1);
+                localStorage["links"] = JSON.stringify(settings.links);
+                populateLinks();
+                $("#links-editor").modal("hide");
+            }
+        })
+        populateLinkEditor(true);
+    }).on("hide.bs.modal", function(e) {
+        $("#links-editor-add-link, #links-editor-add-menu, #links-editor-save, #links-editor-delete").off("click");
+    });
+    if (firstRun) {
+        var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
+        alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;"));
+        alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  Feel free to head into the Settings to change them.</span>")
+        $("#alerts").append(alert);
+    }
+    if (!settings.links["content"].length) {
+        $("#alerts").append($("<div/>").addClass("alert alert-info").text("You don't have any links added yet!  Go to Settings to get started."));
     }
     // switch to links page
     $("#menu-links").click(function(e) {
@@ -282,42 +569,6 @@ $(document).ready(function() {
         $(".main").hide();
         $("#links").show();
     });
-    // monitor Ctrl key to open links in a new tab
-    var ctrlDown = false;
-    $(window).keydown(function(e) {
-        if (e.keyCode === 17) ctrlDown = true;
-    }).keyup(function(e) {
-        if (e.keyCode === 17) ctrlDown = false;
-    });
-    // open Chrome links via Tabs API
-    $(".link-chrome").click(function(e) {
-        // normal click, not external
-        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-            chrome.tabs.update({url: this.href});
-            e.preventDefault();
-        // middle click, Ctrl+click, or set as external
-        } else if (e.which <= 2) {
-            chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-            e.preventDefault();
-        }
-    });
-    // always open external links in a new tab
-    $(".link-external").click(function(e) {
-        if (!$(this).hasClass("link-chrome")) {
-            chrome.tabs.create({url: this.href, active: true});
-            e.preventDefault();
-        }
-    });
-    // show current time in navbar
-    var pad = function pad(i) {
-        return i < 10 ? "0" + i : i.toString();
-    };
-    var tick = function tick() {
-        var now = new Date();
-        $("#time").text(pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()));
-    }
-    tick();
-    setInterval(tick, 1000);
     /*
     Bookmarks: lightweight bookmark browser
     */

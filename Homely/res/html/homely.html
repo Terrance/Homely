@@ -23,7 +23,30 @@
                 </ul>
             </div>
         </nav>
+        <div id="alerts"></div>
         <div id="links" class="main row"></div>
+        <div id="links-editor" class="modal fade">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">
+                            <input id="links-editor-title" type="text" class="form-control input-lg" placeholder="Block label">
+                        </h4>
+                    </div>
+                    <div id="links-editor-body" class="modal-body"></div>
+                    <div class="modal-footer">
+                        <div class="btn-group pull-left">
+                            <button id="links-editor-add-link" class="btn btn-default">Add link</button>
+                            <button id="links-editor-add-menu" class="btn btn-default">Add menu</button>
+                        </div>
+                        <button id="links-editor-save" class="btn btn-primary">Save</button>
+                        <button id="links-editor-delete" class="btn btn-danger">Delete</button>
+                        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="bookmarks" class="main panel panel-default" style="display: none;">
             <div id="bookmarks-title" class="panel-heading"></div>
             <div id="bookmarks-block" class="panel-body"></div>
@@ -47,9 +70,9 @@
                         <div class="tab-content">
                             <div class="tab-pane active form" id="settings-tab-links">
                                 <div class="form-group">
-                                    <label for="settings-links-content" class="control-label">Main content</label>
+                                    <label for="settings-links-content" class="control-label">Blocks source</label>
                                     <textarea id="settings-links-content" class="form-control input-mono" rows="15"></textarea>
-                                    <p class="help-block">Specify which pages to display on the links page.  Check the <a href="https://github.com/OllieTerrance/Homely#links-format" class="link-external">readme</a> for the syntax.</p>
+                                    <p class="help-block">Edit the blocks displayed on the links page.  Check the <a href="https://github.com/OllieTerrance/Homely#links-format" class="link-external">readme</a> for the syntax.  You can also hover over block titles to show edit controls.</p>
                                 </div>
                             </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-bookmarks">
@@ -107,7 +130,7 @@
                                     <div class="col-sm-8">
                                         <div class="input-group">
                                             <input id="settings-general-background-image" type="text" class="form-control">
-                                            <div class="input-group-btn">
+                                            <span class="input-group-btn">
                                                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
                                                 <ul class="dropdown-menu pull-right">
                                                     <li><a id="settings-general-background-choose">Choose file...</a></li>
@@ -115,7 +138,7 @@
                                                     <li><a id="settings-general-background-none">No image (blank)</a></li>
                                                     <li><a id="settings-general-background-default">Reset to default</a></li>
                                                 </ul>
-                                            </div>
+                                            </span>
                                         </div>
                                         <input id="settings-general-background-file" type="file" class="hidden">
                                     </div>

@@ -74,8 +74,20 @@ fieldset[disabled] .btn-dark.active {
 li a {
     cursor: pointer;
 }
-#links .panel-heading {
-    text-align: center;
+.modal-title input.input-lg {
+    width: 90%;
+}
+#links-editor table {
+    margin-bottom: 7px;
+}
+#links-editor td label.checkbox-inline {
+    margin-top: 7px;
+}
+#links-editor tr td:nth-child(1) {
+    width: 40px;
+}
+#links-editor .well:last-of-type {
+    margin-bottom: 0;
 }
 .btn-block + .btn-block {
     margin-top: 5px;
