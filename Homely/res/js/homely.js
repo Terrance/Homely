@@ -152,7 +152,10 @@ $(document).ready(function() {
             "topbar": false,
             "background": {
                 "image": "../img/bg.png",
-                "repeat": true
+                "repeat": true,
+                "centre": true,
+                "fixed": false,
+                "stretch": false
             },
             "customcss": {
                 "enable": false,
@@ -192,7 +195,10 @@ $(document).ready(function() {
     if (settings.general["background"].image) {
         css.push("html {\n"
                + "    background-image: url(" + settings.general["background"].image + ");\n"
-               + "    background-repeat: " + (settings.general["background"].repeat ? "" : "no-") + "-repeat;\n"
+               + "    background-repeat: " + (settings.general["background"].repeat ? "" : "no-") + "repeat;\n"
+               + "    background-position: " + (settings.general["background"].centre ? "center" : "initial") + ";\n"
+               + "    background-attachment: " + (settings.general["background"].fixed ? "fixed" : "initial") + ";\n"
+               + "    background-size: " + (settings.general["background"].stretch ? "cover" : "auto") + ";\n"
                + "}");
     }
     if (css.length) {
@@ -734,8 +740,12 @@ $(document).ready(function() {
         $("#settings-general-font").val(settings.general["font"]);
         $("#settings-general-topbar").prop("checked", settings.general["topbar"]);
         $("#settings-general-background-image").data("val", settings.general["background"].image).prop("placeholder", "(unchanged)");
-        $("#settings-general-background-repeat").prop("checked", settings.general["background"].repeat).prop("disabled", !settings.general["background"].image)
-                                                .next().toggleClass("text-muted", !settings.general["background"].image);
+        $("#settings-general-background-repeat").prop("checked", settings.general["background"].repeat);
+        $("#settings-general-background-centre").prop("checked", settings.general["background"].centre);
+        $("#settings-general-background-fixed").prop("checked", settings.general["background"].fixed);
+        $("#settings-general-background-stretch").prop("checked", settings.general["background"].stretch);
+        $(".settings-general-background-check").prop("disabled", !settings.general["background"].image)
+                                               .next().toggleClass("text-muted", !settings.general["background"].image);
         $("#settings-general-customcss-enable").prop("checked", settings.general["customcss"].enable);
         $("#settings-general-customcss-content").prop("disabled", !settings.general["customcss"].enable).val(settings.general["customcss"].content);
     }
@@ -809,12 +819,16 @@ $(document).ready(function() {
     // clear image
     $("#settings-general-background-none").click(function(e) {
         $("#settings-general-background-image").data("val", "").prop("placeholder", "(none)").val("");
-        $("#settings-general-background-repeat").prop("disabled", true).next().toggleClass("text-muted", true);
+        $(".settings-general-background-check").prop("disabled", true).next().toggleClass("text-muted", true);
     });
     // reset to default stripes
     $("#settings-general-background-default").click(function(e) {
         $("#settings-general-background-image").data("val", "../img/bg.png").prop("placeholder", "(default)").val("");
-        $("#settings-general-background-repeat").prop("disabled", false).prop("checked", true).next().toggleClass("text-muted", false);
+        $("#settings-general-background-repeat").prop("checked", true);
+        $("#settings-general-background-centre").prop("checked", true);
+        $("#settings-general-background-fixed").prop("checked", false);
+        $("#settings-general-background-stretch").prop("checked", false);
+        $(".settings-general-background-check").prop("disabled", false).next().toggleClass("text-muted", false);
     });
     // custom CSS editor
     $("#settings-general-customcss-enable").change(function(e) {
@@ -840,7 +854,10 @@ $(document).ready(function() {
         settings.general["topbar"] = $("#settings-general-topbar").prop("checked");
         settings.general["background"] = {
             image: $("#settings-general-background-image").val() ? $("#settings-general-background-image").val() : $("#settings-general-background-image").data("val"),
-            repeat: $("#settings-general-background-repeat").prop("checked")
+            repeat: $("#settings-general-background-repeat").prop("checked"),
+            centre: $("#settings-general-background-centre").prop("checked"),
+            fixed: $("#settings-general-background-fixed").prop("checked"),
+            stretch: $("#settings-general-background-stretch").prop("checked")
         };
         settings.general["customcss"] = {
             enable: $("#settings-general-customcss-content").val() && $("#settings-general-customcss-enable").prop("checked"),

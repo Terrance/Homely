@@ -5,6 +5,7 @@
     "version": "1.0",
     "author": "Ollie Terrance",
     "homepage_url": "https://github.com/OllieTerrance/Homely",
+    "incognito": "split",
     "chrome_url_overrides": {
         "newtab": "res/html/homely.html"
     },
