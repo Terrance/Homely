@@ -68,11 +68,25 @@
                             <li><a data-toggle="tab" data-target="#settings-tab-about">About</a></li>
                         </ul>
                         <div class="tab-content">
-                            <div class="tab-pane active form" id="settings-tab-links">
+                            <div class="tab-pane active form-horizontal" id="settings-tab-links">
                                 <div class="form-group">
-                                    <label for="settings-links-content" class="control-label">Blocks source</label>
-                                    <textarea id="settings-links-content" class="form-control input-mono" rows="15"></textarea>
-                                    <p class="help-block">Edit the blocks displayed on the links page.  Check the <a href="https://github.com/OllieTerrance/Homely#links-format" class="link-external">readme</a> for the syntax.  You can also hover over block titles to show edit controls.</p>
+                                    <label class="col-sm-3 control-label">Edit controls</label>
+                                    <div class="col-sm-8">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input id="settings-links-edit" type="checkbox">
+                                                <span>Show edit controls for blocks</span>
+                                            </label>
+                                        </div>
+                                        <p class="help-block">Hover over a block header to reveal controls.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="settings-history-limit" class="col-sm-3 control-label">Blocks source</label>
+                                    <div class="col-sm-8">
+                                        <textarea id="settings-links-content" class="form-control input-mono" rows="15"></textarea>
+                                        <p class="help-block">Edit the blocks displayed on the links page in JSON.  Check the <a href="https://github.com/OllieTerrance/Homely#links-format" class="link-external">readme page</a> for the full syntax.</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-bookmarks">

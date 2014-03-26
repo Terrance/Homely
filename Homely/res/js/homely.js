@@ -17,6 +17,7 @@ $(document).ready(function() {
     // default settings
     var settings = {
         "links": {
+            "edit": true,
             "content": [
                 {
                     "title": "Chrome",
@@ -241,85 +242,87 @@ $(document).ready(function() {
             var blk = $("<div/>").addClass("panel panel-default");
             var head = $("<div/>").addClass("panel-heading").text(linkBlk.title);
             if (!linkBlk.title) head.html("&nbsp;");
-            var editRoot = $("<div/>").addClass("btn-group pull-right");
-            var editBtn = $("<button/>").addClass("btn btn-xs btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")).hide();
-            editRoot.append(editBtn);
-            var editMenu = $("<ul/>").addClass("dropdown-menu");
-            if (i > 0) {
-                editMenu.append($("<li/>").append($("<a/>").text("Move to start").click(function(e) {
-                    for (var x = i; x > 0; x--) {
-                        settings.links["content"][x] = settings.links["content"][x - 1];
-                    }
-                    settings.links["content"][0] = linkBlk;
+            if (settings.links["edit"]) {
+                var editRoot = $("<div/>").addClass("btn-group pull-right");
+                var editBtn = $("<button/>").addClass("btn btn-xs btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")).hide();
+                editRoot.append(editBtn);
+                var editMenu = $("<ul/>").addClass("dropdown-menu");
+                if (i > 0) {
+                    editMenu.append($("<li/>").append($("<a/>").text("Move to start").click(function(e) {
+                        for (var x = i; x > 0; x--) {
+                            settings.links["content"][x] = settings.links["content"][x - 1];
+                        }
+                        settings.links["content"][0] = linkBlk;
+                        localStorage["links"] = JSON.stringify(settings.links);
+                        populateLinks();
+                    })));
+                    editMenu.append($("<li/>").append($("<a/>").text("Move left").click(function(e) {
+                        settings.links["content"][i] = settings.links["content"][i - 1];
+                        settings.links["content"][i - 1] = linkBlk;
+                        localStorage["links"] = JSON.stringify(settings.links);
+                        populateLinks();
+                    })));
+                }
+                var max = settings.links["content"].length - 1;
+                if (i < max) {
+                    editMenu.append($("<li/>").append($("<a/>").text("Move right").click(function(e) {
+                        settings.links["content"][i] = settings.links["content"][i + 1];
+                        settings.links["content"][i + 1] = linkBlk;
+                        localStorage["links"] = JSON.stringify(settings.links);
+                        populateLinks();
+                    })));
+                    editMenu.append($("<li/>").append($("<a/>").text("Move to end").click(function(e) {
+                        for (var x = i; x < max; x++) {
+                            settings.links["content"][x] = settings.links["content"][x + 1];
+                        }
+                        settings.links["content"][max] = linkBlk;
+                        localStorage["links"] = JSON.stringify(settings.links);
+                        populateLinks();
+                    })));
+                }
+                if (i > 0 || i < max) {
+                    editMenu.append($("<li/>").addClass("divider"));
+                }
+                editMenu.append($("<li/>").append($("<a/>").text("New block before").click(function(e) {
+                    settings.links["content"].splice(i, 0, {
+                        title: "",
+                        buttons: []
+                    });
                     localStorage["links"] = JSON.stringify(settings.links);
                     populateLinks();
+                    $("#links-editor").data("block", i).modal("show");
                 })));
-                editMenu.append($("<li/>").append($("<a/>").text("Move left").click(function(e) {
-                    settings.links["content"][i] = settings.links["content"][i - 1];
-                    settings.links["content"][i - 1] = linkBlk;
+                editMenu.append($("<li/>").append($("<a/>").text("New block after").click(function(e) {
+                    settings.links["content"].splice(i + 1, 0, {
+                        title: "",
+                        buttons: []
+                    });
                     localStorage["links"] = JSON.stringify(settings.links);
                     populateLinks();
+                    $("#links-editor").data("block", i + 1).modal("show");
                 })));
-            }
-            var max = settings.links["content"].length - 1;
-            if (i < max) {
-                editMenu.append($("<li/>").append($("<a/>").text("Move right").click(function(e) {
-                    settings.links["content"][i] = settings.links["content"][i + 1];
-                    settings.links["content"][i + 1] = linkBlk;
-                    localStorage["links"] = JSON.stringify(settings.links);
-                    populateLinks();
-                })));
-                editMenu.append($("<li/>").append($("<a/>").text("Move to end").click(function(e) {
-                    for (var x = i; x < max; x++) {
-                        settings.links["content"][x] = settings.links["content"][x + 1];
-                    }
-                    settings.links["content"][max] = linkBlk;
-                    localStorage["links"] = JSON.stringify(settings.links);
-                    populateLinks();
-                })));
-            }
-            if (i > 0 || i < max) {
                 editMenu.append($("<li/>").addClass("divider"));
+                editMenu.append($("<li/>").append($("<a/>").text("Edit block").click(function(e) {
+                    $("#links-editor").data("block", i).modal("show");
+                })));
+                editMenu.append($("<li/>").append($("<a/>").text("Delete block").click(function(e) {
+                    if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
+                        settings.links["content"].splice(i, 1);
+                        localStorage["links"] = JSON.stringify(settings.links);
+                        populateLinks();
+                    }
+                })));
+                editRoot.append(editMenu);
+                head.append(editRoot);
+                head.mouseenter(function(e) {
+                    editBtn.show();
+                }).mouseleave(function(e) {
+                    editBtn.hide();
+                    if (editRoot.hasClass("open")) {
+                        editBtn.dropdown("toggle");
+                    }
+                });
             }
-            editMenu.append($("<li/>").append($("<a/>").text("New block before").click(function(e) {
-                settings.links["content"].splice(i, 0, {
-                    title: "",
-                    buttons: []
-                });
-                localStorage["links"] = JSON.stringify(settings.links);
-                populateLinks();
-                $("#links-editor").data("block", i).modal("show");
-            })));
-            editMenu.append($("<li/>").append($("<a/>").text("New block after").click(function(e) {
-                settings.links["content"].splice(i + 1, 0, {
-                    title: "",
-                    buttons: []
-                });
-                localStorage["links"] = JSON.stringify(settings.links);
-                populateLinks();
-                $("#links-editor").data("block", i + 1).modal("show");
-            })));
-            editMenu.append($("<li/>").addClass("divider"));
-            editMenu.append($("<li/>").append($("<a/>").text("Edit block").click(function(e) {
-                $("#links-editor").data("block", i).modal("show");
-            })));
-            editMenu.append($("<li/>").append($("<a/>").text("Delete block").click(function(e) {
-                if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
-                    settings.links["content"].splice(i, 1);
-                    localStorage["links"] = JSON.stringify(settings.links);
-                    populateLinks();
-                }
-            })));
-            editRoot.append(editMenu);
-            head.append(editRoot);
-            head.mouseenter(function(e) {
-                editBtn.show();
-            }).mouseleave(function(e) {
-                editBtn.hide();
-                if (editRoot.hasClass("open")) {
-                    editBtn.dropdown("toggle");
-                }
-            });
             blk.append(head);
             var body = $("<div/>").addClass("panel-body");
             // loop through buttons
@@ -428,7 +431,7 @@ $(document).ready(function() {
                 })));
                 btnRootLeft.append(optsMenu);
                 group.append(btnRootLeft);
-                group.append($("<input>").attr("type", "text").addClass("form-control").val(linkBtn.title).change(function(e) {
+                group.append($("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Button label").val(linkBtn.title).change(function(e) {
                     linkBtn.title = $(this).val();
                 }));
                 // right menus
@@ -542,7 +545,7 @@ $(document).ready(function() {
                     check.append($("<input>").attr("type", "checkbox").prop("checked", linkBtn.external).change(function(e) {
                         linkBtn.external = $(this).val();
                     }));
-                    check.append($("<span/>").text("Open link in new tab"));
+                    check.append($("<span/>").text("External (open link in new tab)"));
                     blk.append(check);
                 }
                 $("#links-editor-body").append(blk);
@@ -722,6 +725,7 @@ $(document).ready(function() {
     */
     // set to current data
     var populateSettings = function populateSettings() {
+        $("#settings-links-edit").prop("checked", settings.links["edit"]);
         $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
         $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
         $("#settings-history-limit").val(settings.history["limit"]);
@@ -826,6 +830,7 @@ $(document).ready(function() {
             ok = false;
             $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The links content isn't valid JSON."));
         }
+        settings.links["edit"] = $("#settings-links-edit").prop("checked");
         settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
         if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
         settings.history["limit"] = parseInt($("#settings-history-limit").val());
