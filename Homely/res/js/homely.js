@@ -221,15 +221,15 @@ $(document).ready(function() {
     /*
     Links: customizable grid of links and menus
     */
+    // monitor Ctrl key to open links in a new tab
+    var ctrlDown = false;
+    $(window).keydown(function(e) {
+        if (e.keyCode === 17) ctrlDown = true;
+    }).keyup(function(e) {
+        if (e.keyCode === 17) ctrlDown = false;
+    });
     // special link handling
     var fixLinkHandling = function fixLinkHandling() {
-        // monitor Ctrl key to open links in a new tab
-        var ctrlDown = false;
-        $(window).keydown(function(e) {
-            if (e.keyCode === 17) ctrlDown = true;
-        }).keyup(function(e) {
-            if (e.keyCode === 17) ctrlDown = false;
-        });
         // open Chrome links via Tabs API
         $(".link-chrome").click(function(e) {
             // normal click, not external
@@ -393,6 +393,7 @@ $(document).ready(function() {
                             var item = $("<a/>").attr("href", linkItem.url).text(linkItem.title);
                             // workaround for accessing Chrome URLs
                             if (linkItem.url.substring(0, "chrome://".length) === "chrome://") item.addClass("link-chrome");
+                            if (linkItem.url.substring(0, "chrome-extension://".length) === "chrome-extension://") item.addClass("link-chrome");
                             // always open in new tab
                             if (linkItem.external) item.addClass("link-external");
                             menu.append($("<li/>").append(item));
@@ -404,6 +405,7 @@ $(document).ready(function() {
                     if (!linkBtn.title) btn.html("&nbsp;");
                     // workaround for accessing Chrome URLs
                     if (linkBtn.url.substring(0, "chrome://".length) === "chrome://") btn.addClass("link-chrome");
+                    if (linkBtn.url.substring(0, "chrome-extension://".length) === "chrome-extension://") btn.addClass("link-chrome");
                     // always open in new tab
                     if (linkBtn.external) btn.addClass("link-external");
                 }
@@ -814,8 +816,24 @@ $(document).ready(function() {
                     // loop through history items
                     for (var i in results) {
                         var res = results[i];
+                        var link = $("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50));
+                        // workaround for accessing Chrome URLs
+                        if (res.url.substring(0, "chrome://".length) === "chrome://" || res.url.substring(0, "chrome-extension://".length) === "chrome-extension://") {
+                            link.click(function(e) {
+                                console.log("click")
+                                // normal click, not external
+                                if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                                    chrome.tabs.update({url: this.href});
+                                    e.preventDefault();
+                                // middle click, Ctrl+click, or set as external
+                                } else if (e.which <= 2) {
+                                    chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                                    e.preventDefault();
+                                }
+                            });
+                        }
                         // add to dropdown
-                        $("#history-list").append($("<li/>").append($("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50))));
+                        $("#history-list").append($("<li/>").append(link));
                     }
                     block = false;
                     $("#history-title").click();
