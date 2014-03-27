@@ -1,7 +1,10 @@
 $(document).ready(function() {
     // helper methods
-    var cap = function cap(s) {
-        return s.charAt(0).toUpperCase() + s.slice(1);
+    var cap = function cap(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    var trim = function trim(str, len) {
+        return str.length > len ? str.substring(0, len - 3) + "..." : str;
     }
     var pad = function pad(n) {
         return n < 10 ? "0" + n : n.toString();
@@ -726,23 +729,28 @@ $(document).ready(function() {
     /*
     History: quick drop-down of recent pages
     */
-    // initialize limit to 10
-    if (typeof(settings.history["limit"]) === "undefined") {
-        settings.history["limit"] = 10;
-    }
-    var trim = function trim(str, len) {
-        return str.length > len ? str.substring(0, len - 3) + "..." : str;
-    }
     if (settings.history["limit"]) {
-        // request items from History API
-        chrome.history.search({text: "", maxResults: settings.history["limit"]}, function historyCallback(results) {
-            // loop through history items
-            for (var i in results) {
-                var res = results[i];
-                // add to dropdown
-                $("#hst-list").append($("<li/>").append($("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50))));
+        var block = true;
+        $("#history-title").show().click(function(e) {
+            // delay opening list until loaded
+            if (block && !$(this).hasClass("active")) {
+                e.stopPropagation();
+                // request items from History API
+                chrome.history.search({text: "", maxResults: settings.history["limit"]}, function historyCallback(results) {
+                    $("#history-list").empty();
+                    // loop through history items
+                    for (var i in results) {
+                        var res = results[i];
+                        // add to dropdown
+                        $("#history-list").append($("<li/>").append($("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50))));
+                    }
+                    block = false;
+                    $("#history-title").click();
+                });
+            // reset block
+            } else {
+                block = true;
             }
-            $("#hst-title").show();
         });
     }
     /*
