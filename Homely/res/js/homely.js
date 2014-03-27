@@ -567,7 +567,7 @@ $(document).ready(function() {
                                 linkItem.title = $(this).val();
                             });
                             tr.append($("<td/>").append(title));
-                            var linkGroup = $("<div/>").addClass("input-group form-control-pad-bottom");
+                            var linkGroup = $("<div/>").addClass("input-group");
                             var url = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Link URL").val(linkItem.url).change(function(e) {
                                 linkItem.url = $(this).val();
                             })
@@ -943,7 +943,8 @@ $(document).ready(function() {
             settings.links["content"] = JSON.parse($("#settings-links-content").val());
         } catch (e) {
             ok = false;
-            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The links content isn't valid JSON."));
+            $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The blocks source isn't valid JSON."));
+            $($("#settings-tabs a")[0]).click();
         }
         settings.links["edit"] = {
             menu: $("#settings-links-edit-menu").prop("checked"),
@@ -979,4 +980,110 @@ $(document).ready(function() {
             }).modal("hide");
         }
     });
+    // links selection state
+    var linksHotkeys = {
+        curBlk: -1,
+        curBtn: -1,
+        blk: []
+    };
+    // setup keyboard shortcuts on tab change
+    var setupHotkeys = function setupHotkeys(e) {
+        // close any open dropdown menus
+        var closeDropdowns = function closeDropdowns() {
+            $(".btn-group.open, .dropdown.open").removeClass("open");
+            $("#links .panel-heading .btn").hide();
+        };
+        // number/cycle navigation for links
+        var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+        var linksSelectBlk = function linksSelectBlk(i) {
+            $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+            linksHotkeys.curBlk = i;
+            $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass("panel-default").addClass("panel-info");
+            if (linksHotkeys.curBtn > -1) {
+                $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+                $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+            }
+            linksHotkeys.blk = $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel .panel-body .btn");
+            linksSelectBtn(0);
+        };
+        var linksSelectBtn = function linksSelectBtn(i) {
+            if (linksHotkeys.curBtn > -1) {
+                $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+                $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+            }
+            linksHotkeys.curBtn = i;
+            $(linksHotkeys.blk[linksHotkeys.curBtn]).prepend(" ").prepend($("<i/>").addClass("fa fa-hand-o-right")).focus().blur(function(e) {
+                $(this).off("blur");
+                linksClearSel();
+            });
+        }
+        var linksClearSel = function linksClearSel() {
+            $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+            if (linksHotkeys.curBtn > -1) $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+            linksHotkeys = {
+                curBlk: -1,
+                curBtn: -1,
+                blk: []
+            };
+        };
+        // clear current state
+        Mousetrap.reset();
+        linksClearSel();
+        // restore escape to close modal if open
+        if ($(document.body).hasClass("modal-open")) {
+            Mousetrap.bind("esc", function(e, key) {
+                $(".modal.in").modal("hide");
+            });
+            return;
+        };
+        // global page switch keys
+        Mousetrap.bind(["l", "q"], function(e, key) {
+            closeDropdowns();
+            $("#menu-links").click();
+        }).bind(["b", "w"], function(e, key) {
+            closeDropdowns();
+            $("#menu-bookmarks").click();
+        }).bind(["h", "e"], function(e, key) {
+            closeDropdowns();
+            $("#history-title").click();
+        }).bind(["s", "r"], function(e, key) {
+            closeDropdowns();
+            $("#menu-settings a").click();
+        });
+        // if links page is active
+        if ($("nav li.active").attr("id") === "menu-links") {
+            Mousetrap.bind(nums, function(e, key) {
+                closeDropdowns();
+                // select block by number
+                linksSelectBlk(nums.indexOf(key));
+            }).bind(["-", "="], function(e, key) {
+                closeDropdowns();
+                // previous/next block
+                var i = (linksHotkeys.curBlk === -1 ? 0 : (linksHotkeys.curBlk + (key === "-" ? -1 : 1)) % $("#links .panel").length);
+                if (i < 0) i += $("#links .panel").length;
+                linksSelectBlk(i);
+            }).bind(["[", "]"], function(e, key) {
+                closeDropdowns();
+                // previous/next button
+                if (linksHotkeys.curBlk === -1) linksSelectBlk(0);
+                var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
+                if (i < 0) i += linksHotkeys.blk.length;
+                linksSelectBtn(i);
+            }).bind(["enter", "backspace"], function(e, key) {
+                // clear selection
+                linksClearSel();
+            });
+        }
+    };
+    $("#menu-links, #menu-bookmarks").click(setupHotkeys);
+    // manually adjust modal-open class as not available at event trigger
+    $(".modal").on("show.bs.modal", function(e) {
+        $(document.body).addClass("modal-open");
+        setupHotkeys(e);
+    }).on("hidden.bs.modal", function(e) {
+        $(document.body).removeClass("modal-open");
+        setupHotkeys(e);
+    });
+    // open on links page
+    $("#menu-links").click();
 });

@@ -13,6 +13,7 @@ This project requires the following libraries:
 * [Font Awesome](http://fontawesome.io)
 * [jQuery](http://jquery.com)
 * [HTML5 Sortable](http://farhadi.ir/projects/html5sortable/)
+* [Mousetrap](http://craig.is/killing/mice)
 
 Batteries are not included - the CSS and JavaScript files need to be placed in a `lib` folder with appropriate `css` and `js` subfolders (check the HTML file for where files are linked to).
 
