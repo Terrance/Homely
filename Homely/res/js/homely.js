@@ -158,6 +158,7 @@ $(document).ready(function() {
         },
         "general": {
             "title": manif.name,
+            "keyboard": false,
             "font": "Segoe UI",
             "topbar": false,
             "background": {
@@ -838,6 +839,7 @@ $(document).ready(function() {
         $("#settings-history-limit").val(settings.history["limit"]);
         $("#settings-history-limit-value").text(settings.history["limit"]);
         $("#settings-general-title").val(settings.general["title"]);
+        $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
         $("#settings-general-font").val(settings.general["font"]);
         $("#settings-general-topbar").prop("checked", settings.general["topbar"]);
         $("#settings-general-background-image").data("val", settings.general["background"].image).prop("placeholder", "(unchanged)");
@@ -956,6 +958,7 @@ $(document).ready(function() {
         settings.history["limit"] = parseInt($("#settings-history-limit").val());
         if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
         settings.general["title"] = $("#settings-general-title").val();
+        settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
         settings.general["font"] = $("#settings-general-font").val();
         settings.general["topbar"] = $("#settings-general-topbar").prop("checked");
         settings.general["background"] = {
@@ -988,47 +991,6 @@ $(document).ready(function() {
     };
     // setup keyboard shortcuts on tab change
     var setupHotkeys = function setupHotkeys(e) {
-        // close any open dropdown menus
-        var closeDropdowns = function closeDropdowns() {
-            $(".btn-group.open, .dropdown.open").removeClass("open");
-            $("#links .panel-heading .btn").hide();
-        };
-        // number/cycle navigation for links
-        var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-        var linksSelectBlk = function linksSelectBlk(i) {
-            $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
-            linksHotkeys.curBlk = i;
-            $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass("panel-default").addClass("panel-info");
-            if (linksHotkeys.curBtn > -1) {
-                $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
-                $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-            }
-            linksHotkeys.blk = $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel .panel-body .btn");
-            linksSelectBtn(0);
-        };
-        var linksSelectBtn = function linksSelectBtn(i) {
-            if (linksHotkeys.curBtn > -1) {
-                $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
-                $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-            }
-            linksHotkeys.curBtn = i;
-            $(linksHotkeys.blk[linksHotkeys.curBtn]).prepend(" ").prepend($("<i/>").addClass("fa fa-hand-o-right")).focus().blur(function(e) {
-                $(this).off("blur");
-                linksClearSel();
-            });
-        }
-        var linksClearSel = function linksClearSel() {
-            $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
-            if (linksHotkeys.curBtn > -1) $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-            linksHotkeys = {
-                curBlk: -1,
-                curBtn: -1,
-                blk: []
-            };
-        };
-        // clear current state
-        Mousetrap.reset();
-        linksClearSel();
         // restore escape to close modal if open
         if ($(document.body).hasClass("modal-open")) {
             Mousetrap.bind("esc", function(e, key) {
@@ -1036,43 +998,87 @@ $(document).ready(function() {
             });
             return;
         };
-        // global page switch keys
-        Mousetrap.bind(["l", "q"], function(e, key) {
-            closeDropdowns();
-            $("#menu-links").click();
-        }).bind(["b", "w"], function(e, key) {
-            closeDropdowns();
-            $("#menu-bookmarks").click();
-        }).bind(["h", "e"], function(e, key) {
-            closeDropdowns();
-            $("#history-title").click();
-        }).bind(["s", "r"], function(e, key) {
-            closeDropdowns();
-            $("#menu-settings a").click();
-        });
-        // if links page is active
-        if ($("nav li.active").attr("id") === "menu-links") {
-            Mousetrap.bind(nums, function(e, key) {
+        // enable all keyboard shortcuts
+        if (settings.general["keyboard"]) {
+            // close any open dropdown menus
+            var closeDropdowns = function closeDropdowns() {
+                $(".btn-group.open, .dropdown.open").removeClass("open");
+                $("#links .panel-heading .btn").hide();
+            };
+            // number/cycle navigation for links
+            var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+            var linksSelectBlk = function linksSelectBlk(i) {
+                $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+                linksHotkeys.curBlk = i;
+                $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass("panel-default").addClass("panel-info");
+                if (linksHotkeys.curBtn > -1) {
+                    $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+                    $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+                }
+                linksHotkeys.blk = $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel .panel-body .btn");
+                linksSelectBtn(0);
+            };
+            var linksSelectBtn = function linksSelectBtn(i) {
+                if (linksHotkeys.curBtn > -1) {
+                    $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+                    $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+                }
+                linksHotkeys.curBtn = i;
+                $(linksHotkeys.blk[linksHotkeys.curBtn]).prepend(" ").prepend($("<i/>").addClass("fa fa-hand-o-right")).focus().blur(function(e) {
+                    $(this).off("blur");
+                    linksClearSel();
+                });
+            }
+            var linksClearSel = function linksClearSel() {
+                $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+                if (linksHotkeys.curBtn > -1) $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+                linksHotkeys = {
+                    curBlk: -1,
+                    curBtn: -1,
+                    blk: []
+                };
+            };
+            // clear current state
+            Mousetrap.reset();
+            linksClearSel();
+            // global page switch keys
+            Mousetrap.bind(["l", "q"], function(e, key) {
                 closeDropdowns();
-                // select block by number
-                linksSelectBlk(nums.indexOf(key));
-            }).bind(["-", "="], function(e, key) {
+                $("#menu-links").click();
+            }).bind(["b", "w"], function(e, key) {
                 closeDropdowns();
-                // previous/next block
-                var i = (linksHotkeys.curBlk === -1 ? 0 : (linksHotkeys.curBlk + (key === "-" ? -1 : 1)) % $("#links .panel").length);
-                if (i < 0) i += $("#links .panel").length;
-                linksSelectBlk(i);
-            }).bind(["[", "]"], function(e, key) {
+                $("#menu-bookmarks").click();
+            }).bind(["h", "e"], function(e, key) {
                 closeDropdowns();
-                // previous/next button
-                if (linksHotkeys.curBlk === -1) linksSelectBlk(0);
-                var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
-                if (i < 0) i += linksHotkeys.blk.length;
-                linksSelectBtn(i);
-            }).bind(["enter", "backspace"], function(e, key) {
-                // clear selection
-                linksClearSel();
+                $("#history-title").click();
+            }).bind(["s", "r"], function(e, key) {
+                closeDropdowns();
+                $("#menu-settings a").click();
             });
+            // if links page is active
+            if ($("nav li.active").attr("id") === "menu-links") {
+                Mousetrap.bind(nums, function(e, key) {
+                    closeDropdowns();
+                    // select block by number
+                    linksSelectBlk(nums.indexOf(key));
+                }).bind(["-", "="], function(e, key) {
+                    closeDropdowns();
+                    // previous/next block
+                    var i = (linksHotkeys.curBlk === -1 ? 0 : (linksHotkeys.curBlk + (key === "-" ? -1 : 1)) % $("#links .panel").length);
+                    if (i < 0) i += $("#links .panel").length;
+                    linksSelectBlk(i);
+                }).bind(["[", "]"], function(e, key) {
+                    closeDropdowns();
+                    // previous/next button
+                    if (linksHotkeys.curBlk === -1) linksSelectBlk(0);
+                    var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
+                    if (i < 0) i += linksHotkeys.blk.length;
+                    linksSelectBtn(i);
+                }).bind(["enter", "backspace"], function(e, key) {
+                    // clear selection
+                    linksClearSel();
+                });
+            }
         }
     };
     $("#menu-links, #menu-bookmarks").click(setupHotkeys);
