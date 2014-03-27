@@ -10,6 +10,7 @@ Requirements
 This project requires the following libraries:
 
 * [Bootstrap](http://getboostrap.com)
+* [Font Awesome](http://fontawesome.io)
 * [jQuery](http://jquery.com)
 * [HTML5 Sortable](http://farhadi.ir/projects/html5sortable/)
 

@@ -3,9 +3,12 @@ $(document).ready(function() {
     var cap = function cap(s) {
         return s.charAt(0).toUpperCase() + s.slice(1);
     }
-    var pad = function pad(i) {
-        return i < 10 ? "0" + i : i.toString();
+    var pad = function pad(n) {
+        return n < 10 ? "0" + n : n.toString();
     };
+    var fa = function fa(icon, fw) {
+        return $("<i/>").addClass("fa fa-" + icon).toggleClass("fa-fw", fw !== false);
+    }
     var manif = chrome.runtime.getManifest();
     // show current time in navbar
     var tick = function tick() {
@@ -258,7 +261,7 @@ $(document).ready(function() {
                 editRoot.append(editBtn);
                 var editMenu = $("<ul/>").addClass("dropdown-menu");
                 if (i > 0) {
-                    editMenu.append($("<li/>").append($("<a/>").text("Move to start").click(function(e) {
+                    editMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-left")).append(" Move to start").click(function(e) {
                         for (var x = i; x > 0; x--) {
                             settings.links["content"][x] = settings.links["content"][x - 1];
                         }
@@ -266,7 +269,7 @@ $(document).ready(function() {
                         localStorage["links"] = JSON.stringify(settings.links);
                         populateLinks();
                     })));
-                    editMenu.append($("<li/>").append($("<a/>").text("Move left").click(function(e) {
+                    editMenu.append($("<li/>").append($("<a/>").append(fa("angle-left")).append(" Move left").click(function(e) {
                         settings.links["content"][i] = settings.links["content"][i - 1];
                         settings.links["content"][i - 1] = linkBlk;
                         localStorage["links"] = JSON.stringify(settings.links);
@@ -275,13 +278,13 @@ $(document).ready(function() {
                 }
                 var max = settings.links["content"].length - 1;
                 if (i < max) {
-                    editMenu.append($("<li/>").append($("<a/>").text("Move right").click(function(e) {
+                    editMenu.append($("<li/>").append($("<a/>").append(fa("angle-right")).append(" Move right").click(function(e) {
                         settings.links["content"][i] = settings.links["content"][i + 1];
                         settings.links["content"][i + 1] = linkBlk;
                         localStorage["links"] = JSON.stringify(settings.links);
                         populateLinks();
                     })));
-                    editMenu.append($("<li/>").append($("<a/>").text("Move to end").click(function(e) {
+                    editMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-right")).append(" Move to end").click(function(e) {
                         for (var x = i; x < max; x++) {
                             settings.links["content"][x] = settings.links["content"][x + 1];
                         }
@@ -293,7 +296,7 @@ $(document).ready(function() {
                 if (i > 0 || i < max) {
                     editMenu.append($("<li/>").addClass("divider"));
                 }
-                editMenu.append($("<li/>").append($("<a/>").text("New block before").click(function(e) {
+                editMenu.append($("<li/>").append($("<a/>").append(fa("step-backward")).append(" New block before").click(function(e) {
                     settings.links["content"].splice(i, 0, {
                         title: "",
                         buttons: []
@@ -302,7 +305,7 @@ $(document).ready(function() {
                     populateLinks();
                     $("#links-editor").data("block", i).modal("show");
                 })));
-                editMenu.append($("<li/>").append($("<a/>").text("New block after").click(function(e) {
+                editMenu.append($("<li/>").append($("<a/>").append(fa("step-forward")).append(" New block after").click(function(e) {
                     settings.links["content"].splice(i + 1, 0, {
                         title: "",
                         buttons: []
@@ -312,10 +315,10 @@ $(document).ready(function() {
                     $("#links-editor").data("block", i + 1).modal("show");
                 })));
                 editMenu.append($("<li/>").addClass("divider"));
-                editMenu.append($("<li/>").append($("<a/>").text("Edit block").click(function(e) {
+                editMenu.append($("<li/>").append($("<a/>").append(fa("pencil")).append(" Edit block").click(function(e) {
                     $("#links-editor").data("block", i).modal("show");
                 })));
-                editMenu.append($("<li/>").append($("<a/>").text("Delete block").click(function(e) {
+                editMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete block").click(function(e) {
                     if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
                         settings.links["content"].splice(i, 1);
                         localStorage["links"] = JSON.stringify(settings.links);
@@ -414,14 +417,14 @@ $(document).ready(function() {
                 btnRootLeft.append(optsBtn);
                 var optsMenu = $("<ul/>").addClass("dropdown-menu");
                 if (j > 0) {
-                    optsMenu.append($("<li/>").append($("<a/>").text("Move to top").click(function(e) {
+                    optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-up")).append(" Move to top").click(function(e) {
                         for (var x = j; x > 0; x--) {
                             linkBlk.buttons[x] = linkBlk.buttons[x - 1];
                         }
                         linkBlk.buttons[0] = linkBtn;
                         populateLinkEditor();
                     })));
-                    optsMenu.append($("<li/>").append($("<a/>").text("Move up").click(function(e) {
+                    optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-up")).append(" Move up").click(function(e) {
                         linkBlk.buttons[j] = linkBlk.buttons[j - 1];
                         linkBlk.buttons[j - 1] = linkBtn;
                         populateLinkEditor();
@@ -429,12 +432,12 @@ $(document).ready(function() {
                 }
                 var max = linkBlk.buttons.length - 1;
                 if (j < max) {
-                    optsMenu.append($("<li/>").append($("<a/>").text("Move down").click(function(e) {
+                    optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-down")).append(" Move down").click(function(e) {
                         linkBlk.buttons[j] = linkBlk.buttons[j + 1];
                         linkBlk.buttons[j + 1] = linkBtn;
                         populateLinkEditor();
                     })));
-                    optsMenu.append($("<li/>").append($("<a/>").text("Move to bottom").click(function(e) {
+                    optsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-down")).append(" Move to bottom").click(function(e) {
                         for (var x = j; x < max; x++) {
                             linkBlk.buttons[x] = linkBlk.buttons[x + 1];
                         }
@@ -445,7 +448,7 @@ $(document).ready(function() {
                 if (j > 0 || j < max) {
                     optsMenu.append($("<li/>").addClass("divider"));
                 }
-                optsMenu.append($("<li/>").append($("<a/>").text("Delete button").click(function(e) {
+                optsMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete button").click(function(e) {
                     if (confirm("Are you sure you want to delete " + (linkBtn.title ? linkBtn.title : "this button") + "?")) {
                         linkBlk.buttons.splice(j, 1);
                         populateLinkEditor();
@@ -485,14 +488,14 @@ $(document).ready(function() {
                         menuOptsRoot.append($("<button/>").addClass("btn btn-block btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")));
                         var menuOptsMenu = $("<ul/>").addClass("dropdown-menu");
                         if (k > 0) {
-                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move to top").click(function(e) {
+                            menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-up")).append(" Move to top").click(function(e) {
                                 for (var x = k; x > 0; x--) {
                                     linkBtn.menu[x] = linkBtn.menu[x - 1];
                                 }
                                 linkBtn.menu[0] = linkItem;
                                 populateLinkEditor();
                             })));
-                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move up").click(function(e) {
+                            menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-up")).append(" Move up").click(function(e) {
                                 linkBtn.menu[k] = linkBtn.menu[k - 1];
                                 linkBtn.menu[k - 1] = linkItem;
                                 populateLinkEditor();
@@ -500,12 +503,12 @@ $(document).ready(function() {
                         }
                         var max = linkBtn.menu.length - 1;
                         if (k < max) {
-                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move down").click(function(e) {
+                            menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-down")).append(" Move down").click(function(e) {
                                 linkBtn.menu[k] = linkBtn.menu[k + 1];
                                 linkBtn.menu[k + 1] = linkItem;
                                 populateLinkEditor();
                             })));
-                            menuOptsMenu.append($("<li/>").append($("<a/>").text("Move to bottom").click(function(e) {
+                            menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-down")).append(" Move to bottom").click(function(e) {
                                 for (var x = k; x < max; x++) {
                                     linkBtn.menu[x] = linkBtn.menu[x + 1];
                                 }
@@ -516,7 +519,7 @@ $(document).ready(function() {
                         if (k > 0 || k < max) {
                             menuOptsMenu.append($("<li/>").addClass("divider"));
                         }
-                        menuOptsMenu.append($("<li/>").append($("<a/>").text("Delete item").click(function(e) {
+                        menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete item").click(function(e) {
                             linkBtn.menu.splice(k, 1);
                             populateLinkEditor();
                         })));
@@ -547,14 +550,14 @@ $(document).ready(function() {
                     });
                     blk.append($("<table/>").addClass("table table-bordered table-condensed").append(tbody));
                     var menuBtnsRoot = $("<div/>").addClass("btn-group");
-                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").text("Add link").click(function(e) {
+                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").append(fa("external-link")).append(" Add link").click(function(e) {
                         linkBtn.menu.push({
                             title: "",
                             url: ""
                         });
                         populateLinkEditor();
                     }));
-                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").text("Add section").click(function(e) {
+                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").append(fa("indent")).append(" Add section").click(function(e) {
                         linkBtn.menu.push("");
                         populateLinkEditor();
                     }));
@@ -668,17 +671,17 @@ $(document).ready(function() {
                     // bookmarklet
                     if (el.url.substring(0, "javascript:".length) === "javascript:") {
                         if (settings.bookmarks["bookmarklets"]) {
-                            $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").text(el.title));
+                            $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").append(fa("code")).append(" " + el.title));
                         }
                     } else {
-                        var link = $("<a/>").addClass("btn btn-primary").attr("href", el.url).text(el.title);
+                        var link = $("<a/>").addClass("btn btn-primary").attr("href", el.url).append(fa("file")).append(" " + el.title);
                         // workaround for accessing Chrome URLs
                         if (el.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
                         $("#bookmarks-block").append(link);
                     }
                 // folder
                 } else if (el.children) {
-                    $("#bookmarks-block").append($("<button/>").addClass("btn btn-warning").text(el.title).click(function(e) {
+                    $("#bookmarks-block").append($("<button/>").addClass("btn btn-warning").append(fa("folder")).append(" " + el.title).click(function(e) {
                         route.push(i);
                         populateBookmarks(el);
                     }));
