@@ -17,7 +17,10 @@ $(document).ready(function() {
     // default settings
     var settings = {
         "links": {
-            "edit": true,
+            "edit": {
+                "menu": true,
+                "dragdrop": true
+            },
             "content": [
                 {
                     "title": "Chrome",
@@ -248,7 +251,8 @@ $(document).ready(function() {
             var blk = $("<div/>").addClass("panel panel-default sortable").data("pos", i);
             var head = $("<div/>").addClass("panel-heading").text(linkBlk.title);
             if (!linkBlk.title) head.html("&nbsp;");
-            if (settings.links["edit"]) {
+            // edit controls dropdown on header
+            if (settings.links["edit"].menu) {
                 var editRoot = $("<div/>").addClass("btn-group pull-right");
                 var editBtn = $("<button/>").addClass("btn btn-xs btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")).hide();
                 editRoot.append(editBtn);
@@ -373,15 +377,17 @@ $(document).ready(function() {
             $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(blk));
         });
         // drag block headings to reorder
-        $("#links").sortable({handle: ".panel-heading"}).on("sortupdate", function(e) {
-            var old = settings.links["content"];
-            settings.links["content"] = [];
-            $(".panel", this).each(function(i, blk) {
-                settings.links["content"].push(old[$(blk).data("pos")]);
+        if (settings.links["edit"].dragdrop) {
+            $("#links").sortable({handle: ".panel-heading"}).on("sortupdate", function(e) {
+                var old = settings.links["content"];
+                settings.links["content"] = [];
+                $(".panel", this).each(function(i, blk) {
+                    settings.links["content"].push(old[$(blk).data("pos")]);
+                });
+                localStorage["links"] = JSON.stringify(settings.links);
+                populateLinks();
             });
-            localStorage["links"] = JSON.stringify(settings.links);
-            populateLinks();
-        });
+        }
         fixLinkHandling();
     }
     populateLinks();
@@ -741,7 +747,8 @@ $(document).ready(function() {
     */
     // set to current data
     var populateSettings = function populateSettings() {
-        $("#settings-links-edit").prop("checked", settings.links["edit"]);
+        $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
+        $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
         $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
         $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
         $("#settings-history-limit").val(settings.history["limit"]);
@@ -854,7 +861,10 @@ $(document).ready(function() {
             ok = false;
             $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The links content isn't valid JSON."));
         }
-        settings.links["edit"] = $("#settings-links-edit").prop("checked");
+        settings.links["edit"] = {
+            menu: $("#settings-links-edit-menu").prop("checked"),
+            dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
+        };
         settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
         if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
         settings.history["limit"] = parseInt($("#settings-history-limit").val());
