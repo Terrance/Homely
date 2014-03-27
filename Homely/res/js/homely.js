@@ -297,6 +297,26 @@ $(document).ready(function() {
                     })));
                 }
                 if (i > 0 || i < max) {
+                    editMenu.append($("<li/>").append($("<a/>").append(fa("arrows")).append(" Move to position...").click(function(e) {
+                        var pos = prompt("Enter a new position for this block.", i);
+                        if (typeof(pos) === "string") {
+                            pos = parseInt(pos);
+                            if (!isNaN(pos) && pos >= 0 && pos <= max) {
+                                if (pos < i) {
+                                    for (var x = i; x > pos; x--) {
+                                        settings.links["content"][x] = settings.links["content"][x - 1];
+                                    }
+                                } else if (pos > i) {
+                                    for (var x = i; x < pos; x++) {
+                                        settings.links["content"][x] = settings.links["content"][x + 1];
+                                    }
+                                }
+                                settings.links["content"][pos] = linkBlk;
+                                localStorage["links"] = JSON.stringify(settings.links);
+                                populateLinks();
+                            }
+                        }
+                    })));
                     editMenu.append($("<li/>").addClass("divider"));
                 }
                 editMenu.append($("<li/>").append($("<a/>").append(fa("step-backward")).append(" New block before").click(function(e) {
@@ -320,6 +340,14 @@ $(document).ready(function() {
                 editMenu.append($("<li/>").addClass("divider"));
                 editMenu.append($("<li/>").append($("<a/>").append(fa("pencil")).append(" Edit block").click(function(e) {
                     $("#links-editor").data("block", i).modal("show");
+                })));
+                editMenu.append($("<li/>").append($("<a/>").append(fa("tag")).append(" Rename block").click(function(e) {
+                    var name = prompt("Enter a new name for this block.", linkBlk.title);
+                    if (typeof(name) === "string") {
+                        linkBlk.title = name;
+                        localStorage["links"] = JSON.stringify(settings.links);
+                        populateLinks();
+                    }
                 })));
                 editMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete block").click(function(e) {
                     if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
@@ -347,13 +375,6 @@ $(document).ready(function() {
                 if (!linkBtn.title) linkBtn.title = "";
                 if (!linkBtn.style) linkBtn.style = "default";
                 var btn;
-                if (linkBtn.url) {
-                    btn = $("<a/>").addClass("btn btn-block btn-" + linkBtn.style).attr("href", linkBtn.url).text(linkBtn.title);
-                    // workaround for accessing Chrome URLs
-                    if (linkBtn.url.substring(0, "chrome://".length) === "chrome://") btn.addClass("link-chrome");
-                    // always open in new tab
-                    if (linkBtn.external) btn.addClass("link-external");
-                }
                 if (linkBtn.menu) {
                     btn = $("<div/>").addClass("btn-group btn-block");
                     btn.append($("<button/>").addClass("btn btn-block btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown")
@@ -376,6 +397,13 @@ $(document).ready(function() {
                         }
                     }
                     btn.append(menu);
+                } else {
+                    btn = $("<a/>").addClass("btn btn-block btn-" + linkBtn.style).attr("href", linkBtn.url).text(linkBtn.title);
+                    if (!linkBtn.title) btn.html("&nbsp;");
+                    // workaround for accessing Chrome URLs
+                    if (linkBtn.url.substring(0, "chrome://".length) === "chrome://") btn.addClass("link-chrome");
+                    // always open in new tab
+                    if (linkBtn.external) btn.addClass("link-external");
                 }
                 body.append(btn);
             }
@@ -405,7 +433,7 @@ $(document).ready(function() {
         $("#links-editor-title").val(linkBlk.title);
         var populateLinkEditor = function populateLinkEditor(noscroll) {
             // remember scroll position
-            var pos = noscroll ? 0 : document.body.scrollTop;
+            var scroll = noscroll ? 0 : document.body.scrollTop;
             $("#links-editor-body").empty();
             if (!linkBlk.buttons.length) {
                 $("#links-editor-body").append($("<div/>").addClass("alert alert-info").text("No buttons added yet."));
@@ -579,7 +607,7 @@ $(document).ready(function() {
                 $("#links-editor-body").append(blk);
             });
             // reset scroll position
-            window.scrollTo(0, pos);
+            window.scrollTo(0, scroll);
         };
         // add buttons to block
         $("#links-editor-add-link").click(function(e) {
