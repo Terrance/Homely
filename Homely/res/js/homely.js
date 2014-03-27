@@ -245,7 +245,7 @@ $(document).ready(function() {
         $(settings.links["content"]).each(function(i, linkBlk) {
             if (!linkBlk.title) linkBlk.title = "";
             if (!linkBlk.buttons) linkBlk.buttons = [];
-            var blk = $("<div/>").addClass("panel panel-default");
+            var blk = $("<div/>").addClass("panel panel-default sortable").data("pos", i);
             var head = $("<div/>").addClass("panel-heading").text(linkBlk.title);
             if (!linkBlk.title) head.html("&nbsp;");
             if (settings.links["edit"]) {
@@ -371,6 +371,16 @@ $(document).ready(function() {
             }
             blk.append(body);
             $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(blk));
+        });
+        // drag block headings to reorder
+        $("#links").sortable({handle: ".panel-heading"}).on("sortupdate", function(e) {
+            var old = settings.links["content"];
+            settings.links["content"] = [];
+            $(".panel", this).each(function(i, blk) {
+                settings.links["content"].push(old[$(blk).data("pos")]);
+            });
+            localStorage["links"] = JSON.stringify(settings.links);
+            populateLinks();
         });
         fixLinkHandling();
     }

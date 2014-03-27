@@ -7,7 +7,13 @@ Homely is a custom New Tab page replacement for Google Chrome.  It aims to provi
 Requirements
 ============
 
-This project requires Bootstrap and jQuery, which need to be placed in a `lib` folder with appropriate `css` and `js` subfolders.
+This project requires the following libraries:
+
+* [Bootstrap](http://getboostrap.com)
+* [jQuery](http://jquery.com)
+* [HTML5 Sortable](http://farhadi.ir/projects/html5sortable/)
+
+Batteries are not included - the CSS and JavaScript files need to be placed in a `lib` folder with appropriate `css` and `js` subfolders (check the HTML file for where files are linked to).
 
 
 Links format
