@@ -150,7 +150,8 @@ $(document).ready(function() {
             ]
         },
         "bookmarks": {
-            "bookmarklets": true
+            "bookmarklets": true,
+            "split": false
         },
         "history": {
             "limit": 10
@@ -297,7 +298,7 @@ $(document).ready(function() {
                     })));
                 }
                 if (i > 0 || i < max) {
-                    editMenu.append($("<li/>").append($("<a/>").append(fa("arrows")).append(" Move to position...").click(function(e) {
+                    editMenu.append($("<li/>").append($("<a/>").append(fa("arrows")).append(" Move to position").click(function(e) {
                         var pos = prompt("Enter a new position for this block.", i);
                         if (typeof(pos) === "string") {
                             pos = parseInt(pos);
@@ -688,13 +689,22 @@ $(document).ready(function() {
         $(".main").hide();
         $("#bookmarks").show();
     });
+    // show split pane if enabled
+    if (settings.bookmarks["split"]) {
+        $("#bookmarks-block").before($("<div/>").attr("id", "bookmarks-block-folders").addClass("panel-body"));
+        $("#bookmarks-block").before($("<hr/>"));
+    }
     // request tree from Bookmarks API
     chrome.bookmarks.getTree(function bookmarksCallback(tree) {
         tree[0].title = "Bookmarks";
         var route = [];
         var populateBookmarks = function populateBookmarks(root) {
             // clear current list
-            $("#bookmarks-block, #bookmarks-title").empty();
+            $("#bookmarks-title, #bookmarks-block, #bookmarks-block-folders").empty();
+            if (!root.children.length) {
+                $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
+                $("#bookmarks-block-folders").hide();
+            }
             // loop through folder children
             $(root.children).each(function(i, el) {
                 // bookmark
@@ -712,12 +722,17 @@ $(document).ready(function() {
                     }
                 // folder
                 } else if (el.children) {
-                    $("#bookmarks-block").append($("<button/>").addClass("btn btn-warning").append(fa("folder")).append(" " + el.title).click(function(e) {
+                    var container = $("#bookmarks-block" + (settings.bookmarks["split"] ? "-folders" : ""));
+                    container.append($("<button/>").addClass("btn btn-warning").append(fa("folder")).append(" " + el.title).click(function(e) {
                         route.push(i);
                         populateBookmarks(el);
                     }));
                 }
             });
+            $("#bookmarks-block, #bookmarks-block-folders").each(function(i, blk) {
+                $(blk).toggle(!$(blk).is(":empty"));
+            });
+            $("#bookmarks hr").toggle(!$("#bookmarks-block, #bookmarks-block-folders").is(":empty"));
             // open Chrome links via Tabs API
             $(".link-chrome", "#bookmarks-block").click(function(e) {
                 // normal click, not external
@@ -790,6 +805,7 @@ $(document).ready(function() {
         $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
         $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
         $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
+        $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
         $("#settings-history-limit").val(settings.history["limit"]);
         $("#settings-history-limit-value").text(settings.history["limit"]);
         $("#settings-general-title").val(settings.general["title"]);
@@ -905,6 +921,7 @@ $(document).ready(function() {
             dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
         };
         settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
+        settings.bookmarks["split"] = $("#settings-bookmarks-split").prop("checked");
         if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
         settings.history["limit"] = parseInt($("#settings-history-limit").val());
         if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);

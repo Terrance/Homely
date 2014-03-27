@@ -116,6 +116,12 @@ a {
     max-width: 100%;
     overflow: hidden;
 }
+#bookmarks .alert {
+    margin: 0 5px 5px 0;
+}
+#bookmarks hr {
+    margin: 0;
+}
 input[type=range] {
     margin-top: 6px;
 }
