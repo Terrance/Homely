@@ -567,22 +567,36 @@ $(document).ready(function() {
                                 linkItem.title = $(this).val();
                             });
                             tr.append($("<td/>").append(title));
-                            var url = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "URL").val(linkItem.url).change(function(e) {
+                            var linkGroup = $("<div/>").addClass("input-group form-control-pad-bottom");
+                            var url = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Link URL").val(linkItem.url).change(function(e) {
                                 linkItem.url = $(this).val();
+                            })
+                            linkGroup.append(url);
+                            var linkItemRootRight = $("<span/>").addClass("input-group-btn");
+                            var check = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown");
+                            if (linkItem.external) {
+                                check.append(fa("external-link")).append(" New tab");
+                            } else {
+                                check.append(fa("sign-in")).append(" Same tab");
+                            }
+                            check.click(function(e) {
+                                linkItem.external = !linkItem.external;
+                                check.empty();
+                                if (linkItem.external) {
+                                    check.append(fa("external-link")).append(" New tab");
+                                } else {
+                                    check.append(fa("sign-in")).append(" Same tab");
+                                }
                             });
-                            tr.append($("<td/>").append(url));
-                            var external = $("<input>").attr("type", "checkbox").prop("checked", linkItem.external).change(function(e) {
-                                linkItem.external = $(this).prop("checked");
-                            });
-                            tr.append($("<td/>").append($("<label/>").addClass("checkbox-inline")
-                                                                     .append(external)
-                                                                     .append($("<span/>").text("External"))));
+                            linkItemRootRight.append(check);
+                            linkGroup.append(linkItemRootRight);
+                            tr.append($("<td/>").append(linkGroup));
                         }
                         tbody.append(tr);
                     });
                     blk.append($("<table/>").addClass("table table-bordered table-condensed").append(tbody));
                     var menuBtnsRoot = $("<div/>").addClass("btn-group");
-                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").append(fa("external-link")).append(" Add link").click(function(e) {
+                    menuBtnsRoot.append($("<button/>").addClass("btn btn-default").append(fa("globe")).append(" Add link").click(function(e) {
                         linkBtn.menu.push({
                             title: "",
                             url: ""
@@ -595,15 +609,30 @@ $(document).ready(function() {
                     }));
                     blk.append(menuBtnsRoot);
                 } else {
-                    blk.append($("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Link URL").val(linkBtn.url).change(function(e) {
+                    var linkGroup = $("<div/>").addClass("input-group form-control-pad-bottom");
+                    var url = $("<input>").attr("type", "text").addClass("form-control").attr("placeholder", "Link URL").val(linkBtn.url).change(function(e) {
                         linkBtn.url = $(this).val();
-                    }));
-                    var check = $("<label/>").addClass("checkbox-inline");
-                    check.append($("<input>").attr("type", "checkbox").prop("checked", linkBtn.external).change(function(e) {
-                        linkBtn.external = $(this).val();
-                    }));
-                    check.append($("<span/>").text("External (open link in new tab)"));
-                    blk.append(check);
+                    })
+                    linkGroup.append(url);
+                    var linkBtnRootRight = $("<span/>").addClass("input-group-btn");
+                    var check = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown");
+                    if (linkBtn.external) {
+                        check.append(fa("external-link")).append(" New tab");
+                    } else {
+                        check.append(fa("sign-in")).append(" Same tab");
+                    }
+                    check.click(function(e) {
+                        linkBtn.external = !linkBtn.external;
+                        check.empty();
+                        if (linkBtn.external) {
+                            check.append(fa("external-link")).append(" New tab");
+                        } else {
+                            check.append(fa("sign-in")).append(" Same tab");
+                        }
+                    });
+                    linkBtnRootRight.append(check);
+                    linkGroup.append(linkBtnRootRight);
+                    blk.append(linkGroup);
                 }
                 $("#links-editor-body").append(blk);
             });

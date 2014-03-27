@@ -89,6 +89,9 @@ a {
 #links-editor tr td:nth-child(1) {
     width: 40px;
 }
+#links-editor tr td:nth-child(2) {
+    width: 30%;
+}
 #links-editor .well:last-of-type {
     margin-bottom: 0;
 }
