@@ -9,6 +9,13 @@
     "chrome_url_overrides": {
         "newtab": "res/html/homely.html"
     },
+    "omnibox": {
+        "keyword": "hl"
+    },
+    "background": {
+        "scripts": ["res/js/background.js"],
+        "persistent": false
+    },
     "permissions": [
         "bookmarks",
         "history",
