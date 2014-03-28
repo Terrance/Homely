@@ -1091,6 +1091,10 @@ $(document).ready(function() {
                     if (sel < 0) sel += $("#settings-tabs li").length;
                     $($("#settings-tabs a")[sel]).click();
                     e.preventDefault();
+                }).bind("enter", function(e, key) {
+                    $($("#settings .tab-pane.active input")[0]).focus();
+                }).bind("ctrl+enter", function(e, key) {
+                    $("#settings-save").click();
                 });
                 // override stop callback to pause on button focus
                 Mousetrap.stopCallback = function(e, element) {

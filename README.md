@@ -42,6 +42,9 @@ Settings
 --------
 
 * `Tab` `Shift+Tab` - cycle tabs (ignored if a form field is active)
+* `Enter` - switch to fields in tab
+* `Ctrl+Enter` - save and reload
+* `Esc` - cancel
 
 
 Links format
