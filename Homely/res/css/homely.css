@@ -2,6 +2,7 @@ html {
     background: url(../img/bg.png);
 }
 body {
+    display: none;
     padding: 40px 0 30px;
     background: none;
     font-family: "Segoe UI", sans-serif;

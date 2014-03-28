@@ -27,7 +27,7 @@ Global
 ------
 
 * `Q` `W` `E` `R` / `L` `B` `H` `S` - switch to links/bookmarks/history/settings
-* `Tab` `Shift-Tab` - scroll through dropdown options
+* `Tab` `Shift+Tab` - scroll through dropdown options
 
 Links
 -----
