@@ -1007,95 +1007,122 @@ $(document).ready(function() {
         curBtn: -1,
         blk: []
     };
+    var mousetrapStop = Mousetrap.stopCallback;
     // setup keyboard shortcuts on tab change
     var setupHotkeys = function setupHotkeys(e) {
+        // close any open dropdown menus
+        var closeDropdowns = function closeDropdowns() {
+            $(".btn-group.open, .dropdown.open").removeClass("open");
+            $("#links .panel-heading .btn").hide();
+        };
+        // number/cycle navigation for links
+        var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+        var linksSelectBlk = function linksSelectBlk(i) {
+            $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+            linksHotkeys.curBlk = i;
+            $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass("panel-default").addClass("panel-info");
+            if (linksHotkeys.curBtn > -1) {
+                $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+                $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+            }
+            linksHotkeys.blk = $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel .panel-body .btn");
+            linksSelectBtn(0);
+        };
+        var linksSelectBtn = function linksSelectBtn(i) {
+            if (linksHotkeys.curBtn > -1) {
+                $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
+                $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+            }
+            linksHotkeys.curBtn = i;
+            $(linksHotkeys.blk[linksHotkeys.curBtn]).prepend(" ").prepend($("<i/>").addClass("fa fa-hand-o-right")).focus().blur(function(e) {
+                $(this).off("blur");
+                linksClearSel();
+            });
+        }
+        var linksClearSel = function linksClearSel() {
+            $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+            if (linksHotkeys.curBtn > -1) {
+                $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
+                $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
+            }
+            linksHotkeys = {
+                curBlk: -1,
+                curBtn: -1,
+                blk: []
+            };
+        };
+        // clear current state
+        Mousetrap.reset();
+        linksClearSel();
         // restore escape to close modal if open
-        if ($(document.body).hasClass("modal-open")) {
+        var modal = $(document.body).hasClass("modal-open");
+        if (modal) {
             Mousetrap.bind("esc", function(e, key) {
                 $(".modal.in").modal("hide");
             });
-            return;
-        };
+        }
         // enable all keyboard shortcuts
         if (settings.general["keyboard"]) {
-            // close any open dropdown menus
-            var closeDropdowns = function closeDropdowns() {
-                $(".btn-group.open, .dropdown.open").removeClass("open");
-                $("#links .panel-heading .btn").hide();
-            };
-            // number/cycle navigation for links
-            var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-            var linksSelectBlk = function linksSelectBlk(i) {
-                $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
-                linksHotkeys.curBlk = i;
-                $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass("panel-default").addClass("panel-info");
-                if (linksHotkeys.curBtn > -1) {
-                    $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
-                    $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-                }
-                linksHotkeys.blk = $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel .panel-body .btn");
-                linksSelectBtn(0);
-            };
-            var linksSelectBtn = function linksSelectBtn(i) {
-                if (linksHotkeys.curBtn > -1) {
-                    $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
-                    $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-                }
-                linksHotkeys.curBtn = i;
-                $(linksHotkeys.blk[linksHotkeys.curBtn]).prepend(" ").prepend($("<i/>").addClass("fa fa-hand-o-right")).focus().blur(function(e) {
-                    $(this).off("blur");
-                    linksClearSel();
+            // global page switch keys
+            if (!modal) {
+                Mousetrap.bind(["l", "q"], function(e, key) {
+                    closeDropdowns();
+                    $("#menu-links").click();
+                }).bind(["b", "w"], function(e, key) {
+                    closeDropdowns();
+                    $("#menu-bookmarks").click();
+                }).bind(["h", "e"], function(e, key) {
+                    if ($("#history-title").parent().hasClass("open")) {
+                        $("#history-title").parent().removeClass("open");
+                    } else {
+                        closeDropdowns();
+                        $("#history-title").click();
+                    }
+                }).bind(["s", "r"], function(e, key) {
+                    closeDropdowns();
+                    $("#menu-settings a").click();
                 });
             }
-            var linksClearSel = function linksClearSel() {
-                $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
-                if (linksHotkeys.curBtn > -1) $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-                linksHotkeys = {
-                    curBlk: -1,
-                    curBtn: -1,
-                    blk: []
-                };
-            };
-            // clear current state
-            Mousetrap.reset();
-            linksClearSel();
-            // global page switch keys
-            Mousetrap.bind(["l", "q"], function(e, key) {
-                closeDropdowns();
-                $("#menu-links").click();
-            }).bind(["b", "w"], function(e, key) {
-                closeDropdowns();
-                $("#menu-bookmarks").click();
-            }).bind(["h", "e"], function(e, key) {
-                closeDropdowns();
-                $("#history-title").click();
-            }).bind(["s", "r"], function(e, key) {
-                closeDropdowns();
-                $("#menu-settings a").click();
-            });
-            // if links page is active
-            if ($("nav li.active").attr("id") === "menu-links") {
-                Mousetrap.bind(nums, function(e, key) {
-                    closeDropdowns();
-                    // select block by number
-                    linksSelectBlk(nums.indexOf(key));
-                }).bind(["-", "="], function(e, key) {
-                    closeDropdowns();
-                    // previous/next block
-                    var i = (linksHotkeys.curBlk === -1 ? 0 : (linksHotkeys.curBlk + (key === "-" ? -1 : 1)) % $("#links .panel").length);
-                    if (i < 0) i += $("#links .panel").length;
-                    linksSelectBlk(i);
-                }).bind(["[", "]"], function(e, key) {
-                    closeDropdowns();
-                    // previous/next button
-                    if (linksHotkeys.curBlk === -1) linksSelectBlk(0);
-                    var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
-                    if (i < 0) i += linksHotkeys.blk.length;
-                    linksSelectBtn(i);
-                }).bind(["enter", "backspace"], function(e, key) {
-                    // clear selection
-                    linksClearSel();
+            // if settings modal is open
+            if ($(e.target).attr("id") === "settings" && e.type === "show") {
+                Mousetrap.bind(["tab", "shift+tab"], function(e, key) {
+                    var sel = $("#settings-tabs li.active").index();
+                    sel = (sel + (key === "tab" ? 1 : -1)) % $("#settings-tabs li").length;
+                    if (sel < 0) sel += $("#settings-tabs li").length;
+                    $($("#settings-tabs a")[sel]).click();
+                    e.preventDefault();
                 });
+                // override stop callback to pause on button focus
+                Mousetrap.stopCallback = function(e, element) {
+                    return element.tagName === "BUTTON" || mousetrapStop(e, element);
+                }
+            } else {
+                // restore stop callback
+                Mousetrap.stopCallback = mousetrapStop;
+                // if links page is active
+                if ($("nav li.active").attr("id") === "menu-links") {
+                    Mousetrap.bind(nums, function(e, key) {
+                        closeDropdowns();
+                        // select block by number
+                        linksSelectBlk(nums.indexOf(key));
+                    }).bind(["-", "="], function(e, key) {
+                        closeDropdowns();
+                        // previous/next block
+                        var i = (linksHotkeys.curBlk === -1 ? 0 : (linksHotkeys.curBlk + (key === "-" ? -1 : 1)) % $("#links .panel").length);
+                        if (i < 0) i += $("#links .panel").length;
+                        linksSelectBlk(i);
+                    }).bind(["[", "]"], function(e, key) {
+                        closeDropdowns();
+                        // previous/next button
+                        if (linksHotkeys.curBlk === -1) linksSelectBlk(0);
+                        var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
+                        if (i < 0) i += linksHotkeys.blk.length;
+                        linksSelectBtn(i);
+                    }).bind(["enter", "backspace"], function(e, key) {
+                        // clear selection
+                        setTimeout(linksClearSel, 50);
+                    });
+                }
             }
         }
     };

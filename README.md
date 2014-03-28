@@ -18,6 +18,32 @@ This project requires the following libraries:
 Batteries are not included - the CSS and JavaScript files need to be placed in a `lib` folder with appropriate `css` and `js` subfolders (check the HTML file for where files are linked to).
 
 
+Keyboard shortcuts
+==================
+
+If enabled, the page can be navigated by keyboard.  Note that Chrome will, by default, give focus to the onmibox when opening a new tab, so you must first `Tab` into the page.
+
+Global
+------
+
+* `Q` `W` `E` `R` / `L` `B` `H` `S` - switch to links/bookmarks/history/settings
+* `Tab` `Shift-Tab` - scroll through dropdown options
+
+Links
+-----
+
+* `1` ... `0` - select nth block (`0` for 10th)
+* `-` `=` - select previous/next block
+* `[` `]` - select previous/next button in block
+* `Enter` - open link
+* `Backspace` - clear selection
+
+Settings
+--------
+
+* `Tab` `Shift+Tab` - cycle tabs (ignored if a form field is active)
+
+
 Links format
 ============
 
