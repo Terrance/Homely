@@ -37,7 +37,7 @@ chrome.omnibox.onInputChanged.addListener(function(text, suggest) {
                      + "  <url>" + links[i].url + "</url>";
             var match = {
                 content: links[i].url,
-                description: desc
+                description: desc.replace(/&/g, "&amp;")
             }
             matches.push(match);
         }

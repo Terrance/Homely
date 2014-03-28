@@ -151,7 +151,8 @@ $(document).ready(function() {
         },
         "bookmarks": {
             "bookmarklets": true,
-            "split": false
+            "split": false,
+            "merge": false,
         },
         "history": {
             "limit": 10
@@ -212,10 +213,7 @@ $(document).ready(function() {
         }
         if (settings.style["topbar"]) {
             $("nav").addClass("navbar-fixed-top");
-            $("body").css("padding-top", "80px");
-            css.push("body {\n"
-                   + "    padding-top: 80px;\n"
-                   + "}");
+            $("body").addClass("topbar");
         }
         if (settings.style["background"].image) {
             css.push("html {\n"
@@ -766,7 +764,7 @@ $(document).ready(function() {
                     // folder
                     } else if (el.children) {
                         var container = $("#bookmarks-block" + (settings.bookmarks["split"] ? "-folders" : ""));
-                        container.append($("<button/>").addClass("btn btn-warning").append(fa("folder")).append(" " + el.title).click(function(e) {
+                        container.append($("<button/>").addClass("btn btn-warning").append(fa("folder" + (el.children.length ? "" : "-o"))).append(" " + el.title).click(function(e) {
                             route.push(i);
                             populateBookmarks(el);
                         }));
@@ -810,14 +808,18 @@ $(document).ready(function() {
                 return els;
             };
             populateBookmarks(tree[0]);
-            $("#menu-bookmarks").show();
+            if (settings.bookmarks["merge"]) {
+                $("#bookmarks").fadeIn();
+            } else {
+                $("#menu-bookmarks").show();
+            }
         });
         /*
         History: quick drop-down of recent pages
         */
         if (settings.history["limit"]) {
             var block = true;
-            $("#history-title").show().click(function(e) {
+            $("#history-title").click(function(e) {
                 // delay opening list until loaded
                 if (block && !$(this).hasClass("active")) {
                     e.stopPropagation();
@@ -854,6 +856,7 @@ $(document).ready(function() {
                     block = true;
                 }
             });
+            $("#menu-history").show();
         }
         /*
         Settings: modal to customize links and options
@@ -865,6 +868,7 @@ $(document).ready(function() {
             $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
             $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
             $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
+            $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
             $("#settings-history-limit").val(settings.history["limit"]);
             $("#settings-history-limit-value").text(settings.history["limit"]);
             $("#settings-general-title").val(settings.general["title"]);
@@ -983,6 +987,7 @@ $(document).ready(function() {
             };
             settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
             settings.bookmarks["split"] = $("#settings-bookmarks-split").prop("checked");
+            settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
             if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
             settings.history["limit"] = parseInt($("#settings-history-limit").val());
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
@@ -1153,8 +1158,13 @@ $(document).ready(function() {
             $(document.body).removeClass("modal-open");
             setupHotkeys(e);
         });
-        // open on links page
-        $("#menu-links").click();
+        if (settings.bookmarks["merge"]) {
+            // show both links and bookmarks, hide switch links
+            $("#menu-links, #menu-bookmarks").hide();
+        } else {
+            // open on links page
+            $("#menu-links").click();
+        }
         // fade in once all is loaded
         $(document.body).fadeIn();
     });

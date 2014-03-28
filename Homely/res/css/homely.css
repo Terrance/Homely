@@ -1,11 +1,17 @@
-html {
-    background: url(../img/bg.png);
-}
 body {
     display: none;
-    padding: 40px 0 30px;
+    padding: 40px 0 20px;
     background: none;
     font-family: "Segoe UI", sans-serif;
+}
+body.topbar {
+    padding-top: 255px;
+    padding-bottom: 10px;
+}
+@media (min-width:768px) {
+    body.topbar {
+        padding-top: 80px;
+    }
 }
 .btn-light {
     background-color: #ddd;
@@ -102,6 +108,9 @@ a {
 .dropdown-menu a small.text-muted {
     margin-left: 10px;
 }
+#menu-bookmarks, #bookmarks {
+    display: none;
+}
 #bookmarks .panel-heading {
     padding: 10px 10px 5px 15px;
 }
@@ -125,6 +134,9 @@ a {
 }
 #bookmarks hr {
     margin: 0;
+}
+#menu-history {
+    display: none;
 }
 input[type=range] {
     margin-top: 6px;
