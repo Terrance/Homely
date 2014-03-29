@@ -152,7 +152,7 @@ $(document).ready(function() {
         "bookmarks": {
             "bookmarklets": true,
             "split": false,
-            "merge": false,
+            "merge": false
         },
         "history": {
             "limit": 10
@@ -164,6 +164,7 @@ $(document).ready(function() {
         "style": {
             "font": "Segoe UI",
             "topbar": false,
+            "panel": "default",
             "background": {
                 "image": "../img/bg.png",
                 "repeat": true,
@@ -181,7 +182,9 @@ $(document).ready(function() {
     chrome.storage.local.get(function(store) {
         // apply settings over defaults
         var firstRun = $.isEmptyObject(store);
-        $.extend(settings, store);
+        for (var key in store) {
+            $.extend(settings[key], store[key]);
+        }
         // merge old settings from local storage (pre-1.2)
         if (localStorage.length) {
             for (var key in localStorage) {
@@ -268,7 +271,7 @@ $(document).ready(function() {
             $(settings.links["content"]).each(function(i, linkBlk) {
                 if (!linkBlk.title) linkBlk.title = "";
                 if (!linkBlk.buttons) linkBlk.buttons = [];
-                var blk = $("<div/>").addClass("panel panel-default sortable").data("pos", i);
+                var blk = $("<div/>").addClass("panel panel-" + settings.style["panel"] + " sortable").data("pos", i);
                 var head = $("<div/>").addClass("panel-heading").text(linkBlk.title);
                 if (!linkBlk.title) head.html("&nbsp;");
                 // edit controls dropdown on header
@@ -723,6 +726,7 @@ $(document).ready(function() {
         /*
         Bookmarks: lightweight bookmark browser
         */
+        $("#bookmarks").addClass("panel-" + settings.style["panel"]);
         // switch to bookmarks page
         $("#menu-bookmarks").click(function(e) {
             $(".navbar-right li").removeClass("active");
@@ -833,7 +837,6 @@ $(document).ready(function() {
                             // workaround for accessing Chrome URLs
                             if (res.url.substring(0, "chrome://".length) === "chrome://" || res.url.substring(0, "chrome-extension://".length) === "chrome-extension://") {
                                 link.click(function(e) {
-                                    console.log("click")
                                     // normal click, not external
                                     if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
                                         chrome.tabs.update({url: this.href});
@@ -875,6 +878,7 @@ $(document).ready(function() {
             $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar").prop("checked", settings.style["topbar"]);
+            $("#settings-style-panel label.btn-" + settings.style["panel"]).click();
             $("#settings-style-background-image").data("val", settings.style["background"].image).prop("placeholder", "(unchanged)");
             $("#settings-style-background-repeat").prop("checked", settings.style["background"].repeat);
             $("#settings-style-background-centre").prop("checked", settings.style["background"].centre);
@@ -905,6 +909,7 @@ $(document).ready(function() {
         $("#settings").on("show.bs.modal", function(e) {
             $("#settings-alerts").empty();
             $(".form-group", "#settings-tab-links").removeClass("has-success has-error");
+            $("#settings-style-panel label.active").removeClass("active");
             populateSettings();
             $($("#settings-tabs a")[0]).click();
         });
@@ -923,6 +928,10 @@ $(document).ready(function() {
         });
         $("#settings-history-limit").on("input change", function(e) {
             $("#settings-history-limit-value").text($(this).val());
+        });
+        // panel style group
+        $("#settings-style-panel label").click(function(e) {
+            $("input", this).prop("checked", true);
         });
         // background image selector
         $("#settings-style-background-image").on("input change", function(e) {
@@ -995,6 +1004,7 @@ $(document).ready(function() {
             settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
             settings.style["font"] = $("#settings-style-font").val();
             settings.style["topbar"] = $("#settings-style-topbar").prop("checked");
+            settings.style["panel"] = $("#settings-style-panel label.active input").val();
             settings.style["background"] = {
                 image: $("#settings-style-background-image").val() ? $("#settings-style-background-image").val() : $("#settings-style-background-image").data("val"),
                 repeat: $("#settings-style-background-repeat").prop("checked"),
@@ -1036,10 +1046,12 @@ $(document).ready(function() {
             };
             // number/cycle navigation for links
             var nums = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+            var off = "panel-" + settings.style["panel"];
+            var on = "panel-" + (off === "panel-primary" ? "default" : "primary");
             var linksSelectBlk = function linksSelectBlk(i) {
-                $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+                $("#links ." + on).removeClass(on).addClass(off);
                 linksHotkeys.curBlk = i;
-                $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass("panel-default").addClass("panel-info");
+                $("#links :nth-child(" + (linksHotkeys.curBlk + 1) + ") .panel").removeClass(off).addClass(on);
                 if (linksHotkeys.curBtn > -1) {
                     $(linksHotkeys.blk[linksHotkeys.curBtn]).off("blur");
                     $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
@@ -1059,7 +1071,7 @@ $(document).ready(function() {
                 });
             }
             var linksClearSel = function linksClearSel() {
-                $("#links .panel-info").removeClass("panel-info").addClass("panel-default");
+                $("#links ." + on).removeClass(on).addClass(off);
                 if (linksHotkeys.curBtn > -1) {
                     $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
                     $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
@@ -1123,7 +1135,7 @@ $(document).ready(function() {
                     // restore stop callback
                     Mousetrap.stopCallback = mousetrapStop;
                     // if links page is active
-                    if ($("nav li.active").attr("id") === "menu-links") {
+                    if ($("nav li.active").attr("id") === "menu-links" || settings.bookmarks["merge"]) {
                         Mousetrap.bind(nums, function(e, key) {
                             closeDropdowns();
                             // select block by number
@@ -1159,8 +1171,10 @@ $(document).ready(function() {
             setupHotkeys(e);
         });
         if (settings.bookmarks["merge"]) {
+            setupHotkeys({});
             // show both links and bookmarks, hide switch links
             $("#menu-links, #menu-bookmarks").hide();
+            $(document.body).addClass("merge");
         } else {
             // open on links page
             $("#menu-links").click();

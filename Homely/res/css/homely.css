@@ -8,6 +8,9 @@ body.topbar {
     padding-top: 255px;
     padding-bottom: 10px;
 }
+body.merge {
+    padding-top: 175px;
+}
 @media (min-width:768px) {
     body.topbar {
         padding-top: 80px;
@@ -15,7 +18,7 @@ body.topbar {
 }
 .btn-light {
     background-color: #ddd;
-    border-color: #d8d8d8;
+    border-color: #d4d4d4;
     color: #333;
 }
 .btn-light:hover,
