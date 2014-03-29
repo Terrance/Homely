@@ -157,6 +157,21 @@ $(document).ready(function() {
         "history": {
             "limit": 10
         },
+        "notifs": {
+            "facebook": {
+                "enable": false
+            },
+            "github": {
+                "enable": false
+            },
+            "gmail": {
+                "enable": false,
+                "accounts": []
+            },
+            "outlook": {
+                "enable": false
+            }
+        },
         "general": {
             "title": manif.name,
             "keyboard": false
@@ -182,9 +197,7 @@ $(document).ready(function() {
     chrome.storage.local.get(function(store) {
         // apply settings over defaults
         var firstRun = $.isEmptyObject(store);
-        for (var key in store) {
-            $.extend(settings[key], store[key]);
-        }
+        $.extend(true, settings, store);
         // merge old settings from local storage (pre-1.2)
         if (localStorage.length) {
             for (var key in localStorage) {
@@ -862,6 +875,85 @@ $(document).ready(function() {
             $("#menu-history").show();
         }
         /*
+        Notifications: poll websites for notification counts
+        */
+        // required permissions
+        var notifPerms = {
+            "facebook": ["https://www.facebook.com/"],
+            "github": ["https://github.com/"],
+            "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
+            "outlook": ["https://login.live.com/", "https://*.mail.live.com/"]
+        };
+        // notification counters
+        var total = 0;
+        var updateTotal = function updateTotal(count) {
+            if (!count) return;
+            total += count;
+            $("#notifs-title").empty().append(fa("bell")).append(" Notifications ");
+            $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
+        }
+        if (settings.notifs["facebook"].enable) {
+            var fbLink = $("<a/>").attr("href", "https://www.facebook.com/notifications").text("Facebook");
+            $("#notifs-list").append($("<li/>").append(fbLink));
+            $("#menu-notifs").show();
+            $.ajax({
+                url: "https://www.facebook.com/notifications",
+                success: function success(resp, stat, xhr) {
+                    var count = $("._1hio", resp.replace(/<img[\S\s]*?>/g, "")).length;
+                    fbLink.append($("<span/>").addClass("badge pull-right").text(count));
+                    updateTotal(count);
+                }
+            });
+        }
+        if (settings.notifs["github"].enable) {
+            var ghLink = $("<a/>").attr("href", "https://github.com/notifications").text("GitHub");
+            $("#notifs-list").append($("<li/>").append(ghLink));
+            $("#menu-notifs").show();
+            $.ajax({
+                url: "https://github.com/notifications",
+                success: function success(resp, stat, xhr) {
+                    var count = parseInt($(".count", resp)[0].innerHTML);
+                    ghLink.append($("<span/>").addClass("badge pull-right").text(count));
+                    updateTotal(count);
+                }
+            });
+        }
+        if (settings.notifs["gmail"].enable) {
+            var accounts = settings.notifs["gmail"].accounts;
+            if (!accounts.length) {
+                accounts = [0];
+            }
+            var gmLinks = [];
+            $(accounts).each(function(i, id) {
+                var gmLink = $("<a/>").attr("href", "https://mail.google.com/mail/u/" + id + "/").text("Gmail" + (accounts.length > 1 ? " #" + id : ""));
+                $("#notifs-list").append($("<li/>").append(gmLink));
+                $("#menu-notifs").show();
+                $.ajax({
+                    url: "https://mail.google.com/mail/u/" + id + "/feed/atom",
+                    success: function success(resp, stat, xhr) {
+                        var count = parseInt($("fullcount", resp).text());
+                        gmLink.append($("<span/>").addClass("badge pull-right").text(count));
+                        updateTotal(count);
+                    }
+                });
+            });
+        }
+        if (settings.notifs["outlook"].enable) {
+            var olkLink = $("<a/>").attr("href", "https://mail.live.com").text("Outlook");
+            $("#notifs-list").append($("<li/>").append(olkLink));
+            $("#menu-notifs").show();
+            $.ajax({
+                url: "https://mail.live.com",
+                success: function success(resp, stat, xhr) {
+                    var safe = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "").replace(/on[a-z]*="[\S\s]*?"/g, "");
+                    var count = parseInt($(".count", safe)[0].innerHTML);
+                    if (isNaN(count)) count = 0;
+                    olkLink.append($("<span/>").addClass("badge pull-right").text(count));
+                    updateTotal(count);
+                }
+            });
+        }
+        /*
         Settings: modal to customize links and options
         */
         // set to current data
@@ -874,6 +966,25 @@ $(document).ready(function() {
             $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
             $("#settings-history-limit").val(settings.history["limit"]);
             $("#settings-history-limit-value").text(settings.history["limit"]);
+            $("#settings-notifs-facebook").prop("checked", settings.notifs["facebook"].enable);
+            $("#settings-notifs-github").prop("checked", settings.notifs["github"].enable);
+            $("#settings-notifs-gmail").prop("checked", settings.notifs["gmail"].enable);
+            $("#settings-notifs-gmail-accounts").val(settings.notifs["gmail"].accounts.join(", "));
+            $("#settings-notifs-outlook").prop("checked", settings.notifs["outlook"].enable);
+            // highlight notification permissions status
+            $(".settings-notifs-perm").each(function(i, group) {
+                var key = $(group).data("key");
+                chrome.permissions.contains({
+                    origins: notifPerms[key]
+                }, function(has) {
+                    if (has) {
+                        $(group).addClass("has-success");
+                    } else {
+                        $(group).addClass("has-warning");
+                        $("input[type=checkbox]", group).prop("checked", false);
+                    }
+                })
+            });
             $("#settings-general-title").val(settings.general["title"]);
             $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
             $("#settings-style-font").val(settings.style["font"]);
@@ -928,6 +1039,73 @@ $(document).ready(function() {
         });
         $("#settings-history-limit").on("input change", function(e) {
             $("#settings-history-limit-value").text($(this).val());
+        });
+        // notification permission requests
+        $("#settings-notifs-grant").click(function(e) {
+            $("#settings-alerts").empty();
+            // grant all permissions
+            var perms = [];
+            for (var key in notifPerms) {
+                perms = perms.concat(notifPerms[key]);
+            }
+            chrome.permissions.request({
+                origins: perms
+            }, function(success) {
+                if (success) {
+                    $(".settings-notifs-perm").removeClass("has-warning").addClass("has-success");
+                } else {
+                    var text = "Failed to grant all permissions" + (chrome.runtime.lastError ? ": " + chrome.runtime.lastError.message : ".");
+                    $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+                }
+            });
+        });
+        $("#settings-notifs-revoke").click(function(e) {
+            $("#settings-alerts").empty();
+            // disable notifications first
+            for (var key in settings.notifs) {
+                for (var x in settings.notifs[key]) {
+                    settings.notifs[key][x] = false;
+                }
+            }
+            chrome.storage.local.set({"notifs": settings.notifs}, function() {
+                // revoke all permissions
+                var perms = [];
+                for (var key in notifPerms) {
+                    perms = perms.concat(notifPerms[key]);
+                }
+                chrome.permissions.remove({
+                    origins: perms
+                }, function(success) {
+                    if (success) {
+                        $(".settings-notifs-perm input[type=checkbox]").prop("checked", false);
+                        $(".settings-notifs-perm").removeClass("has-success").addClass("has-warning");
+                    } else {
+                        var text = "Failed to revoke all permissions" + (chrome.runtime.lastError ? ": " + chrome.runtime.lastError.message : ".");
+                        $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+                    }
+                });
+            });
+        });
+        $(".settings-notifs-perm input[type=checkbox]").change(function(e) {
+            $("#settings-alerts").empty();
+            // grant requried permissions for notification provider
+            var id = this.id;
+            var type = id.split("-").splice(2);
+            var perms = notifPerms[type[0]];
+            if (this.checked) {
+                chrome.permissions.request({
+                    origins: perms
+                }, function(success) {
+                    var check = $("#" + id);
+                    if (success) {
+                        check.closest(".settings-notifs-perm").removeClass("has-warning").addClass("has-success");
+                    } else {
+                        var text = "Permission denied for " + perms.join(", ") + ".";
+                        $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+                        check.prop("checked", false);
+                    }
+                });
+            }
         });
         // panel style group
         $("#settings-style-panel label").click(function(e) {
@@ -999,6 +1177,29 @@ $(document).ready(function() {
             settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
             if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
             settings.history["limit"] = parseInt($("#settings-history-limit").val());
+            settings.notifs["facebook"] = {
+                enable: $("#settings-notifs-facebook").prop("checked")
+            };
+            settings.notifs["github"] = {
+                enable: $("#settings-notifs-github").prop("checked")
+            };
+            var accounts = $("#settings-notifs-gmail-accounts").val().replace(/[^0-9,]/g, "");
+            if (accounts) {
+                accounts = accounts.split(",");
+                for (var i = accounts.length - 1; i >= 0; i--) {
+                    accounts[i] = parseInt(accounts[i]);
+                    if (isNaN(accounts[i])) accounts.splice(i, 1);
+                }
+            } else {
+                accounts = [];
+            }
+            settings.notifs["gmail"] = {
+                enable: $("#settings-notifs-gmail").prop("checked"),
+                accounts: accounts.sort()
+            };
+            settings.notifs["outlook"] = {
+                enable: $("#settings-notifs-outlook").prop("checked")
+            };
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();
             settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");

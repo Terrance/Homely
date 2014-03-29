@@ -5,11 +5,11 @@ body {
     font-family: "Segoe UI", sans-serif;
 }
 body.topbar {
-    padding-top: 255px;
+    padding-top: 300px;
     padding-bottom: 10px;
 }
 body.merge {
-    padding-top: 175px;
+    padding-top: 210px;
 }
 @media (min-width:768px) {
     body.topbar {
@@ -138,7 +138,7 @@ a {
 #bookmarks hr {
     margin: 0;
 }
-#menu-history {
+#menu-history, #menu-notifs {
     display: none;
 }
 input[type=range] {
@@ -157,6 +157,9 @@ input[type=range] {
 }
 .form-control-pad-bottom {
     padding-bottom: 7px;
+}
+.form-control-nomar-bottom {
+    margin-bottom: 0;
 }
 #settings .nav-tabs {
     margin-bottom: 15px;

@@ -22,6 +22,10 @@
         "fontSettings",
         "storage"
     ],
+    "optional_permissions": [
+        "http://*/",
+        "https://*/"
+    ],
     "icons": {
         "16": "res/img/icon-16.png",
         "48": "res/img/logo-48.png",
