@@ -28,7 +28,7 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 
 ### Global
 
-* `Q` `W` `E` `R` / `L` `B` `H` `S` - switch to links/bookmarks/history/settings
+* `Q` `W` `E` `R` `T` / `L` `B` `H` `N` `S` - switch to links/bookmarks/history/notifications/settings
 * `Tab` `Shift+Tab` - scroll through dropdown options
 
 ### Links

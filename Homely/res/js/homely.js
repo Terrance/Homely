@@ -1343,7 +1343,14 @@ $(document).ready(function() {
                             closeDropdowns();
                             $("#history-title").click();
                         }
-                    }).bind(["s", "r"], function(e, key) {
+                    }).bind(["n", "r"], function(e, key) {
+                        if ($("#notifs-title").parent().hasClass("open")) {
+                            $("#notifs-title").parent().removeClass("open");
+                        } else {
+                            closeDropdowns();
+                            $("#notifs-title").click();
+                        }
+                    }).bind(["s", "t"], function(e, key) {
                         closeDropdowns();
                         $("#menu-settings a").click();
                     });

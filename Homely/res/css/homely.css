@@ -4,14 +4,16 @@ body {
     background: none;
     font-family: "Segoe UI", sans-serif;
 }
-body.topbar {
-    padding-top: 300px;
-    padding-bottom: 10px;
+@media (max-width: 767px) {
+    body.topbar {
+        padding-top: 300px;
+        padding-bottom: 10px;
+    }
+    body.topbar.merge {
+        padding-top: 225px;
+    }
 }
-body.merge {
-    padding-top: 210px;
-}
-@media (min-width:768px) {
+@media (min-width: 768px) {
     body.topbar {
         padding-top: 80px;
     }
