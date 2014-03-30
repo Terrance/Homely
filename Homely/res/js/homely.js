@@ -159,17 +159,19 @@ $(document).ready(function() {
         },
         "notifs": {
             "facebook": {
-                "enable": false
+                "notifs": false,
+                "messages": false,
+                "friends": false
             },
             "github": {
-                "enable": false
+                "notifs": false
             },
             "gmail": {
-                "enable": false,
+                "emails": false,
                 "accounts": []
             },
             "outlook": {
-                "enable": false
+                "emails": false
             }
         },
         "general": {
@@ -198,8 +200,13 @@ $(document).ready(function() {
     };
     // load settings
     chrome.storage.local.get(function(store) {
-        // apply settings over defaults
         var firstRun = $.isEmptyObject(store);
+        // apply settings over defaults, two levels deep then force overwrite
+        for (var x in settings) {
+            for (var y in settings[x]) {
+                if (store[x] && typeof(store[x][y]) !== "undefined") $.extend(settings[x][y], store[x][y]);
+            }
+        }
         $.extend(true, settings, store);
         // merge old settings from local storage (pre-1.2)
         if (localStorage.length) {
@@ -900,23 +907,76 @@ $(document).ready(function() {
                 $("#notifs-title").empty().append(fa("bell", false)).append(" Notifications ");
                 $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
             };
-            if (settings.notifs["facebook"].enable) {
-                var fbLink = $("<a/>").attr("href", "https://www.facebook.com/notifications").text("Facebook");
-                $("#notifs-list").append($("<li/>").append(fbLink));
+            var first = true;
+            var separate = function separate(label) {
+                if (first) {
+                    first = false;
+                } else {
+                    $("#notifs-list").append($("<li/>").addClass("divider"));
+                }
+                $("#notifs-list").append($("<li/>").addClass("dropdown-header").text(label));
+            };
+            var fbKeys = ["notifs", "messages", "friends"];
+            var fbEnable = false;
+            var fbRoot = settings.notifs["facebook"];
+            for (var i in fbKeys) {
+                if (fbRoot[fbKeys[i]]) {
+                    fbEnable = true;
+                    break;
+                }
+            }
+            if (fbEnable) {
+                separate("Facebook");
+                var fbLinks = [];
+                if (fbRoot.notifs) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/notifications").text("Notifications"));
+                if (fbRoot.messages) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/messages/").text("Messages"));
+                if (fbRoot.friends) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/friends/requests/").text("Requests"));
+                for (var i in fbLinks) {
+                    $("#notifs-list").append($("<li/>").append(fbLinks[i]));
+                }
                 $.ajax({
-                    url: "https://www.facebook.com/notifications",
+                    url: "https://www.facebook.com",
                     success: function success(resp, stat, xhr) {
-                        var count = $("._1hio", resp.replace(/<img[\S\s]*?>/g, "")).length;
-                        fbLink.append($("<span/>").addClass("badge pull-right").text(count));
-                        updateTotal(count);
+                        var safe = resp.replace(/<img[\S\s]*?>/g, "");
+                        if (fbRoot.notifs) {
+                            var count = parseInt($("#notificationsCountValue", safe).text());
+                            if (isNaN(count)) {
+                                count = "?";
+                            } else {
+                                updateTotal(count);
+                            }
+                            window.f = fbLinks;
+                            fbLinks.splice(0, 1)[0].append($("<span/>").addClass("badge pull-right").text(count));
+                        }
+                        if (fbRoot.messages) {
+                            var count = parseInt($("#mercurymessagesCountValue", safe).text());
+                            if (isNaN(count)) {
+                                count = "?";
+                            } else {
+                                updateTotal(count);
+                            }
+                            fbLinks.splice(0, 1)[0].append($("<span/>").addClass("badge pull-right").text(count));
+                        }
+                        if (fbRoot.notifs) {
+                            var count = parseInt($("#requestsCountValue ", safe).text());
+                            if (isNaN(count)) {
+                                count = "?";
+                            } else {
+                                updateTotal(count);
+                            }
+                            fbLinks.splice(0, 1)[0].append($("<span/>").addClass("badge pull-right").text(count));
+                        }
                     },
                     error: function error(xhr, stat, err) {
-                        fbLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                        for (var i in fbLinks) {
+                            fbLinks[i].append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                        }
                     }
                 });
             }
-            if (settings.notifs["github"].enable) {
-                var ghLink = $("<a/>").attr("href", "https://github.com/notifications").text("GitHub");
+            if (settings.notifs["github"].notifs) {
+                separate("GitHub");
+                var ghLink = $("<a/>").attr("href", "https://github.com/notifications").text("Notifications");
                 $("#notifs-list").append($("<li/>").append(ghLink));
                 $.ajax({
                     url: "https://github.com/notifications",
@@ -930,14 +990,15 @@ $(document).ready(function() {
                     }
                 });
             }
-            if (settings.notifs["gmail"].enable) {
+            if (settings.notifs["gmail"].emails) {
+                separate("Gmail");
                 var accounts = settings.notifs["gmail"].accounts;
                 if (!accounts.length) {
                     accounts = [0];
                 }
                 var gmLinks = [];
                 $(accounts).each(function(i, id) {
-                    var gmLink = $("<a/>").attr("href", "https://mail.google.com/mail/u/" + id + "/").text("Gmail" + (accounts.length > 1 ? " #" + id : ""));
+                    var gmLink = $("<a/>").attr("href", "https://mail.google.com/mail/u/" + id + "/").text((accounts.length > 1 ? "Account " + id : "Emails"));
                     $("#notifs-list").append($("<li/>").append(gmLink));
                     $.ajax({
                         url: "https://mail.google.com/mail/u/" + id + "/feed/atom",
@@ -952,8 +1013,9 @@ $(document).ready(function() {
                     });
                 });
             }
-            if (settings.notifs["outlook"].enable) {
-                var olkLink = $("<a/>").attr("href", "https://mail.live.com").text("Outlook");
+            if (settings.notifs["outlook"].emails) {
+                separate("Outlook");
+                var olkLink = $("<a/>").attr("href", "https://mail.live.com").text("Emails");
                 $("#notifs-list").append($("<li/>").append(olkLink));
                 $.ajax({
                     url: "https://mail.live.com",
@@ -976,6 +1038,7 @@ $(document).ready(function() {
                     $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<span/>").addClass("caret"));
                     $("#notifs-list").empty();
                     notifRefresh();
+                    e.stopPropagation();
                 })));
                 $("#menu-notifs").show();
             }
@@ -995,11 +1058,13 @@ $(document).ready(function() {
             $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
             $("#settings-history-limit").val(settings.history["limit"]);
             $("#settings-history-limit-value").text(settings.history["limit"]);
-            $("#settings-notifs-facebook").prop("checked", settings.notifs["facebook"].enable);
-            $("#settings-notifs-github").prop("checked", settings.notifs["github"].enable);
-            $("#settings-notifs-gmail").prop("checked", settings.notifs["gmail"].enable);
-            $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
-            $("#settings-notifs-outlook").prop("checked", settings.notifs["outlook"].enable);
+            $("#settings-notifs-facebook-notifs").prop("checked", settings.notifs["facebook"].notifs);
+            $("#settings-notifs-facebook-messages").prop("checked", settings.notifs["facebook"].messages);
+            $("#settings-notifs-facebook-friends").prop("checked", settings.notifs["facebook"].friends);
+            $("#settings-notifs-github-notifs").prop("checked", settings.notifs["github"].notifs);
+            $("#settings-notifs-gmail-emails").prop("checked", settings.notifs["gmail"].emails);
+            $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].emails).val(settings.notifs["gmail"].accounts.join(", "));
+            $("#settings-notifs-outlook-emails").prop("checked", settings.notifs["outlook"].emails);
             // highlight notification permissions status
             $(".settings-notifs-perm").each(function(i, group) {
                 var key = $(group).data("key");
@@ -1137,7 +1202,7 @@ $(document).ready(function() {
                 });
             }
         });
-        $("#settings-notifs-gmail").change(function(e) {
+        $("#settings-notifs-gmail-emails").change(function(e) {
             $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked).focus();
         });
         // panel style group
@@ -1211,10 +1276,12 @@ $(document).ready(function() {
             if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
             settings.history["limit"] = parseInt($("#settings-history-limit").val());
             settings.notifs["facebook"] = {
-                enable: $("#settings-notifs-facebook").prop("checked")
+                notifs: $("#settings-notifs-facebook-notifs").prop("checked"),
+                messages: $("#settings-notifs-facebook-messages").prop("checked"),
+                friends: $("#settings-notifs-facebook-friends").prop("checked"),
             };
             settings.notifs["github"] = {
-                enable: $("#settings-notifs-github").prop("checked")
+                notifs: $("#settings-notifs-github-notifs").prop("checked")
             };
             var accounts = $("#settings-notifs-gmail-accounts").val().replace(/[^0-9,]/g, "");
             if (accounts) {
@@ -1227,11 +1294,11 @@ $(document).ready(function() {
                 accounts = [];
             }
             settings.notifs["gmail"] = {
-                enable: $("#settings-notifs-gmail").prop("checked"),
+                emails: $("#settings-notifs-gmail-emails").prop("checked"),
                 accounts: accounts.sort()
             };
             settings.notifs["outlook"] = {
-                enable: $("#settings-notifs-outlook").prop("checked")
+                emails: $("#settings-notifs-outlook-emails").prop("checked")
             };
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();
@@ -1330,13 +1397,16 @@ $(document).ready(function() {
             if (settings.general["keyboard"]) {
                 // global page switch keys
                 if (!modal) {
-                    Mousetrap.bind(["l", "q"], function(e, key) {
-                        closeDropdowns();
-                        $("#menu-links").click();
-                    }).bind(["b", "w"], function(e, key) {
-                        closeDropdowns();
-                        $("#menu-bookmarks").click();
-                    }).bind(["h", "e"], function(e, key) {
+                    if (!settings.bookmarks["merge"]) {
+                        Mousetrap.bind(["l", "q"], function(e, key) {
+                            closeDropdowns();
+                            $("#menu-links").click();
+                        }).bind(["b", "w"], function(e, key) {
+                            closeDropdowns();
+                            $("#menu-bookmarks").click();
+                        });
+                    }
+                    Mousetrap.bind(["h", "e"], function(e, key) {
                         if ($("#history-title").parent().hasClass("open")) {
                             $("#history-title").parent().removeClass("open");
                         } else {

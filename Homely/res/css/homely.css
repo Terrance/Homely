@@ -1,3 +1,6 @@
+html {
+    min-height: 100%;
+}
 body {
     display: none;
     padding: 40px 0 20px;
