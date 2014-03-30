@@ -946,7 +946,8 @@ $(document).ready(function() {
                 url: "https://mail.live.com",
                 success: function success(resp, stat, xhr) {
                     var safe = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "").replace(/on[a-z]*="[\S\s]*?"/g, "");
-                    var count = parseInt($(".count", safe)[0].innerHTML);
+                    var count;
+                    if ($(".count", safe).length) count = parseInt([0].innerHTML);
                     if (isNaN(count)) count = 0;
                     olkLink.append($("<span/>").addClass("badge pull-right").text(count));
                     updateTotal(count);
@@ -969,7 +970,7 @@ $(document).ready(function() {
             $("#settings-notifs-facebook").prop("checked", settings.notifs["facebook"].enable);
             $("#settings-notifs-github").prop("checked", settings.notifs["github"].enable);
             $("#settings-notifs-gmail").prop("checked", settings.notifs["gmail"].enable);
-            $("#settings-notifs-gmail-accounts").val(settings.notifs["gmail"].accounts.join(", "));
+            $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
             $("#settings-notifs-outlook").prop("checked", settings.notifs["outlook"].enable);
             // highlight notification permissions status
             $(".settings-notifs-perm").each(function(i, group) {
@@ -1106,6 +1107,9 @@ $(document).ready(function() {
                     }
                 });
             }
+        });
+        $("#settings-notifs-gmail").change(function(e) {
+            $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked).focus();
         });
         // panel style group
         $("#settings-style-panel label").click(function(e) {
