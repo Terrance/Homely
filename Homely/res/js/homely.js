@@ -546,6 +546,7 @@ $(document).ready(function() {
                     var styles = ["default", "light", "dark", "primary", "info", "success", "warning", "danger"];
                     $(styles).each(function(k, style) {
                         stylesMenu.append($("<li/>").append($("<a/>").text(cap(style)).click(function(e) {
+                            linkBtn.style = style;
                             // remote all button style classes
                             stylesBtn.removeClass(function(l, css) {
                                 return (css.match(/\bbtn-\S+/g) || []).join(" ");

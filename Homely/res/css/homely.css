@@ -172,6 +172,13 @@ input[type=range] {
 #settings .nav-tabs {
     margin-bottom: 15px;
 }
+#settings-notifs-gmail-accounts {
+    display: inline-block;
+    width: 100px;
+    margin-left: 5px;
+    margin-bottom: 3px;
+    vertical-align: text-top;
+}
 #settings-tab-about {
     text-align: center;
 }
