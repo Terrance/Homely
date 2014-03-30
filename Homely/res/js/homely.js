@@ -178,7 +178,10 @@ $(document).ready(function() {
         },
         "style": {
             "font": "Segoe UI",
-            "topbar": false,
+            "topbar": {
+                "fix": false,
+                "dark": false
+            },
             "panel": "default",
             "background": {
                 "image": "../img/bg.png",
@@ -227,9 +230,12 @@ $(document).ready(function() {
                    + "    font-family: '" + settings.style["font"] + "';\n"
                    + "}");
         }
-        if (settings.style["topbar"]) {
+        if (settings.style["topbar"].fix) {
             $("nav").addClass("navbar-fixed-top");
             $("body").addClass("topbar");
+        }
+        if (settings.style["topbar"].dark) {
+            $("nav").removeClass("navbar-default").addClass("navbar-inverse");
         }
         if (settings.style["background"].image) {
             css.push("html {\n"
@@ -259,7 +265,7 @@ $(document).ready(function() {
         // special link handling
         var fixLinkHandling = function fixLinkHandling() {
             // open Chrome links via Tabs API
-            $(".link-chrome").click(function(e) {
+            $(".link-chrome").off("click").click(function(e) {
                 // normal click, not external
                 if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
                     chrome.tabs.update({url: this.href});
@@ -271,7 +277,7 @@ $(document).ready(function() {
                 }
             });
             // always open external links in a new tab
-            $(".link-external").click(function(e) {
+            $(".link-external").off("click").click(function(e) {
                 if (!$(this).hasClass("link-chrome")) {
                     chrome.tabs.create({url: this.href, active: true});
                     e.preventDefault();
@@ -834,7 +840,8 @@ $(document).ready(function() {
         /*
         History: quick drop-down of recent pages
         */
-        if (settings.history["limit"]) {
+        // only show if enabled and not in incognito
+        if (settings.history["limit"] && !chrome.extension.inIncognitoContext) {
             var block = true;
             $("#history-title").click(function(e) {
                 // delay opening list until loaded
@@ -884,76 +891,97 @@ $(document).ready(function() {
             "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
             "outlook": ["https://login.live.com/", "https://*.mail.live.com/"]
         };
-        // notification counters
-        var total = 0;
-        var updateTotal = function updateTotal(count) {
-            if (!count) return;
-            total += count;
-            $("#notifs-title").empty().append(fa("bell")).append(" Notifications ");
-            $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
-        }
-        if (settings.notifs["facebook"].enable) {
-            var fbLink = $("<a/>").attr("href", "https://www.facebook.com/notifications").text("Facebook");
-            $("#notifs-list").append($("<li/>").append(fbLink));
-            $("#menu-notifs").show();
-            $.ajax({
-                url: "https://www.facebook.com/notifications",
-                success: function success(resp, stat, xhr) {
-                    var count = $("._1hio", resp.replace(/<img[\S\s]*?>/g, "")).length;
-                    fbLink.append($("<span/>").addClass("badge pull-right").text(count));
-                    updateTotal(count);
-                }
-            });
-        }
-        if (settings.notifs["github"].enable) {
-            var ghLink = $("<a/>").attr("href", "https://github.com/notifications").text("GitHub");
-            $("#notifs-list").append($("<li/>").append(ghLink));
-            $("#menu-notifs").show();
-            $.ajax({
-                url: "https://github.com/notifications",
-                success: function success(resp, stat, xhr) {
-                    var count = parseInt($(".count", resp)[0].innerHTML);
-                    ghLink.append($("<span/>").addClass("badge pull-right").text(count));
-                    updateTotal(count);
-                }
-            });
-        }
-        if (settings.notifs["gmail"].enable) {
-            var accounts = settings.notifs["gmail"].accounts;
-            if (!accounts.length) {
-                accounts = [0];
-            }
-            var gmLinks = [];
-            $(accounts).each(function(i, id) {
-                var gmLink = $("<a/>").attr("href", "https://mail.google.com/mail/u/" + id + "/").text("Gmail" + (accounts.length > 1 ? " #" + id : ""));
-                $("#notifs-list").append($("<li/>").append(gmLink));
-                $("#menu-notifs").show();
+        // refresh notifications
+        var notifRefresh = function notifRefresh() {
+            var total = 0;
+            var updateTotal = function updateTotal(count) {
+                if (!count) return;
+                total += count;
+                $("#notifs-title").empty().append(fa("bell", false)).append(" Notifications ");
+                $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
+            };
+            if (settings.notifs["facebook"].enable) {
+                var fbLink = $("<a/>").attr("href", "https://www.facebook.com/notifications").text("Facebook");
+                $("#notifs-list").append($("<li/>").append(fbLink));
                 $.ajax({
-                    url: "https://mail.google.com/mail/u/" + id + "/feed/atom",
+                    url: "https://www.facebook.com/notifications",
                     success: function success(resp, stat, xhr) {
-                        var count = parseInt($("fullcount", resp).text());
-                        gmLink.append($("<span/>").addClass("badge pull-right").text(count));
+                        var count = $("._1hio", resp.replace(/<img[\S\s]*?>/g, "")).length;
+                        fbLink.append($("<span/>").addClass("badge pull-right").text(count));
                         updateTotal(count);
+                    },
+                    error: function error(xhr, stat, err) {
+                        fbLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
                     }
                 });
-            });
-        }
-        if (settings.notifs["outlook"].enable) {
-            var olkLink = $("<a/>").attr("href", "https://mail.live.com").text("Outlook");
-            $("#notifs-list").append($("<li/>").append(olkLink));
-            $("#menu-notifs").show();
-            $.ajax({
-                url: "https://mail.live.com",
-                success: function success(resp, stat, xhr) {
-                    var safe = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "").replace(/on[a-z]*="[\S\s]*?"/g, "");
-                    var count;
-                    if ($(".count", safe).length) count = parseInt([0].innerHTML);
-                    if (isNaN(count)) count = 0;
-                    olkLink.append($("<span/>").addClass("badge pull-right").text(count));
-                    updateTotal(count);
+            }
+            if (settings.notifs["github"].enable) {
+                var ghLink = $("<a/>").attr("href", "https://github.com/notifications").text("GitHub");
+                $("#notifs-list").append($("<li/>").append(ghLink));
+                $.ajax({
+                    url: "https://github.com/notifications",
+                    success: function success(resp, stat, xhr) {
+                        var count = $(".count", resp).length ? parseInt($(".count", resp)[0].innerHTML) : "?";
+                        ghLink.append($("<span/>").addClass("badge pull-right").text(count));
+                        if (!isNaN(count)) updateTotal(count);
+                    },
+                    error: function error(xhr, stat, err) {
+                        ghLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                    }
+                });
+            }
+            if (settings.notifs["gmail"].enable) {
+                var accounts = settings.notifs["gmail"].accounts;
+                if (!accounts.length) {
+                    accounts = [0];
                 }
-            });
-        }
+                var gmLinks = [];
+                $(accounts).each(function(i, id) {
+                    var gmLink = $("<a/>").attr("href", "https://mail.google.com/mail/u/" + id + "/").text("Gmail" + (accounts.length > 1 ? " #" + id : ""));
+                    $("#notifs-list").append($("<li/>").append(gmLink));
+                    $.ajax({
+                        url: "https://mail.google.com/mail/u/" + id + "/feed/atom",
+                        success: function success(resp, stat, xhr) {
+                            var count = parseInt($("fullcount", resp).text());
+                            gmLink.append($("<span/>").addClass("badge pull-right").text(count));
+                            updateTotal(count);
+                        },
+                        error: function error(xhr, stat, err) {
+                            gmLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                        }
+                    });
+                });
+            }
+            if (settings.notifs["outlook"].enable) {
+                var olkLink = $("<a/>").attr("href", "https://mail.live.com").text("Outlook");
+                $("#notifs-list").append($("<li/>").append(olkLink));
+                $.ajax({
+                    url: "https://mail.live.com",
+                    success: function success(resp, stat, xhr) {
+                        var safe = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "").replace(/on[a-z]*="[\S\s]*?"/g, "");
+                        var count;
+                        if ($(".count", safe).length) count = parseInt([0].innerHTML);
+                        if (isNaN(count)) count = 0;
+                        olkLink.append($("<span/>").addClass("badge pull-right").text(count));
+                        updateTotal(count);
+                    },
+                    error: function error(xhr, stat, err) {
+                        olkLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                    }
+                });
+            }
+            if ($("#notifs-list li").length) {
+                $("#notifs-list").append($("<li/>").addClass("divider"));
+                $("#notifs-list").append($("<li/>").append($("<a/>").append(fa("refresh")).append(" Refresh").click(function (e) {
+                    $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<span/>").addClass("caret"));
+                    $("#notifs-list").empty();
+                    notifRefresh();
+                })));
+                $("#menu-notifs").show();
+            }
+        };
+        // only show if enabled and not in incognito
+        if (!chrome.extension.inIncognitoContext) notifRefresh();
         /*
         Settings: modal to customize links and options
         */
@@ -989,7 +1017,8 @@ $(document).ready(function() {
             $("#settings-general-title").val(settings.general["title"]);
             $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
             $("#settings-style-font").val(settings.style["font"]);
-            $("#settings-style-topbar").prop("checked", settings.style["topbar"]);
+            $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
+            $("#settings-style-topbar-dark").prop("checked", settings.style["topbar"].dark);
             $("#settings-style-panel label.btn-" + settings.style["panel"]).click();
             $("#settings-style-background-image").data("val", settings.style["background"].image).prop("placeholder", "(unchanged)");
             $("#settings-style-background-repeat").prop("checked", settings.style["background"].repeat);
@@ -1208,7 +1237,10 @@ $(document).ready(function() {
             settings.general["title"] = $("#settings-general-title").val();
             settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
             settings.style["font"] = $("#settings-style-font").val();
-            settings.style["topbar"] = $("#settings-style-topbar").prop("checked");
+            settings.style["topbar"] = {
+                fix: $("#settings-style-topbar-fix").prop("checked"),
+                dark: $("#settings-style-topbar-dark").prop("checked")
+            };
             settings.style["panel"] = $("#settings-style-panel label.active input").val();
             settings.style["background"] = {
                 image: $("#settings-style-background-image").val() ? $("#settings-style-background-image").val() : $("#settings-style-background-image").data("val"),
@@ -1277,10 +1309,7 @@ $(document).ready(function() {
             }
             var linksClearSel = function linksClearSel() {
                 $("#links ." + on).removeClass(on).addClass(off);
-                if (linksHotkeys.curBtn > -1) {
-                    $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
-                    $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
-                }
+                if (linksHotkeys.curBtn > -1) $("i", linksHotkeys.blk[linksHotkeys.curBtn]).remove();
                 linksHotkeys = {
                     curBlk: -1,
                     curBtn: -1,
@@ -1358,9 +1387,12 @@ $(document).ready(function() {
                             var i = (linksHotkeys.curBtn === -1 ? 0 : (linksHotkeys.curBtn + (key === "[" ? -1 : 1)) % linksHotkeys.blk.length);
                             if (i < 0) i += linksHotkeys.blk.length;
                             linksSelectBtn(i);
-                        }).bind(["enter", "backspace"], function(e, key) {
+                        }).bind("enter", function(e, key) {
                             // clear selection
                             setTimeout(linksClearSel, 50);
+                        }).bind("backspace", function(e, key) {
+                            // clear selection and lose focus
+                            if (linksHotkeys.curBtn > -1) $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
                         });
                     }
                 }
@@ -1384,6 +1416,8 @@ $(document).ready(function() {
             // open on links page
             $("#menu-links").click();
         }
+        // show incognito state
+        if (chrome.extension.inIncognitoContext) $(".incognito").show();
         // fade in once all is loaded
         $(document.body).fadeIn();
     });

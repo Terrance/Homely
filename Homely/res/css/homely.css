@@ -16,6 +16,9 @@ body.merge {
         padding-top: 80px;
     }
 }
+.incognito {
+    display: none;
+}
 .btn-light {
     background-color: #ddd;
     border-color: #d4d4d4;
@@ -99,7 +102,7 @@ a {
 #links-editor tr td:nth-child(1) {
     width: 40px;
 }
-#links-editor tr td:nth-child(2) {
+#links-editor tr td:nth-child(2):not(:last-of-type) {
     width: 30%;
 }
 #links-editor .well:last-of-type {

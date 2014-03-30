@@ -13,6 +13,9 @@
                 <div class="navbar-header">
                     <div id="time" class="navbar-brand"></div>
                 </div>
+                <ul class="nav navbar-nav">
+                    <li class="incognito"><a><i class="fa fa-exclamation-circle"></i> Incognito</a></li>
+                </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li id="menu-links"><a><i class="fa fa-link"></i> Links</a></li>
                     <li id="menu-bookmarks"><a><i class="fa fa-bookmark"></i> Bookmarks</a></li>
@@ -141,6 +144,7 @@
                                 </div>
                             </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-history">
+                                <div class="alert alert-warning"><strong>Note:</strong> the history dropdown is disabled whilst in incognito mode.</div>
                                 <div class="form-group">
                                     <label for="settings-history-limit" class="col-sm-3 control-label">List size: <span id="settings-history-limit-value"></span></label>
                                     <div class="col-sm-8">
@@ -150,6 +154,7 @@
                                 </div>
                             </div>
                             <div class="tab-pane form-horizontal" id="settings-tab-notifs">
+                                <div class="alert alert-warning"><strong>Note:</strong> the notifications dropdown is disabled whilst in incognito mode.</div>
                                 <div class="form-group">
                                     <label class="col-sm-3 control-label">Permissions</label>
                                     <div class="col-sm-8">
@@ -241,13 +246,15 @@
                                 <div class="form-group">
                                     <label class="col-sm-3 control-label">Top bar</label>
                                     <div class="col-sm-8">
-                                        <div class="checkbox">
-                                            <label>
-                                                <input id="settings-style-topbar" type="checkbox">
-                                                <span>Fix to top of page</span>
-                                            </label>
-                                        </div>
-                                        <p class="help-block">The top bar will remain at the top as the page is scrolled.</p>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-topbar-fix" type="checkbox">
+                                            <span>Fix to top of page</span>
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input id="settings-style-topbar-dark" type="checkbox">
+                                            <span>Use dark style</span>
+                                        </label>
+                                        <p class="help-block">A fixed top bar will remain at the top as the page is scrolled.</p>
                                     </div>
                                 </div>
                                 <div class="form-group">
