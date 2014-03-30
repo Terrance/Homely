@@ -17,7 +17,7 @@ body.merge {
     }
 }
 .incognito {
-    display: none;
+    display: none !important;
 }
 .btn-light {
     background-color: #ddd;

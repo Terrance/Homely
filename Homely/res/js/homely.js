@@ -1417,7 +1417,7 @@ $(document).ready(function() {
             $("#menu-links").click();
         }
         // show incognito state
-        if (chrome.extension.inIncognitoContext) $(".incognito").show();
+        if (chrome.extension.inIncognitoContext) $(".incognito").removeClass("incognito");
         // fade in once all is loaded
         $(document.body).fadeIn();
     });
