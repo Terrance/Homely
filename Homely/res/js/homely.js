@@ -167,6 +167,11 @@ $(document).ready(function() {
             },
             "outlook": {
                 "enable": false
+            },
+            "ticktick": {
+                "enable": false,
+                "due": true,
+                "include": false
             }
         },
         "general": {
@@ -205,6 +210,7 @@ $(document).ready(function() {
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
+        "ticktick": ["https://ticktick.com/"],
         "proxy": ["http://www.whatismyproxy.com/"]
     };
     // load settings
@@ -1131,6 +1137,40 @@ $(document).ready(function() {
                     permComplete(has);
                 });
             }
+            if (settings.notifs["ticktick"].enable) {
+                pendingPerm++;
+                chrome.permissions.contains({
+                    origins: ajaxPerms["ticktick"]
+                }, function(has) {
+                    if (has) {
+                        separate("TickTick");
+                        pendingAjax++;
+                        var ttLink = $("<a/>").attr("href", "https://ticktick.com").text("Tasks");
+                        $("#notifs-list").append($("<li/>").append(ttLink));
+                        $.ajax({
+                            url: "https://ticktick.com/api/v2/project/all/tasks",
+                            success: function success(resp, stat, xhr) {
+                                var count = resp.length;
+                                if (settings.notifs["ticktick"].due) {
+                                    count = 0;
+                                    for (var i in resp) {
+                                        if (resp[i].dueDate && new Date(resp[i].dueDate) < new Date()) count++;
+                                    }
+                                }
+                                ttLink.append($("<span/>").addClass("badge pull-right").text(count));
+                                if (settings.notifs["ticktick"].include) updateTotal(count);
+                                next();
+                            },
+                            error: function error(xhr, stat, err) {
+                                ttLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                            }
+                        });
+                    } else {
+                        settings.notifs["ticktick"].enable = false;
+                    }
+                    permComplete(has);
+                });
+            }
         };
         // only show if enabled and not in incognito
         if (!chrome.extension.inIncognitoContext) notifRefresh();
@@ -1154,6 +1194,9 @@ $(document).ready(function() {
             $("#settings-notifs-gmail-enable").prop("checked", settings.notifs["gmail"].enable);
             $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
             $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
+            $("#settings-notifs-ticktick-enable").prop("checked", settings.notifs["ticktick"].enable);
+            $("#settings-notifs-ticktick-due").prop("checked", settings.notifs["ticktick"].due);
+            $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include);
             // highlight notification permissions status
             $(".settings-perm").each(function(i, group) {
                 var key = $(group).data("key");
@@ -1303,6 +1346,12 @@ $(document).ready(function() {
         $("#settings-notifs-gmail-enable").change(function(e) {
             $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked).focus();
         });
+        $("#settings-notifs-ticktick-enable").change(function(e) {
+            $("#settings-notifs-ticktick-due, #settings-notifs-ticktick-include").prop("disabled", !this.checked).focus();
+        });
+        $("#settings-general-clock-show").change(function(e) {
+            $("#settings-general-clock-twentyfour, #settings-general-clock-seconds").prop("disabled", !this.checked).focus();
+        });
         // panel style group
         $("#settings-style-panel label").click(function(e) {
             $("input", this).prop("checked", true);
@@ -1399,6 +1448,11 @@ $(document).ready(function() {
             };
             settings.notifs["outlook"] = {
                 enable: $("#settings-notifs-outlook-enable").prop("checked")
+            };
+            settings.notifs["ticktick"] = {
+                enable: $("#settings-notifs-ticktick-enable").prop("checked"),
+                due: $("#settings-notifs-ticktick-due").prop("checked"),
+                include: $("#settings-notifs-ticktick-include").prop("checked")
             };
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();
