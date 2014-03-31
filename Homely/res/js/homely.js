@@ -13,13 +13,6 @@ $(document).ready(function() {
         return $("<i/>").addClass("fa fa-" + icon).toggleClass("fa-fw", fw !== false);
     }
     var manif = chrome.runtime.getManifest();
-    // show current time in navbar
-    var tick = function tick() {
-        var now = new Date();
-        $("#time").text(pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()));
-    }
-    tick();
-    setInterval(tick, 1000);
     // default settings
     var settings = {
         "links": {
@@ -178,8 +171,13 @@ $(document).ready(function() {
         },
         "general": {
             "title": manif.name,
-            "proxy": false,
-            "keyboard": false
+            "keyboard": false,
+            "clock": {
+                "show": true,
+                "twentyfour": true,
+                "seconds": true
+            },
+            "proxy": false
         },
         "style": {
             "font": "Segoe UI",
@@ -215,7 +213,7 @@ $(document).ready(function() {
         // apply settings over defaults, two levels deep then force overwrite
         for (var x in settings) {
             for (var y in settings[x]) {
-                if (store[x] && typeof(store[x][y]) !== "undefined") $.extend(settings[x][y], store[x][y]);
+                if (store[x] && typeof(store[x][y]) !== "undefined") settings[x][y] = store[x][y];
             }
         }
         // merge old settings from local storage (pre-1.2)
@@ -270,6 +268,27 @@ $(document).ready(function() {
         }
         if (settings.style["customcss"].enable) {
             $(document.head).append($("<style/>").html(settings.style["customcss"].content));
+        }
+        // show current time in navbar
+        if (settings.general["clock"].show) {
+            $(".navbar-header").append($("<div/>").attr("id", "time").addClass("navbar-brand"));
+            var tick = function tick() {
+                var now = new Date();
+                var hours = now.getHours();
+                var pm = "";
+                if (settings.general["clock"].twentyfour) {
+                    hours = pad(hours);
+                } else {
+                    pm = " AM";
+                    if (hours === 0 || hours > 12) {
+                        hours = (hours + 12) % 24;
+                        pm = " PM";
+                    }
+                }
+                $("#time").text(hours + ":" + pad(now.getMinutes()) + (settings.general["clock"].seconds ? ":" + pad(now.getSeconds()) : "") + pm);
+            }
+            tick();
+            setInterval(tick, 1000);
         }
         /*
         Links: customizable grid of links and menus
@@ -1150,8 +1169,11 @@ $(document).ready(function() {
                 })
             });
             $("#settings-general-title").val(settings.general["title"]);
-            $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
+            $("#settings-general-clock-show").prop("checked", settings.general["clock"].show);
+            $("#settings-general-clock-twentyfour").prop("checked", settings.general["clock"].twentyfour);
+            $("#settings-general-clock-seconds").prop("checked", settings.general["clock"].seconds);
+            $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
             $("#settings-style-topbar-dark").prop("checked", settings.style["topbar"].dark);
@@ -1380,8 +1402,13 @@ $(document).ready(function() {
             };
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();
-            settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
             settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
+            settings.general["clock"] = {
+                show: $("#settings-general-clock-show").prop("checked"),
+                twentyfour: $("#settings-general-clock-twentyfour").prop("checked"),
+                seconds: $("#settings-general-clock-seconds").prop("checked")
+            };
+            settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
             settings.style["font"] = $("#settings-style-font").val();
             settings.style["topbar"] = {
                 fix: $("#settings-style-topbar-fix").prop("checked"),
@@ -1574,15 +1601,23 @@ $(document).ready(function() {
         }
         // get IP address / proxy status
         if (settings.general["proxy"]) {
-            $.ajax({
-                url: "http://www.whatismyproxy.com",
-                success: function success(resp, stat, xhr) {
-                    var params = $(".h1", resp).text().split("IP address: ");
-                    var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
-                    link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
-                    $($(".nav")[0]).append($("<li/>").append(link));
-                    link.fadeIn();
+            chrome.permissions.contains({
+                origins: ajaxPerms["proxy"]
+            }, function(has) {
+                if (!has) {
+                    settings.general["proxy"] = false;
+                    return;
                 }
+                $.ajax({
+                    url: "http://www.whatismyproxy.com",
+                    success: function success(resp, stat, xhr) {
+                        var params = $(".h1", resp).text().split("IP address: ");
+                        var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
+                        link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
+                        $($(".nav")[0]).append($("<li/>").append(link));
+                        link.fadeIn();
+                    }
+                });
             });
         }
         // show incognito state
