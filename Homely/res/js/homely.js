@@ -302,6 +302,7 @@ $(document).ready(function() {
         };
         var populateLinks = function populateLinks() {
             $("#alerts, #links").empty();
+            if (settings.links["edit"].dragdrop) $("#links").off("sortupdate");
             // loop through blocks
             $(settings.links["content"]).each(function(i, linkBlk) {
                 if (!linkBlk.title) linkBlk.title = "";
@@ -911,6 +912,7 @@ $(document).ready(function() {
                 $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
             };
             var first = true;
+            var pending = 0;
             var separate = function separate(label) {
                 if (first) {
                     first = false;
@@ -922,6 +924,17 @@ $(document).ready(function() {
             var fbKeys = ["notifs", "messages", "friends"];
             var fbEnable = false;
             var fbRoot = settings.notifs["facebook"];
+            var refreshLink;
+            var next = function next() {
+                if (!refreshLink || --pending) return;
+                refreshLink.empty().append(fa("refresh")).append(" Refresh").off("click").click(function (e) {
+                    $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<span/>").addClass("caret"));
+                    $("#notifs-list").empty();
+                    notifRefresh();
+                    e.stopPropagation();
+                });
+                refreshLink.parent().removeClass("disabled");
+            };
             for (var i in fbKeys) {
                 if (fbRoot[fbKeys[i]]) {
                     fbEnable = true;
@@ -930,6 +943,7 @@ $(document).ready(function() {
             }
             if (fbEnable) {
                 separate("Facebook");
+                pending++;
                 var fbLinks = [];
                 if (fbRoot.notifs) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/notifications").text("Notifications"));
                 if (fbRoot.messages) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/messages/").text("Messages"));
@@ -969,6 +983,7 @@ $(document).ready(function() {
                             }
                             fbLinks.splice(0, 1)[0].append($("<span/>").addClass("badge pull-right").text(count));
                         }
+                        next();
                     },
                     error: function error(xhr, stat, err) {
                         for (var i in fbLinks) {
@@ -979,6 +994,7 @@ $(document).ready(function() {
             }
             if (settings.notifs["github"].notifs) {
                 separate("GitHub");
+                pending++;
                 var ghLink = $("<a/>").attr("href", "https://github.com/notifications").text("Notifications");
                 $("#notifs-list").append($("<li/>").append(ghLink));
                 $.ajax({
@@ -987,6 +1003,7 @@ $(document).ready(function() {
                         var count = $(".count", resp).length ? parseInt($(".count", resp)[0].innerHTML) : "?";
                         ghLink.append($("<span/>").addClass("badge pull-right").text(count));
                         if (!isNaN(count)) updateTotal(count);
+                        next();
                     },
                     error: function error(xhr, stat, err) {
                         ghLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
@@ -999,6 +1016,7 @@ $(document).ready(function() {
                 if (!accounts.length) {
                     accounts = [0];
                 }
+                pending += accounts.length;
                 var gmLinks = [];
                 $(accounts).each(function(i, id) {
                     var gmLink = $("<a/>").attr("href", "https://mail.google.com/mail/u/" + id + "/").text((accounts.length > 1 ? "Account " + id : "Emails"));
@@ -1009,6 +1027,7 @@ $(document).ready(function() {
                             var count = parseInt($("fullcount", resp).text());
                             gmLink.append($("<span/>").addClass("badge pull-right").text(count));
                             updateTotal(count);
+                            next();
                         },
                         error: function error(xhr, stat, err) {
                             gmLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
@@ -1018,6 +1037,7 @@ $(document).ready(function() {
             }
             if (settings.notifs["outlook"].emails) {
                 separate("Outlook");
+                pending++;
                 var olkLink = $("<a/>").attr("href", "https://mail.live.com").text("Emails");
                 $("#notifs-list").append($("<li/>").append(olkLink));
                 $.ajax({
@@ -1029,6 +1049,7 @@ $(document).ready(function() {
                         if (isNaN(count)) count = 0;
                         olkLink.append($("<span/>").addClass("badge pull-right").text(count));
                         updateTotal(count);
+                        next();
                     },
                     error: function error(xhr, stat, err) {
                         olkLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
@@ -1037,12 +1058,10 @@ $(document).ready(function() {
             }
             if ($("#notifs-list li").length) {
                 $("#notifs-list").append($("<li/>").addClass("divider"));
-                $("#notifs-list").append($("<li/>").append($("<a/>").append(fa("refresh")).append(" Refresh").click(function (e) {
-                    $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<span/>").addClass("caret"));
-                    $("#notifs-list").empty();
-                    notifRefresh();
+                refreshLink = $("<a/>").append(fa("refresh fa-spin")).append(" Refreshing...").click(function (e) {
                     e.stopPropagation();
-                })));
+                });
+                $("#notifs-list").append($("<li/>").addClass("disabled").append(refreshLink));
                 $("#menu-notifs").show();
             }
         };
