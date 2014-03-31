@@ -247,8 +247,10 @@ $(document).ready(function() {
                    + "}");
         }
         if (settings.style["topbar"].fix) {
+            $("body").addClass("topbar-fix");
             $("nav").addClass("navbar-fixed-top");
-            $("body").addClass("topbar");
+            $("#menu-collapse").addClass("collapse navbar-collapse");
+            $("#menu-collapse-toggle").show();
         }
         if (settings.style["topbar"].dark) {
             $("nav").removeClass("navbar-default").addClass("navbar-inverse");

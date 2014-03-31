@@ -7,22 +7,14 @@ body {
     background: none;
     font-family: "Segoe UI", sans-serif;
 }
-@media (max-width: 767px) {
-    body.topbar {
-        padding-top: 300px;
-        padding-bottom: 10px;
-    }
-    body.topbar.merge {
-        padding-top: 225px;
-    }
-}
-@media (min-width: 768px) {
-    body.topbar {
-        padding-top: 80px;
-    }
+body.topbar-fix {
+    padding-top: 90px;
 }
 .incognito {
     display: none !important;
+}
+#menu-collapse-toggle {
+    display: none;
 }
 .btn-light {
     background-color: #ddd;
@@ -171,6 +163,9 @@ input[type=range] {
 }
 #settings .nav-tabs {
     margin-bottom: 15px;
+}
+#settings .nav-tabs a {
+    padding: 10px;
 }
 #settings-notifs-gmail-accounts {
     display: inline-block;
