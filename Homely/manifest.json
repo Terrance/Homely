@@ -27,7 +27,7 @@
         "https://github.com/",
         "https://accounts.google.com/", "https://mail.google.com/",
         "https://login.live.com/", "https://*.mail.live.com/",
-        "http://*/", "https://*/"
+        "http://www.whatismyproxy.com/"
     ],
     "icons": {
         "16": "res/img/icon-16.png",

@@ -176,6 +176,7 @@ $(document).ready(function() {
         },
         "general": {
             "title": manif.name,
+            "proxy": false,
             "keyboard": false
         },
         "style": {
@@ -197,6 +198,14 @@ $(document).ready(function() {
                 "content": ""
             }
         }
+    };
+    // required permissions
+    var ajaxPerms = {
+        "facebook": ["https://www.facebook.com/"],
+        "github": ["https://github.com/"],
+        "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
+        "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
+        "proxy": ["http://www.whatismyproxy.com/"]
     };
     // load settings
     chrome.storage.local.get(function(store) {
@@ -892,13 +901,6 @@ $(document).ready(function() {
         /*
         Notifications: poll websites for notification counts
         */
-        // required permissions
-        var notifPerms = {
-            "facebook": ["https://www.facebook.com/"],
-            "github": ["https://github.com/"],
-            "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
-            "outlook": ["https://login.live.com/", "https://*.mail.live.com/"]
-        };
         // refresh notifications
         var notifRefresh = function notifRefresh() {
             var total = 0;
@@ -1067,10 +1069,10 @@ $(document).ready(function() {
             $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].emails).val(settings.notifs["gmail"].accounts.join(", "));
             $("#settings-notifs-outlook-emails").prop("checked", settings.notifs["outlook"].emails);
             // highlight notification permissions status
-            $(".settings-notifs-perm").each(function(i, group) {
+            $(".settings-perm").each(function(i, group) {
                 var key = $(group).data("key");
                 chrome.permissions.contains({
-                    origins: notifPerms[key]
+                    origins: ajaxPerms[key]
                 }, function(has) {
                     if (has) {
                         $(group).addClass("has-success");
@@ -1081,6 +1083,7 @@ $(document).ready(function() {
                 })
             });
             $("#settings-general-title").val(settings.general["title"]);
+            $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
@@ -1141,14 +1144,14 @@ $(document).ready(function() {
             $("#settings-alerts").empty();
             // grant all permissions
             var perms = [];
-            for (var key in notifPerms) {
-                perms = perms.concat(notifPerms[key]);
+            for (var key in ajaxPerms) {
+                perms = perms.concat(ajaxPerms[key]);
             }
             chrome.permissions.request({
                 origins: perms
             }, function(success) {
                 if (success) {
-                    $(".settings-notifs-perm").removeClass("has-warning").addClass("has-success");
+                    $(".settings-perm").removeClass("has-warning").addClass("has-success");
                 } else {
                     var text = "Failed to grant all permissions" + (chrome.runtime.lastError ? ": " + chrome.runtime.lastError.message : ".");
                     $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
@@ -1166,15 +1169,15 @@ $(document).ready(function() {
             chrome.storage.local.set({"notifs": settings.notifs}, function() {
                 // revoke all permissions
                 var perms = [];
-                for (var key in notifPerms) {
-                    perms = perms.concat(notifPerms[key]);
+                for (var key in ajaxPerms) {
+                    perms = perms.concat(ajaxPerms[key]);
                 }
                 chrome.permissions.remove({
                     origins: perms
                 }, function(success) {
                     if (success) {
-                        $(".settings-notifs-perm input[type=checkbox]").prop("checked", false);
-                        $(".settings-notifs-perm").removeClass("has-success").addClass("has-warning");
+                        $(".settings-perm input[type=checkbox]").prop("checked", false);
+                        $(".settings-perm").removeClass("has-success").addClass("has-warning");
                     } else {
                         var text = "Failed to revoke all permissions" + (chrome.runtime.lastError ? ": " + chrome.runtime.lastError.message : ".");
                         $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
@@ -1182,19 +1185,19 @@ $(document).ready(function() {
                 });
             });
         });
-        $(".settings-notifs-perm input[type=checkbox]").change(function(e) {
+        $(".settings-perm input[type=checkbox]").change(function(e) {
             $("#settings-alerts").empty();
             // grant requried permissions for notification provider
             var id = this.id;
             var type = id.split("-").splice(2);
-            var perms = notifPerms[type[0]];
+            var perms = ajaxPerms[type[0]];
             if (this.checked) {
                 chrome.permissions.request({
                     origins: perms
                 }, function(success) {
                     var check = $("#" + id);
                     if (success) {
-                        check.closest(".settings-notifs-perm").removeClass("has-warning").addClass("has-success");
+                        check.closest(".settings-perm").removeClass("has-warning").addClass("has-success");
                     } else {
                         var text = "Permission denied for " + perms.join(", ") + ".";
                         $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
@@ -1303,6 +1306,7 @@ $(document).ready(function() {
             };
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();
+            settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
             settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
             settings.style["font"] = $("#settings-style-font").val();
             settings.style["topbar"] = {
@@ -1493,6 +1497,19 @@ $(document).ready(function() {
         } else {
             // open on links page
             $("#menu-links").click();
+        }
+        // get IP address / proxy status
+        if (settings.general["proxy"]) {
+            $.ajax({
+                url: "http://www.whatismyproxy.com",
+                success: function success(resp, stat, xhr) {
+                    var params = $(".h1", resp).text().split("IP address: ");
+                    var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
+                    link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
+                    $($(".nav")[0]).append($("<li/>").append(link));
+                    link.fadeIn();
+                }
+            });
         }
         // show incognito state
         if (chrome.extension.inIncognitoContext) $(".incognito").removeClass("incognito");

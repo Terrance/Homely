@@ -165,7 +165,7 @@
                                         <p class="help-block">Use this to set and reset all optional permissions given for notifications.  See the <a href="https://github.com/OllieTerrance/Homely#notifications" class="link-external">readme</a> for more information.</p>
                                     </div>
                                 </div>
-                                <div class="form-group settings-notifs-perm" data-key="facebook">
+                                <div class="form-group settings-perm" data-key="facebook">
                                     <label class="col-sm-3 control-label">Facebook</label>
                                     <div class="col-sm-8">
                                         <label class="checkbox-inline">
@@ -182,7 +182,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="form-group settings-notifs-perm" data-key="github">
+                                <div class="form-group settings-perm" data-key="github">
                                     <label class="col-sm-3 control-label">GitHub</label>
                                     <div class="col-sm-8">
                                         <label class="checkbox-inline">
@@ -191,7 +191,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="form-group form-control-nomar-bottom settings-notifs-perm" data-key="gmail">
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="gmail">
                                     <label class="col-sm-3 control-label">Gmail</label>
                                     <div class="col-sm-8 form-control-pad-bottom">
                                         <label class="checkbox-inline">
@@ -202,13 +202,14 @@
                                         <p class="help-block">If signed in to multiple Google accounts, enter a comma separated list of user IDs to count emails individually (check a Google URL for <code>?authuser=<strong>X</strong></code> or <code>/u/<strong>X</strong>/</code>).</p>
                                     </div>
                                 </div>
-                                <div class="form-group settings-notifs-perm" data-key="outlook">
+                                <div class="form-group settings-perm" data-key="outlook">
                                     <label class="col-sm-3 control-label">Outlook</label>
                                     <div class="col-sm-8">
                                         <label class="checkbox-inline">
                                             <input id="settings-notifs-outlook-emails" type="checkbox">
                                             <span>Unread emails</span>
                                         </label>
+                                        <p class="help-block"></p>
                                     </div>
                                 </div>
                             </div>
@@ -230,6 +231,18 @@
                                             </label>
                                         </div>
                                         <p class="help-block">See the <a href="https://github.com/OllieTerrance/Homely#keyboard-shortcuts" class="link-external">readme</a> for controls.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group settings-perm" data-key="proxy">
+                                    <label class="col-sm-3 control-label">Proxies</label>
+                                    <div class="col-sm-8">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input id="settings-general-proxy" type="checkbox">
+                                                <span>Display IP address and proxy information</span>
+                                            </label>
+                                        </div>
+                                        <p class="help-block">Queries <a href="http://www.whatismyproxy.com" class="link-external">WhatIsMyProxy.com</a> to detect your connection's external IP address, and if it may currently routed via a proxy (<i class="fa fa-exchange"></i> is shown for a possible proxy connection).</p>
                                     </div>
                                 </div>
                             </div>

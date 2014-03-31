@@ -121,7 +121,7 @@ With the above steps, you should end up with a block and dropdown like this:
 Notifications
 -------------
 
-Notification counts are acquired by scraping sites and reading numbers or counting unread notifications manually.  Enabling a notification option will prompt for the relevant permission in order to access the given website.  Disabling a notification option will not remove this - use the revoke all option to clear any given permissions.
+Enabling a notification option will prompt for the relevant permission in order to access the given website.  Disabling it will not remove this - use the revoke all option to clear any given permissions.
 
 In order to read arbitrary websites, the global permissions `http://*/` and/or `https://*/` must be granted.  If not (i.e. adding a permission just for a given site), it will be lost if the browser is restarted, unless explicitly declared in `optional_permissions` in the manifest (see [Chrome issue #158004](https://code.google.com/p/chromium/issues/detail?id=158004)).
 
