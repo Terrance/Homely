@@ -314,15 +314,7 @@ $(document).ready(function() {
                 if (settings.general["timer"].stopwatch) {
                     menu.append($("<li/>").append($("<a/>").append("Start stopwatch").click(function(e) {
                         var time = 0;
-                        // stopwatch menu
-                        menu.empty().append($("<li/>").append($("<a/>").append("Cancel stopwatch").click(function(e) {
-                            clearInterval(interval);
-                            reset();
-                        })));
-                        // show timer
-                        var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
-                        interval = setInterval(function() {
+                        var stopwatch = function stopwatch() {
                             time++;
                             if (time) {
                                 var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
@@ -331,7 +323,26 @@ $(document).ready(function() {
                                 clearInterval(interval);
                                 reset();
                             }
-                        }, 1000);
+                        };
+                        // stopwatch menu
+                        menu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function(e) {
+                            if ($(this).data("paused")) {
+                                interval = setInterval(stopwatch, 1000);
+                                $("i", link).addClass("fa-spin");
+                                $(this).data("paused", false).empty().append(fa("pause")).append(" Pause");
+                            } else {
+                                clearInterval(interval);
+                                $("i", link).removeClass("fa-spin");
+                                $(this).data("paused", true).empty().append(fa("play")).append(" Resume");
+                            }
+                        }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
+                            clearInterval(interval);
+                            reset();
+                        })));
+                        // show timer
+                        var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
+                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        interval = setInterval(stopwatch, 1000);
                     })));
                 }
                 if (settings.general["timer"].countdown) {
@@ -356,15 +367,7 @@ $(document).ready(function() {
                                     break;
                             }
                         }
-                        // countdown menu
-                        menu.empty().append($("<li/>").append($("<a/>").append("Cancel countdown").click(function(e) {
-                            clearInterval(interval);
-                            reset();
-                        })));
-                        // show timer
-                        var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
-                        interval = setInterval(function() {
+                        var countdown = function countdown() {
                             if (time) {
                                 time--;
                                 var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
@@ -373,7 +376,26 @@ $(document).ready(function() {
                                 clearInterval(interval);
                                 reset();
                             }
-                        }, 1000);
+                        };
+                        // countdown menu
+                        menu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function(e) {
+                            if ($(this).data("paused")) {
+                                interval = setInterval(countdown, 1000);
+                                $("i", link).addClass("fa-spin");
+                                $(this).data("paused", false).empty().append(fa("pause")).append(" Pause");
+                            } else {
+                                clearInterval(interval);
+                                $("i", link).removeClass("fa-spin");
+                                $(this).data("paused", true).empty().append(fa("play")).append(" Resume");
+                            }
+                        }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
+                            clearInterval(interval);
+                            reset();
+                        })));
+                        // show timer
+                        var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
+                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        interval = setInterval(countdown, 1000);
                     })));
                 }
             };
@@ -1467,13 +1489,16 @@ $(document).ready(function() {
         });
         // enable fields from checkbox selection
         $("#settings-notifs-gmail-enable").change(function(e) {
-            $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked).focus();
+            $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked).parent().toggleClass("text-muted", !this.checked);
+            $("#settings-notifs-gmail-accounts").focus();
         });
         $("#settings-notifs-ticktick-enable").change(function(e) {
-            $("#settings-notifs-ticktick-due, #settings-notifs-ticktick-include").prop("disabled", !this.checked);
+            $("#settings-notifs-ticktick-due, #settings-notifs-ticktick-include").prop("disabled", !this.checked)
+                                                                                 .parent().toggleClass("text-muted", !this.checked);
         });
         $("#settings-general-clock-show").change(function(e) {
-            $("#settings-general-clock-twentyfour, #settings-general-clock-seconds").prop("disabled", !this.checked);
+            $("#settings-general-clock-twentyfour, #settings-general-clock-seconds").prop("disabled", !this.checked)
+                                                                                    .parent().toggleClass("text-muted", !this.checked);
         });
         // panel style group
         $("#settings-style-panel label").click(function(e) {

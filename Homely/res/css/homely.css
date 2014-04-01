@@ -169,6 +169,9 @@ input[type=range] {
 .form-control-nomar-bottom {
     margin-bottom: 0;
 }
+.form-group label.checkbox-inline.text-muted {
+    color: #999;
+}
 #settings .nav-tabs {
     margin-bottom: 15px;
 }
