@@ -320,8 +320,10 @@ $(document).ready(function() {
                             if (time) {
                                 var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
                                 $($("span", link)[0]).text(text);
+                                document.title = text;
                             } else {
                                 clearInterval(interval);
+                                document.title = settings.general["title"];
                                 reset();
                             }
                         };
@@ -343,6 +345,7 @@ $(document).ready(function() {
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
                         link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        document.title = text;
                         interval = setInterval(stopwatch, 1000);
                     })));
                 }
@@ -373,11 +376,13 @@ $(document).ready(function() {
                                 time--;
                                 var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
                                 $($("span", link)[0]).text(text);
+                                document.title = text;
                             } else {
                                 if (settings.general["timer"].beep) {
                                     new Audio("../mp3/alarm.mp3").play();
                                 }
                                 clearInterval(interval);
+                                document.title = settings.general["title"];
                                 reset();
                             }
                         };
@@ -399,6 +404,7 @@ $(document).ready(function() {
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
                         link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        document.title = text;
                         interval = setInterval(countdown, 1000);
                     })));
                 }
