@@ -932,38 +932,34 @@ $(document).ready(function() {
         */
         // refresh notifications
         var notifRefresh = function notifRefresh() {
-            var total = 0;
-            var updateTotal = function updateTotal(count) {
-                if (!count) return;
-                total += count;
-                $("#notifs-title").empty().append(fa("bell", false)).append(" Notifications ");
-                $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
-            };
-            var first = true;
-            var pendingPerm = 0, pendingAjax = 0;
-            var permComplete = function permComplete(has) {
+            // add to list if permission available
+            var pendingPerm = 0;
+            var has = false;
+            var refreshLink;
+            var pendingCount = function pendingCount() {
+                // only if at least one, once all complete
                 if (--pendingPerm || !has) return;
-                $("#notifs-list").append($("<li/>").addClass("divider"));
                 refreshLink = $("<a/>").append(fa("refresh fa-spin")).append(" Refreshing...").click(function (e) {
                     e.stopPropagation();
                 });
                 $("#notifs-list").append($("<li/>").addClass("disabled").append(refreshLink));
                 $("#menu-notifs").show();
             };
-            var separate = function separate(label) {
-                if (first) {
-                    first = false;
-                } else {
-                    $("#notifs-list").append($("<li/>").addClass("divider"));
+            // update total count on response
+            var pendingAjax = 0;
+            var total = 0;
+            var ajaxCount = function ajaxCount(counts) {
+                var thisTotal = 0;
+                for (var i in counts) {
+                    if (!isNaN(counts[i])) thisTotal += counts[i];
                 }
-                $("#notifs-list").append($("<li/>").addClass("dropdown-header").text(label));
-            };
-            var fbKeys = ["notifs", "messages", "friends"];
-            var fbEnable = false;
-            var fbRoot = settings.notifs["facebook"].enable;
-            var refreshLink;
-            var next = function next() {
-                if (!refreshLink || --pendingAjax) return;
+                if (thisTotal) {
+                    total += thisTotal;
+                    $("#notifs-title").empty().append(fa("bell", false)).append(" Notifications ");
+                    $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
+                }
+                // only once all complete
+                if (--pendingAjax) return;
                 refreshLink.empty().append(fa("refresh")).append(" Refresh").off("click").click(function (e) {
                     $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<span/>").addClass("caret"));
                     $("#notifs-list").empty();
@@ -972,205 +968,224 @@ $(document).ready(function() {
                 });
                 refreshLink.parent().removeClass("disabled");
             };
-            for (var i in fbKeys) {
-                if (fbRoot[fbKeys[i]]) {
-                    fbEnable = true;
-                    break;
-                }
-            }
-            if (fbEnable) {
-                pendingPerm++;
-                chrome.permissions.contains({
-                    origins: ajaxPerms["facebook"]
-                }, function(has) {
-                    if (has) {
-                        separate("Facebook");
-                        pendingAjax++;
-                        var fbLinks = [];
-                        if (fbRoot.notifs) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/notifications").text("Notifications"));
-                        if (fbRoot.messages) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/messages/").text("Messages"));
-                        if (fbRoot.friends) fbLinks.push($("<a/>").attr("href", "https://www.facebook.com/friends/requests/").text("Requests"));
-                        for (var i in fbLinks) {
-                            $("#notifs-list").append($("<li/>").append(fbLinks[i]));
-                        }
-                        $.ajax({
-                            url: "https://www.facebook.com",
-                            success: function success(resp, stat, xhr) {
-                                var safe = resp.replace(/<img[\S\s]*?>/g, "");
-                                if (fbRoot.notifs) {
-                                    var count = parseInt($("#notificationsCountValue", safe).text());
-                                    if (isNaN(count)) {
-                                        count = "?";
-                                    } else {
-                                        updateTotal(count);
-                                    }
-                                    window.f = fbLinks;
-                                    fbLinks.splice(0, 1)[0].append($("<span/>").addClass("badge pull-right").text(count));
+            /*
+            handlers = {
+                settings key: {
+                    title: section header,
+                    api: URL to query for all counts,
+                    items: function(notif) {
+                        return [
+                            {
+                                title: item label,
+                                url: URL to open on click,
+                                api: URL to query for individual count,
+                                count: function(notif, resp) {
+                                    return count for this item
                                 }
-                                if (fbRoot.messages) {
-                                    var count = parseInt($("#mercurymessagesCountValue", safe).text());
-                                    if (isNaN(count)) {
-                                        count = "?";
-                                    } else {
-                                        updateTotal(count);
-                                    }
-                                    fbLinks.splice(0, 1)[0].append($("<span/>").addClass("badge pull-right").text(count));
-                                }
-                                if (fbRoot.friends) {
-                                    var count = parseInt($("#requestsCountValue", safe).text());
-                                    if (isNaN(count)) {
-                                        count = "?";
-                                    } else {
-                                        updateTotal(count);
-                                    }
-                                    fbLinks.splice(0, 1)[0].append($("<span/>").addClass("badge pull-right").text(count));
-                                }
-                                next();
                             },
-                            error: function error(xhr, stat, err) {
-                                for (var i in fbLinks) {
-                                    fbLinks[i].append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
-                                }
-                            }
-                        });
-                    } else {
-                        settings.notifs["facebook"].enable = {
-                            "notifs": false,
-                            "messages": false,
-                            "requests": false
-                        };
+                            ...
+                        ]
+                    },
+                    count: function(notif, resp) {
+                        return list of counts corresponding to items
                     }
-                    permComplete(has);
-                });
+                },
+                ...
             }
-            if (settings.notifs["github"].enable) {
-                pendingPerm++;
-                chrome.permissions.contains({
-                    origins: ajaxPerms["github"]
-                }, function(has) {
-                    if (has) {
-                        separate("GitHub");
-                        pendingAjax++;
-                        var ghLink = $("<a/>").attr("href", "https://github.com/notifications").text("Notifications");
-                        $("#notifs-list").append($("<li/>").append(ghLink));
-                        $.ajax({
-                            url: "https://github.com/notifications",
-                            success: function success(resp, stat, xhr) {
-                                var count = $(".count", resp).length ? parseInt($(".count", resp)[0].innerHTML) : "?";
-                                ghLink.append($("<span/>").addClass("badge pull-right").text(count));
-                                if (!isNaN(count)) updateTotal(count);
-                                next();
-                            },
-                            error: function error(xhr, stat, err) {
-                                ghLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
-                            }
+            */
+            var handlers = {
+                "facebook": {
+                    title: "Facebook",
+                    api: "https://www.facebook.com",
+                    items: function(notif) {
+                        var menu = [];
+                        if (notif.enable.notifs) menu.push({
+                            title: "Notifications",
+                            url: "https://www.facebook.com/notifications"
                         });
-                    } else {
-                        settings.notifs["github"].enable = false;
+                        if (notif.enable.messages) menu.push({
+                            title: "Messages",
+                            url: "https://www.facebook.com/messages/"
+                        });
+                        if (notif.enable.friends) menu.push({
+                            title: "Requests",
+                            url: "https://www.facebook.com/friends/requests/"
+                        });
+                        return menu;
+                    },
+                    count: function(notif, resp) {
+                        var vals = [];
+                        if (notif.enable.notifs) vals.push(parseInt($("#notificationsCountValue", resp).text()));
+                        if (notif.enable.messages) vals.push(parseInt($("#mercurymessagesCountValue", resp).text()));
+                        if (notif.enable.friends) vals.push(parseInt($("#requestsCountValue", resp).text()));
+                        return vals;
                     }
-                    permComplete(has);
-                });
-            }
-            if (settings.notifs["gmail"].enable) {
-                pendingPerm++;
-                chrome.permissions.contains({
-                    origins: ajaxPerms["gmail"]
-                }, function(has) {
-                    if (has) {
-                        separate("Gmail");
-                        var accounts = settings.notifs["gmail"].accounts;
-                        if (!accounts.length) {
-                            accounts = [0];
-                        }
-                        pendingAjax += accounts.length;
-                        var gmLinks = [];
-                        $(accounts).each(function(i, id) {
-                            var gmLink = $("<a/>").attr("href", "https://mail.google.com/mail/u/" + id + "/").text((accounts.length > 1 ? "Account " + id : "Emails"));
-                            $("#notifs-list").append($("<li/>").append(gmLink));
-                            $.ajax({
-                                url: "https://mail.google.com/mail/u/" + id + "/feed/atom",
-                                success: function success(resp, stat, xhr) {
-                                    var count = parseInt($("fullcount", resp).text());
-                                    gmLink.append($("<span/>").addClass("badge pull-right").text(count));
-                                    updateTotal(count);
-                                    next();
-                                },
-                                error: function error(xhr, stat, err) {
-                                    gmLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                },
+                "github": {
+                    title: "GitHub",
+                    api: "https://github.com/notifications",
+                    items: function(notif) {
+                        return [{
+                            title: "Notifications",
+                            url: "https://github.com/notifications"
+                        }];
+                    },
+                    count: function(notif, resp) {
+                        return [parseInt($(".count", resp).length ? $($(".count", resp)[0]).text() : "")];
+                    }
+                },
+                "gmail": {
+                    title: "Gmail",
+                    items: function(notif) {
+                        var accs = notif.accounts;
+                        if (!accs.length) return [{
+                            title: "Emails",
+                            url: "https://mail.google.com/mail/u/0/",
+                            api: "https://mail.google.com/mail/u/0/feed/atom",
+                            count: function(notif, resp) {
+                                return parseInt($("fullcount", resp).text());
+                            }
+                        }];
+                        var menu = [];
+                        for (var i in accs) {
+                            menu.push({
+                                title: "Account " + accs[i],
+                                url: "https://mail.google.com/mail/u/" + accs[i] + "/",
+                                api: "https://mail.google.com/mail/u/" + accs[i] + "/feed/atom",
+                                count: function(notif, resp) {
+                                    return parseInt($("fullcount", resp).text());
                                 }
                             });
-                        });
-                    } else {
-                        settings.notifs["gmail"].enable = false;
+                        }
+                        return menu;
                     }
-                    permComplete(has);
-                });
-            }
-            if (settings.notifs["outlook"].enable) {
-                pendingPerm++;
-                chrome.permissions.contains({
-                    origins: ajaxPerms["outlook"]
-                }, function(has) {
-                    if (has) {
-                        separate("Outlook");
-                        pendingAjax++;
-                        var olkLink = $("<a/>").attr("href", "https://mail.live.com").text("Emails");
-                        $("#notifs-list").append($("<li/>").append(olkLink));
-                        $.ajax({
-                            url: "https://mail.live.com",
-                            success: function success(resp, stat, xhr) {
-                                var safe = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "").replace(/on[a-z]*="[\S\s]*?"/g, "");
-                                var count;
-                                if ($(".count", safe).length) count = parseInt([0].innerHTML);
-                                if (isNaN(count)) count = 0;
-                                olkLink.append($("<span/>").addClass("badge pull-right").text(count));
-                                updateTotal(count);
-                                next();
-                            },
-                            error: function error(xhr, stat, err) {
-                                olkLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                },
+                "outlook": {
+                    title: "Outlook",
+                    api: "https://mail.live.com",
+                    items: function(notif) {
+                        return [{
+                            title: "Emails",
+                            url: "https://mail.live.com"
+                        }];
+                    },
+                    count: function(notif, resp) {
+                        var c = $(".count", resp);
+                        return [parseInt(c.length ? ($(c[0]).text() ? $(c[0]).text() : "0") : "")];
+                    }
+                },
+                "ticktick": {
+                    title: "TickTick",
+                    api: "https://ticktick.com/api/v2/project/all/tasks",
+                    items: function(notif) {
+                        return [{
+                            title: "Tasks",
+                            url: "https://ticktick.com"
+                        }];
+                    },
+                    count: function(notif, resp) {
+                        var count = resp.length;
+                        if (notif.due) {
+                            count = 0;
+                            var now = new Date();
+                            for (var i in resp) {
+                                if (resp[i].dueDate && new Date(resp[i].dueDate) < now) count++;
                             }
-                        });
-                    } else {
-                        settings.notifs["outlook"].enable = false;
+                        }
+                        return [count];
                     }
-                    permComplete(has);
-                });
-            }
-            if (settings.notifs["ticktick"].enable) {
-                pendingPerm++;
-                chrome.permissions.contains({
-                    origins: ajaxPerms["ticktick"]
-                }, function(has) {
-                    if (has) {
-                        separate("TickTick");
-                        pendingAjax++;
-                        var ttLink = $("<a/>").attr("href", "https://ticktick.com").text("Tasks");
-                        $("#notifs-list").append($("<li/>").append(ttLink));
-                        $.ajax({
-                            url: "https://ticktick.com/api/v2/project/all/tasks",
-                            success: function success(resp, stat, xhr) {
-                                var count = resp.length;
-                                if (settings.notifs["ticktick"].due) {
-                                    count = 0;
-                                    for (var i in resp) {
-                                        if (resp[i].dueDate && new Date(resp[i].dueDate) < new Date()) count++;
+                }
+            };
+            $.each(settings.notifs, function(key, notif) {
+                // check if at least one option enabled
+                var enabled = notif.enable;
+                if (typeof(notif.enable) === "object") {
+                    enabled = false;
+                    for (var x in notif.enable) {
+                        if (notif.enable[x]) {
+                            enabled = true;
+                            break;
+                        }
+                    }
+                }
+                if (enabled) {
+                    // check permissions exist
+                    pendingPerm++;
+                    has = true;
+                    chrome.permissions.contains({
+                        origins: ajaxPerms[key]
+                    }, function(has) {
+                        if (has) {
+                            var handle = handlers[key];
+                            // add menu items
+                            $("#notifs-list").append($("<li/>").addClass("dropdown-header").text(handle.title));
+                            var menu = [];
+                            var items = handle.items(notif);
+                            $(items).each(function(i, item) {
+                                var link = $("<a/>").attr("href", item.url).text(item.title);
+                                $("#notifs-list").append($("<li/>").append(link));
+                                menu.push(link);
+                            });
+                            $("#notifs-list").append($("<li/>").addClass("divider"));
+                            if (handle.api) {
+                                // single API call for all items
+                                pendingAjax++;
+                                $.ajax({
+                                    url: handle.api,
+                                    success: function(resp, stat, xhr) {
+                                        if (typeof(resp) === "string") {
+                                            resp = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "");
+                                            resp = resp.replace(/on[a-z]*="[\S\s]*?"/g, "");
+                                        }
+                                        var counts = handle.count(notif, resp);
+                                        for (var i in menu) {
+                                            menu[i].append($("<span/>").addClass("badge pull-right").text(isNaN(counts[i]) ? "?" : counts[i]));
+                                        }
+                                        ajaxCount(typeof(notif.include) === "boolean" && !notif.include ? [0] : counts);
+                                    },
+                                    error: function(xhr, stat, err) {
+                                        for (var i in menu) {
+                                            menu[i].append($("<span/>").addClass("badge pull-right").text("?"));
+                                        }
+                                        ajaxCount([0]);
                                     }
-                                }
-                                ttLink.append($("<span/>").addClass("badge pull-right").text(count));
-                                if (settings.notifs["ticktick"].include) updateTotal(count);
-                                next();
-                            },
-                            error: function error(xhr, stat, err) {
-                                ttLink.append($("<span/>").addClass("badge badge-warning pull-right").text("?"));
+                                });
+                            } else {
+                                // API call for each item
+                                $(items).each(function(i, item) {
+                                    pendingAjax++;
+                                    $.ajax({
+                                        url: item.api,
+                                        success: function(resp, stat, xhr) {
+                                            if (typeof(resp) === "string") {
+                                                resp = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "");
+                                                resp = resp.replace(/on[a-z]*="[\S\s]*?"/g, "");
+                                            }
+                                            var count = item.count(notif, resp);
+                                            menu[i].append($("<span/>").addClass("badge pull-right").text(isNaN(count) ? "?" : count));
+                                            ajaxCount([count]);
+                                        },
+                                        error: function(xhr, stat, err) {
+                                            menu[i].append($("<span/>").addClass("badge pull-right").text("?"));
+                                            ajaxCount([0]);
+                                        }
+                                    });
+                                });
                             }
-                        });
-                    } else {
-                        settings.notifs["ticktick"].enable = false;
-                    }
-                    permComplete(has);
-                });
-            }
+                        } else {
+                            // permission not available
+                            if (typeof(notif.enable) === "string") {
+                                notif.enable = false;
+                            } else {
+                                for (var x in notif.enable) {
+                                    notif.enable[x] = false;
+                                }
+                            }
+                        }
+                        pendingCount();
+                    });
+                }
+            });
         };
         // only show if enabled and not in incognito
         if (!chrome.extension.inIncognitoContext) notifRefresh();
@@ -1343,14 +1358,15 @@ $(document).ready(function() {
                 });
             }
         });
+        // enable fields from checkbox selection
         $("#settings-notifs-gmail-enable").change(function(e) {
             $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked).focus();
         });
         $("#settings-notifs-ticktick-enable").change(function(e) {
-            $("#settings-notifs-ticktick-due, #settings-notifs-ticktick-include").prop("disabled", !this.checked).focus();
+            $("#settings-notifs-ticktick-due, #settings-notifs-ticktick-include").prop("disabled", !this.checked);
         });
         $("#settings-general-clock-show").change(function(e) {
-            $("#settings-general-clock-twentyfour, #settings-general-clock-seconds").prop("disabled", !this.checked).focus();
+            $("#settings-general-clock-twentyfour, #settings-general-clock-seconds").prop("disabled", !this.checked);
         });
         // panel style group
         $("#settings-style-panel label").click(function(e) {
