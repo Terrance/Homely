@@ -10,6 +10,14 @@ body {
 body.topbar-fix {
     padding-top: 90px;
 }
+@media (min-width: 768px) {
+    .navbar .container-fluid {
+        padding-left: 0;
+    }
+    #time {
+        margin-left: 0;
+    }
+}
 .incognito {
     display: none !important;
 }

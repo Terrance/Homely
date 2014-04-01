@@ -20,14 +20,14 @@
                     </div>
                 </div>
                 <div id="menu-collapse">
-                    <ul class="nav navbar-nav">
+                    <ul id="menu-left" class="nav navbar-nav">
                         <li class="incognito"><a><i class="fa fa-exclamation-circle"></i> Incognito</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li id="menu-links"><a><i class="fa fa-link"></i> Links</a></li>
                         <li id="menu-bookmarks"><a><i class="fa fa-bookmark"></i> Bookmarks</a></li>
                         <li id="menu-history" class="dropdown">
-                            <a id="history-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-clock-o"></i> History <b class="caret"></b></a>
+                            <a id="history-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-repeat"></i> History <b class="caret"></b></a>
                             <ul id="history-list" class="dropdown-menu"></ul>
                         </li>
                         <li id="menu-notifs" class="dropdown">
@@ -261,7 +261,7 @@
                                     <div class="col-sm-8">
                                         <label class="checkbox-inline form-control-pad-bottom">
                                             <input id="settings-general-clock-show" type="checkbox">
-                                            <span>Show clock</span>
+                                            <span>Display clock</span>
                                         </label>
                                         <label class="checkbox-inline form-control-pad-bottom">
                                             <input id="settings-general-clock-twentyfour" type="checkbox">
@@ -269,7 +269,19 @@
                                         </label>
                                         <label class="checkbox-inline form-control-pad-bottom">
                                             <input id="settings-general-clock-seconds" type="checkbox">
-                                            <span>Show seconds</span>
+                                            <span>With seconds</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline form-control-pad-bottom">
+                                            <input id="settings-general-timer-stopwatch" type="checkbox">
+                                            <span>Show stopwatch</span>
+                                        </label>
+                                        <label class="checkbox-inline form-control-pad-bottom">
+                                            <input id="settings-general-timer-countdown" type="checkbox">
+                                            <span>Show countdown</span>
                                         </label>
                                     </div>
                                 </div>

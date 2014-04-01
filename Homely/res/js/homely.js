@@ -182,6 +182,10 @@ $(document).ready(function() {
                 "twentyfour": true,
                 "seconds": true
             },
+            "timer": {
+                "stopwatch": false,
+                "countdown": false
+            },
             "proxy": false
         },
         "style": {
@@ -295,6 +299,107 @@ $(document).ready(function() {
             }
             tick();
             setInterval(tick, 1000);
+        }
+        // show stopwatch / countdown timer
+        if (settings.general["timer"].stopwatch || settings.general["timer"].countdown) {
+            var root = $("<li/>").addClass("dropdown");
+            var link = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
+            root.append(link);
+            var menu = $("<ul/>").addClass("dropdown-menu");
+            root.append(menu);
+            var reset = function reset() {
+                link.empty().append(fa("clock-o")).append(" No timers ").append($("<span/>").addClass("caret"));
+                menu.empty();
+                var interval = 0;
+                if (settings.general["timer"].stopwatch) {
+                    menu.append($("<li/>").append($("<a/>").append("Start stopwatch").click(function(e) {
+                        var time = 0;
+                        // stopwatch menu
+                        menu.empty().append($("<li/>").append($("<a/>").append("Cancel stopwatch").click(function(e) {
+                            clearInterval(interval);
+                            reset();
+                        })));
+                        // show timer
+                        var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
+                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        interval = setInterval(function() {
+                            time++;
+                            if (time) {
+                                var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
+                                $($("span", link)[0]).text(text);
+                            } else {
+                                clearInterval(interval);
+                                reset();
+                            }
+                        }, 1000);
+                    })));
+                }
+                if (settings.general["timer"].countdown) {
+                    menu.append($("<li/>").append($("<a/>").append("Start countdown").click(function(e) {
+                        // select time
+                        var time = prompt("Enter a time to countdown from (e.g. 45s, 2m30s).", "5m");
+                        if (!time) return;
+                        var parts = time.replace(/[^0-9hms]/g, "").match(/([0-9]+[hms])/g);
+                        var time = 0;
+                        for (var i in parts) {
+                            var part = parts[i];
+                            var params = [parseInt(part.substr(0, part.length - 1)), part.charAt(part.length - 1)];
+                            switch (params[1]) {
+                                case "h":
+                                    time += params[0] * 60 * 60;
+                                    break;
+                                case "m":
+                                    time += params[0] * 60;
+                                    break;
+                                case "s":
+                                    time += params[0];
+                                    break;
+                            }
+                        }
+                        // countdown menu
+                        menu.empty().append($("<li/>").append($("<a/>").append("Cancel countdown").click(function(e) {
+                            clearInterval(interval);
+                            reset();
+                        })));
+                        // show timer
+                        var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
+                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        interval = setInterval(function() {
+                            if (time) {
+                                time--;
+                                var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
+                                $($("span", link)[0]).text(text);
+                            } else {
+                                clearInterval(interval);
+                                reset();
+                            }
+                        }, 1000);
+                    })));
+                }
+            };
+            reset();
+            $("#menu-left").append(root);
+        }
+        // get IP address / proxy status
+        if (settings.general["proxy"]) {
+            chrome.permissions.contains({
+                origins: ajaxPerms["proxy"]
+            }, function(has) {
+                if (!has) {
+                    settings.general["proxy"] = false;
+                    return;
+                }
+                $.ajax({
+                    url: "http://www.whatismyproxy.com",
+                    success: function success(resp, stat, xhr) {
+                        var params = $(".h1", resp).text().split("IP address: ");
+                        var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
+                        link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
+                        $("#menu-left").append($("<li/>").append(link));
+                        link.fadeIn();
+                    }
+                });
+            });
         }
         /*
         Links: customizable grid of links and menus
@@ -1231,6 +1336,8 @@ $(document).ready(function() {
             $("#settings-general-clock-show").prop("checked", settings.general["clock"].show);
             $("#settings-general-clock-twentyfour").prop("checked", settings.general["clock"].twentyfour);
             $("#settings-general-clock-seconds").prop("checked", settings.general["clock"].seconds);
+            $("#settings-general-timer-stopwatch").prop("checked", settings.general["timer"].stopwatch);
+            $("#settings-general-timer-countdown").prop("checked", settings.general["timer"].countdown);
             $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
@@ -1478,6 +1585,10 @@ $(document).ready(function() {
                 twentyfour: $("#settings-general-clock-twentyfour").prop("checked"),
                 seconds: $("#settings-general-clock-seconds").prop("checked")
             };
+            settings.general["timer"] = {
+                stopwatch: $("#settings-general-timer-stopwatch").prop("checked"),
+                countdown: $("#settings-general-timer-countdown").prop("checked")
+            };
             settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
             settings.style["font"] = $("#settings-style-font").val();
             settings.style["topbar"] = {
@@ -1668,27 +1779,6 @@ $(document).ready(function() {
         } else {
             // open on links page
             $("#menu-links").click();
-        }
-        // get IP address / proxy status
-        if (settings.general["proxy"]) {
-            chrome.permissions.contains({
-                origins: ajaxPerms["proxy"]
-            }, function(has) {
-                if (!has) {
-                    settings.general["proxy"] = false;
-                    return;
-                }
-                $.ajax({
-                    url: "http://www.whatismyproxy.com",
-                    success: function success(resp, stat, xhr) {
-                        var params = $(".h1", resp).text().split("IP address: ");
-                        var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
-                        link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
-                        $($(".nav")[0]).append($("<li/>").append(link));
-                        link.fadeIn();
-                    }
-                });
-            });
         }
         // show incognito state
         if (chrome.extension.inIncognitoContext) $(".incognito").removeClass("incognito");
