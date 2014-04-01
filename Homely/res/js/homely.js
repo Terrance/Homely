@@ -184,7 +184,8 @@ $(document).ready(function() {
             },
             "timer": {
                 "stopwatch": false,
-                "countdown": false
+                "countdown": false,
+                "beep": true
             },
             "proxy": false
         },
@@ -373,6 +374,9 @@ $(document).ready(function() {
                                 var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
                                 $($("span", link)[0]).text(text);
                             } else {
+                                if (settings.general["timer"].beep) {
+                                    new Audio("../mp3/alarm.mp3").play();
+                                }
                                 clearInterval(interval);
                                 reset();
                             }
@@ -1360,6 +1364,7 @@ $(document).ready(function() {
             $("#settings-general-clock-seconds").prop("checked", settings.general["clock"].seconds);
             $("#settings-general-timer-stopwatch").prop("checked", settings.general["timer"].stopwatch);
             $("#settings-general-timer-countdown").prop("checked", settings.general["timer"].countdown);
+            $("#settings-general-timer-beep").prop("checked", settings.general["timer"].beep);
             $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
@@ -1500,6 +1505,10 @@ $(document).ready(function() {
             $("#settings-general-clock-twentyfour, #settings-general-clock-seconds").prop("disabled", !this.checked)
                                                                                     .parent().toggleClass("text-muted", !this.checked);
         });
+        $("#settings-general-timer-countdown").change(function(e) {
+            $("#settings-general-timer-beep").prop("disabled", !this.checked)
+                                             .parent().toggleClass("text-muted", !this.checked);
+        });
         // panel style group
         $("#settings-style-panel label").click(function(e) {
             $("input", this).prop("checked", true);
@@ -1612,7 +1621,8 @@ $(document).ready(function() {
             };
             settings.general["timer"] = {
                 stopwatch: $("#settings-general-timer-stopwatch").prop("checked"),
-                countdown: $("#settings-general-timer-countdown").prop("checked")
+                countdown: $("#settings-general-timer-countdown").prop("checked"),
+                beep: $("#settings-general-timer-beep").prop("checked")
             };
             settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
             settings.style["font"] = $("#settings-style-font").val();
