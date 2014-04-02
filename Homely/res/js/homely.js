@@ -144,6 +144,7 @@ $(document).ready(function() {
         },
         "bookmarks": {
             "bookmarklets": true,
+            "foldercontents": true,
             "split": false,
             "merge": false
         },
@@ -971,8 +972,16 @@ $(document).ready(function() {
                     } else if (el.children) {
                         var container = $("#bookmarks-block" + (settings.bookmarks["split"] ? "-folders" : ""));
                         container.append($("<button/>").addClass("btn btn-warning").append(fa("folder" + (el.children.length ? "" : "-o"))).append(" " + el.title).click(function(e) {
-                            route.push(i);
-                            populateBookmarks(el);
+                            // normal click
+                            if (e.which === 1 && (!ctrlDown || !settings.bookmarks["foldercontents"])) {
+                                route.push(i);
+                                populateBookmarks(el);
+                            // middle click or Ctrl+click, if enabled
+                            } else if (e.which <= 2 && settings.bookmarks["foldercontents"]) {
+                                $(el.children).each(function(i, child) {
+                                    if (child.url && child.url.substring(0, "javascript:".length) !== "javascript:") chrome.tabs.create({url: child.url, active: false});
+                                });
+                            }
                         }));
                     }
                 });
@@ -1335,6 +1344,7 @@ $(document).ready(function() {
             $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
             $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
             $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
+            $("#settings-bookmarks-foldercontents").prop("checked", settings.bookmarks["foldercontents"]);
             $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
             $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
             $("#settings-history-limit").val(settings.history["limit"]);
@@ -1581,6 +1591,7 @@ $(document).ready(function() {
                 dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
             };
             settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
+            settings.bookmarks["foldercontents"] = $("#settings-bookmarks-foldercontents").prop("checked");
             settings.bookmarks["split"] = $("#settings-bookmarks-split").prop("checked");
             settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
             if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
