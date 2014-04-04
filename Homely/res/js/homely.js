@@ -169,6 +169,9 @@ $(document).ready(function() {
             "outlook": {
                 "enable": false
             },
+            "steam": {
+                "emable": false
+            },
             "ticktick": {
                 "enable": false,
                 "due": true,
@@ -216,6 +219,7 @@ $(document).ready(function() {
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
+        "steam": ["http://steamcommunity.com/"],
         "ticktick": ["https://ticktick.com/"],
         "proxy": ["http://www.whatismyproxy.com/"]
     };
@@ -1108,11 +1112,13 @@ $(document).ready(function() {
                     total += thisTotal;
                     $("#notifs-title").empty().append(fa("bell", false)).append(" Notifications ");
                     $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
+                    document.title = "(" + total + ") " + settings.general["title"];
                 }
                 // only once all complete
                 if (--pendingAjax) return;
                 refreshLink.empty().append(fa("refresh")).append(" Refresh").off("click").click(function (e) {
                     $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<span/>").addClass("caret"));
+                    document.title = settings.general["title"];
                     $("#notifs-list").empty();
                     notifRefresh();
                     e.stopPropagation();
@@ -1223,6 +1229,21 @@ $(document).ready(function() {
                     count: function(notif, resp) {
                         var c = $(".count", resp);
                         return [parseInt(c.length ? ($(c[0]).text() ? $(c[0]).text() : "0") : "")];
+                    }
+                },
+                "steam": {
+                    title: "Steam",
+                    api: "http://steamcommunity.com",
+                    items: function(notif) {
+                        return [{
+                            title: "Notifications",
+                            url: "http://steamcommunity.com"
+                        }];
+                    },
+                    count: function(notif, resp) {
+                        var c = $("#header_notification_link", resp);
+                        window.c = c;
+                        return [parseInt(c.length ? ($(c[0]).text().trim() ? $(c[0]).text().trim() : "0") : "")];
                     }
                 },
                 "ticktick": {
@@ -1362,6 +1383,7 @@ $(document).ready(function() {
             $("#settings-notifs-gmail-enable").prop("checked", settings.notifs["gmail"].enable);
             $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
             $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
+            $("#settings-notifs-steam-enable").prop("checked", settings.notifs["steam"].enable);
             $("#settings-notifs-ticktick-enable").prop("checked", settings.notifs["ticktick"].enable);
             $("#settings-notifs-ticktick-due").prop("checked", settings.notifs["ticktick"].due);
             $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include);
@@ -1628,6 +1650,9 @@ $(document).ready(function() {
             };
             settings.notifs["outlook"] = {
                 enable: $("#settings-notifs-outlook-enable").prop("checked")
+            };
+            settings.notifs["steam"] = {
+                enable: $("#settings-notifs-steam-enable").prop("checked")
             };
             settings.notifs["ticktick"] = {
                 enable: $("#settings-notifs-ticktick-enable").prop("checked"),
