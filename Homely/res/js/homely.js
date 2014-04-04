@@ -232,27 +232,6 @@ $(document).ready(function() {
                 if (store[x] && typeof(store[x][y]) !== "undefined") settings[x][y] = store[x][y];
             }
         }
-        // merge old settings from local storage (pre-1.2)
-        if (localStorage.length) {
-            for (var key in localStorage) {
-                $.extend(settings[key], JSON.parse(localStorage[key]));
-            }
-            // move old general settings to new style section
-            for (var key in settings.style) {
-                if (typeof(settings.style[key]) !== "undefined" && typeof(settings.general[key]) !== "undefined") {
-                    settings.style[key] = settings.general[key];
-                    delete settings.general[key];
-                }
-            }
-            // save new settings
-            chrome.storage.local.set(settings, function() {
-                if (chrome.runtime.lastError) {
-                    alert("Unable to merge old settings: " + chrome.runtime.lastError.message);
-                    return;
-                }
-                localStorage.clear();
-            })
-        }
         // apply custom styles
         document.title = settings.general["title"];
         var css = [];
