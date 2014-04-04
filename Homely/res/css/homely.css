@@ -10,6 +10,9 @@ body {
 body.topbar-fix {
     padding-top: 90px;
 }
+#time {
+    cursor: help;
+}
 @media (min-width: 768px) {
     .navbar .container-fluid {
         padding-left: 0;

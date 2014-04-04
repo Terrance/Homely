@@ -284,6 +284,8 @@ $(document).ready(function() {
         // show current time in navbar
         if (settings.general["clock"].show) {
             $(".navbar-header").append($("<div/>").attr("id", "time").addClass("navbar-brand"));
+            var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             var tick = function tick() {
                 var now = new Date();
                 var hours = now.getHours();
@@ -297,7 +299,8 @@ $(document).ready(function() {
                         pm = " PM";
                     }
                 }
-                $("#time").text(hours + ":" + pad(now.getMinutes()) + (settings.general["clock"].seconds ? ":" + pad(now.getSeconds()) : "") + pm);
+                $("#time").text(hours + ":" + pad(now.getMinutes()) + (settings.general["clock"].seconds ? ":" + pad(now.getSeconds()) : "") + pm)
+                          .attr("title", days[now.getDay()] + " " + now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear());
             }
             tick();
             setInterval(tick, 1000);
@@ -520,7 +523,9 @@ $(document).ready(function() {
                             var pos = prompt("Enter a new position for this block.", i);
                             if (typeof(pos) === "string") {
                                 pos = parseInt(pos);
-                                if (!isNaN(pos) && pos >= 0 && pos <= max) {
+                                if (!isNaN(pos)) {
+                                    if (pos < 0) pos = 0;
+                                    if (pos > max) pos = max;
                                     if (pos < i) {
                                         for (var x = i; x > pos; x--) {
                                             settings.links["content"][x] = settings.links["content"][x - 1];
@@ -1318,6 +1323,7 @@ $(document).ready(function() {
                                     });
                                 });
                             }
+                            pendingCount();
                         } else {
                             // permission not available
                             if (typeof(notif.enable) === "string") {
@@ -1327,8 +1333,8 @@ $(document).ready(function() {
                                     notif.enable[x] = false;
                                 }
                             }
+                            pendingPerm--;
                         }
-                        pendingCount();
                     });
                 }
             });
