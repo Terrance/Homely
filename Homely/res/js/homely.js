@@ -408,16 +408,27 @@ $(document).ready(function() {
                     settings.general["proxy"] = false;
                     return;
                 }
-                $.ajax({
-                    url: "http://www.whatismyproxy.com",
-                    success: function success(resp, stat, xhr) {
-                        var params = $(".h1", resp).text().split("IP address: ");
-                        var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
-                        link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
-                        $("#menu-left").append($("<li/>").append(link));
-                        link.fadeIn();
-                    }
-                });
+                if (navigator.onLine) {
+                    $.ajax({
+                        url: "http://www.whatismyproxy.com",
+                        success: function success(resp, stat, xhr) {
+                            var params = $(".h1", resp).text().split("IP address: ");
+                            var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
+                            link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
+                            $("#menu-left").append($("<li/>").append(link));
+                            link.fadeIn();
+                        },
+                        error: function(xhr, stat, err) {
+                            var link = $("<a/>").append(fa("power-off", false)).append(" No connection").hide();
+                            $("#menu-left").append($("<li/>").append(link));
+                            link.fadeIn();
+                        } 
+                    });
+                } else {
+                    var link = $("<a/>").append(fa("power-off", false)).append(" No connection").hide();
+                    $("#menu-left").append($("<li/>").append(link));
+                    link.fadeIn();
+                }
             });
         }
         /*
@@ -1066,6 +1077,18 @@ $(document).ready(function() {
         */
         // refresh notifications
         var notifRefresh = function notifRefresh() {
+            // disable if no connection
+            if (!navigator.onLine) {
+                $("#notifs-list").append($("<li/>").addClass("disabled").append($("<a/>").append(fa("power-off")).append(" No connection")))
+                                 .append($("<li/>").addClass("divider"))
+                                 .append($("<li/>").append($("<a/>").append(fa("refresh")).append(" Check again").off("click").click(function (e) {
+                                     $("#notifs-list").empty();
+                                     notifRefresh();
+                                     e.stopPropagation();
+                                 })));
+                $("#menu-notifs").show();
+                return;
+            }
             // add to list if permission available
             var pendingPerm = 0;
             var has = false;
