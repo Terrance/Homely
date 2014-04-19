@@ -219,7 +219,7 @@ $(document).ready(function() {
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
-        "steam": ["http://steamcommunity.com/"],
+        "steam": ["https://steamcommunity.com/", "http://steamcommunity.com/"],
         "ticktick": ["https://ticktick.com/"],
         "proxy": ["http://www.whatismyproxy.com/"]
     };
@@ -442,9 +442,9 @@ $(document).ready(function() {
             if (e.keyCode === 17) ctrlDown = false;
         });
         // special link handling
-        var fixLinkHandling = function fixLinkHandling() {
+        var fixLinkHandling = function fixLinkHandling(context) {
             // open Chrome links via Tabs API
-            $(".link-chrome").off("click").click(function(e) {
+            $(".link-chrome", context).off("click").click(function(e) {
                 // normal click, not external
                 if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
                     chrome.tabs.update({url: this.href});
@@ -456,7 +456,7 @@ $(document).ready(function() {
                 }
             });
             // always open external links in a new tab
-            $(".link-external").off("click").click(function(e) {
+            $(".link-external", context).off("click").click(function(e) {
                 if (!$(this).hasClass("link-chrome")) {
                     chrome.tabs.create({url: this.href, active: true});
                     e.preventDefault();
@@ -1062,6 +1062,9 @@ $(document).ready(function() {
                             // add to dropdown
                             $("#history-list").append($("<li/>").append(link));
                         }
+                        $("#history-list").append($("<li/>").addClass("divider"));
+                        $("#history-list").append($("<li/>").append($("<a/>").addClass("link-chrome").append(fa("search")).append(" More...").attr("href", "chrome://history")));
+                        fixLinkHandling("#history-list");
                         block = false;
                         $("#history-title").click();
                     });
@@ -1387,8 +1390,12 @@ $(document).ready(function() {
             $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
             $("#settings-notifs-steam-enable").prop("checked", settings.notifs["steam"].enable);
             $("#settings-notifs-ticktick-enable").prop("checked", settings.notifs["ticktick"].enable);
-            $("#settings-notifs-ticktick-due").prop("checked", settings.notifs["ticktick"].due);
-            $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include);
+            $("#settings-notifs-ticktick-due").prop("checked", settings.notifs["ticktick"].due)
+                                              .prop("disabled", !settings.notifs["ticktick"].enable)
+                                              .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
+            $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include)
+                                                  .prop("disabled", !settings.notifs["ticktick"].enable)
+                                                  .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
             // highlight notification permissions status
             $(".settings-perm").each(function(i, group) {
                 var key = $(group).data("key");
@@ -1406,11 +1413,17 @@ $(document).ready(function() {
             $("#settings-general-title").val(settings.general["title"]);
             $("#settings-general-keyboard").prop("checked", settings.general["keyboard"]);
             $("#settings-general-clock-show").prop("checked", settings.general["clock"].show);
-            $("#settings-general-clock-twentyfour").prop("checked", settings.general["clock"].twentyfour);
-            $("#settings-general-clock-seconds").prop("checked", settings.general["clock"].seconds);
+            $("#settings-general-clock-twentyfour").prop("checked", settings.general["clock"].twentyfour)
+                                                   .prop("disabled", !settings.general["clock"].show)
+                                                   .parent().toggleClass("text-muted", !settings.general["clock"].show);
+            $("#settings-general-clock-seconds").prop("checked", settings.general["clock"].seconds)
+                                                .prop("disabled", !settings.general["clock"].show)
+                                                .parent().toggleClass("text-muted", !settings.general["clock"].show);
             $("#settings-general-timer-stopwatch").prop("checked", settings.general["timer"].stopwatch);
             $("#settings-general-timer-countdown").prop("checked", settings.general["timer"].countdown);
-            $("#settings-general-timer-beep").prop("checked", settings.general["timer"].beep);
+            $("#settings-general-timer-beep").prop("checked", settings.general["timer"].beep)
+                                             .prop("disabled", !settings.general["timer"].countdown)
+                                             .parent().toggleClass("text-muted", !settings.general["timer"].countdown);
             $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
@@ -1422,7 +1435,7 @@ $(document).ready(function() {
             $("#settings-style-background-fixed").prop("checked", settings.style["background"].fixed);
             $("#settings-style-background-stretch").prop("checked", settings.style["background"].stretch);
             $(".settings-style-background-check").prop("disabled", !settings.style["background"].image)
-                                                   .next().toggleClass("text-muted", !settings.style["background"].image);
+                                                 .next().toggleClass("text-muted", !settings.style["background"].image);
             $("#settings-style-customcss-enable").prop("checked", settings.style["customcss"].enable);
             $("#settings-style-customcss-content").prop("disabled", !settings.style["customcss"].enable).val(settings.style["customcss"].content);
         }

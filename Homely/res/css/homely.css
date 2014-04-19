@@ -174,6 +174,7 @@ input[type=range] {
 }
 .form-group label.checkbox-inline.text-muted {
     color: #999;
+    cursor: not-allowed;
 }
 #settings .nav-tabs {
     margin-bottom: 15px;
