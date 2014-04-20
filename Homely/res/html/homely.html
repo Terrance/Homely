@@ -206,7 +206,7 @@
                                             <input id="settings-notifs-gmail-enable" type="checkbox">
                                             <span>Unread emails</span>
                                         </label>
-                                        <input id="settings-notifs-gmail-accounts" type="text" class="form-control input-sm" placeholder="Accounts">
+                                        <input id="settings-notifs-gmail-accounts" type="text" class="form-control input-sm input-inline" placeholder="Accounts">
                                         <p class="help-block">If signed in to multiple Google accounts, enter a comma separated list of user IDs to count emails individually (check a Google URL for <code>?authuser=<strong>X</strong></code> or <code>/u/<strong>X</strong>/</code>).</p>
                                     </div>
                                 </div>
@@ -282,7 +282,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="form-group form-control-nomar-bottom">
+                                <div class="form-group form-control-nomar-bottom form-control-pad-bottom">
                                     <div class="col-sm-offset-3 col-sm-8">
                                         <label class="checkbox-inline form-control-pad-bottom">
                                             <input id="settings-general-timer-stopwatch" type="checkbox">
@@ -296,6 +296,16 @@
                                             <input id="settings-general-timer-beep" type="checkbox">
                                             <span>Beep at zero</span>
                                         </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="weather">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-general-weather-show" type="checkbox">
+                                            <span>Display weather</span>
+                                        </label>
+                                        <input id="settings-general-weather-location" type="text" class="form-control input-sm input-inline" placeholder="Location">
+                                        <p class="help-block">Queries <a href="http://www.openweathermap.org" class="link-external">Open Weather Map</a> for the current weather forecast.</p>
                                     </div>
                                 </div>
                                 <div class="form-group settings-perm" data-key="proxy">

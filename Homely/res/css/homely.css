@@ -182,12 +182,17 @@ input[type=range] {
 #settings .nav-tabs a {
     padding: 10px;
 }
-#settings-notifs-gmail-accounts {
+#settings .input-inline {
     display: inline-block;
-    width: 100px;
     margin-left: 5px;
     margin-bottom: 3px;
     vertical-align: text-top;
+}
+#settings-notifs-gmail-accounts {
+    width: 100px;
+}
+#settings-general-weather-location {
+    width: 200px;
 }
 #settings-tab-about {
     text-align: center;

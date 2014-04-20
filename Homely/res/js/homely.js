@@ -191,6 +191,10 @@ $(document).ready(function() {
                 "countdown": false,
                 "beep": true
             },
+            "weather": {
+                "show": false,
+                "location": ""
+            },
             "proxy": false
         },
         "style": {
@@ -221,6 +225,7 @@ $(document).ready(function() {
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
         "steam": ["https://steamcommunity.com/", "http://steamcommunity.com/"],
         "ticktick": ["https://ticktick.com/"],
+        "weather": ["http://api.openweathermap.org/"],
         "proxy": ["http://www.whatismyproxy.com/"]
     };
     // load settings
@@ -399,6 +404,37 @@ $(document).ready(function() {
             reset();
             $("#menu-left").append(root);
         }
+        // get weather forecast
+        if (settings.general["weather"].show) {
+            chrome.permissions.contains({
+                origins: ajaxPerms["weather"]
+            }, function(has) {
+                if (!has || !settings.general["weather"].location) {
+                    settings.general["weather"].show = false;
+                    return;
+                }
+                if (navigator.onLine) {
+                    $.ajax({
+                        url: "http://api.openweathermap.org/data/2.5/weather?q=" + encodeURIComponent(settings.general["weather"].location),
+                        success: function success(resp, stat, xhr) {
+                            var conds = [Math.round(resp.main.temp - 273.15) + "&deg;C"];
+                            $.each(resp.weather, function(i, item) {
+                                conds.push(item.description);
+                            });
+                            var link = $("<a/>").attr("href", "http://www.openweathermap.org/city/" + resp.id).hide();
+                            link.append(fa("cloud", false)).append(" " + cap(conds.join(", ")));
+                            // always show before proxy link if that loads first
+                            if ($("#menu-proxy").length) {
+                                $("#menu-proxy").before($("<li/>").append(link));
+                            } else {
+                                $("#menu-left").append($("<li/>").append(link));
+                            }
+                            link.fadeIn();
+                        }
+                    });
+                }
+            });
+        }
         // get IP address / proxy status
         if (settings.general["proxy"]) {
             chrome.permissions.contains({
@@ -415,14 +451,14 @@ $(document).ready(function() {
                             var params = $(".h1", resp).text().split("IP address: ");
                             var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
                             link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
-                            $("#menu-left").append($("<li/>").append(link));
+                            $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
                         },
                         error: function(xhr, stat, err) {
                             var link = $("<a/>").append(fa("power-off", false)).append(" No connection").hide();
-                            $("#menu-left").append($("<li/>").append(link));
+                            $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
-                        } 
+                        }
                     });
                 } else {
                     var link = $("<a/>").append(fa("power-off", false)).append(" No connection").hide();
@@ -1429,6 +1465,10 @@ $(document).ready(function() {
             $("#settings-general-timer-beep").prop("checked", settings.general["timer"].beep)
                                              .prop("disabled", !settings.general["timer"].countdown)
                                              .parent().toggleClass("text-muted", !settings.general["timer"].countdown);
+            $("#settings-general-weather-show").prop("checked", settings.general["weather"].show);
+            $("#settings-general-weather-location").val(settings.general["weather"].location)
+                                                   .prop("disabled", !settings.general["weather"].show)
+                                                   .parent().toggleClass("text-muted", !settings.general["weather"].show);
             $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
@@ -1551,15 +1591,15 @@ $(document).ready(function() {
                     } else {
                         var text = "Permission denied for " + perms.join(", ") + ".";
                         $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-                        check.prop("checked", false);
+                        check.prop("checked", false).change();
                     }
                 });
             }
         });
         // enable fields from checkbox selection
         $("#settings-notifs-gmail-enable").change(function(e) {
-            $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked).parent().toggleClass("text-muted", !this.checked);
-            $("#settings-notifs-gmail-accounts").focus();
+            $("#settings-notifs-gmail-accounts").prop("disabled", !this.checked);
+            if (this.checked) $("#settings-notifs-gmail-accounts").focus();
         });
         $("#settings-notifs-ticktick-enable").change(function(e) {
             $("#settings-notifs-ticktick-due, #settings-notifs-ticktick-include").prop("disabled", !this.checked)
@@ -1572,6 +1612,10 @@ $(document).ready(function() {
         $("#settings-general-timer-countdown").change(function(e) {
             $("#settings-general-timer-beep").prop("disabled", !this.checked)
                                              .parent().toggleClass("text-muted", !this.checked);
+        });
+        $("#settings-general-weather-show").change(function(e) {
+            $("#settings-general-weather-location").prop("disabled", !this.checked);
+            if (this.checked) $("#settings-general-weather-location").focus();
         });
         // panel style group
         $("#settings-style-panel label").click(function(e) {
@@ -1692,6 +1736,11 @@ $(document).ready(function() {
                 countdown: $("#settings-general-timer-countdown").prop("checked"),
                 beep: $("#settings-general-timer-beep").prop("checked")
             };
+            settings.general["weather"] = {
+                show: $("#settings-general-weather-show").prop("checked"),
+                location: $("#settings-general-weather-location").val()
+            };
+            if (!settings.general["weather"].location) settings.general["weather"].show = false;
             settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
             settings.style["font"] = $("#settings-style-font").val();
             settings.style["topbar"] = {
