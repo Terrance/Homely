@@ -555,6 +555,11 @@ $(document).ready(function() {
                         populateLinks();
                         chrome.storage.local.set({"links": settings.links});
                     })));
+                    editMenu.append($("<li/>").append($("<a/>").append(fa("files-o")).append(" Duplicate block").click(function(e) {
+                        settings.links["content"].splice(i + 1, 0, $.extend(true, {}, linkBlk));
+                        populateLinks();
+                        chrome.storage.local.set({"links": settings.links});
+                    })));
                     editMenu.append($("<li/>").addClass("divider"));
                     editMenu.append($("<li/>").append($("<a/>").append(fa("pencil")).append(" Edit block").click(function(e) {
                         $("#links-editor").data("block", i).modal("show");
