@@ -271,7 +271,8 @@ $(document).ready(function() {
         }
         // show current time in navbar
         if (settings.general["clock"].show) {
-            $(".navbar-header").append($("<div/>").attr("id", "time").addClass("navbar-brand"));
+            var time = $("<div/>").attr("id", "time").addClass("navbar-brand");
+            $(".navbar-header").append($("<a/>").attr("href", "http://time.is").append(time));
             var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
             var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             var tick = function tick() {
@@ -287,8 +288,8 @@ $(document).ready(function() {
                         pm = " PM";
                     }
                 }
-                $("#time").text(hours + ":" + pad(now.getMinutes()) + (settings.general["clock"].seconds ? ":" + pad(now.getSeconds()) : "") + pm)
-                          .attr("title", days[now.getDay()] + " " + now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear());
+                time.text(hours + ":" + pad(now.getMinutes()) + (settings.general["clock"].seconds ? ":" + pad(now.getSeconds()) : "") + pm)
+                    .attr("title", days[now.getDay()] + " " + now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear());
             }
             tick();
             setInterval(tick, 1000);
@@ -301,7 +302,7 @@ $(document).ready(function() {
             var menu = $("<ul/>").addClass("dropdown-menu");
             root.append(menu);
             var reset = function reset() {
-                link.empty().append(fa("clock-o")).append(" No timers ").append($("<span/>").addClass("caret"));
+                link.empty().append(fa("clock-o", false)).append(" No timers ").append($("<span/>").addClass("caret"));
                 menu.empty();
                 var interval = 0;
                 if (settings.general["timer"].stopwatch) {
@@ -336,7 +337,7 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(stopwatch, 1000);
                     })));
@@ -395,7 +396,7 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin")).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(countdown, 1000);
                     })));
@@ -417,12 +418,13 @@ $(document).ready(function() {
                     $.ajax({
                         url: "http://api.openweathermap.org/data/2.5/weather?q=" + encodeURIComponent(settings.general["weather"].location),
                         success: function success(resp, stat, xhr) {
-                            var conds = [Math.round(resp.main.temp - 273.15) + "&deg;C"];
+                            var conds = [];
                             $.each(resp.weather, function(i, item) {
                                 conds.push(item.description);
                             });
-                            var link = $("<a/>").attr("href", "http://www.openweathermap.org/city/" + resp.id).hide();
-                            link.append(fa("cloud", false)).append(" " + cap(conds.join(", ")));
+                            var link = $("<a/>").attr("href", "http://www.openweathermap.org/city/" + resp.id)
+                                                .attr("title", resp.name + ": " + cap(conds.join(", "))).hide();
+                            link.append(fa("cloud", false)).append(" " + Math.round(resp.main.temp - 273.15) + "&deg;C");
                             // always show before proxy link if that loads first
                             if ($("#menu-proxy").length) {
                                 $("#menu-proxy").before($("<li/>").append(link));
@@ -738,6 +740,27 @@ $(document).ready(function() {
                         })));
                     }
                     if (j > 0 || j < max) {
+                        optsMenu.append($("<li/>").addClass("divider"));
+                    }
+                    if (linkBtn.menu && linkBtn.menu.length === 1) {
+                        optsMenu.append($("<li/>").append($("<a/>").append(fa("level-up")).append(" Convert to link").click(function(e) {
+                            linkBtn.title = linkBtn.menu[0].title;
+                            linkBtn.url = linkBtn.menu[0].url;
+                            delete linkBtn.menu;
+                            populateLinkEditor();
+                        })));
+                        optsMenu.append($("<li/>").addClass("divider"));
+                    } else if (!linkBtn.menu) {
+                        optsMenu.append($("<li/>").append($("<a/>").append(fa("level-down")).append(" Convert to menu").click(function(e) {
+                            linkBtn.menu = [
+                                {
+                                    title: linkBtn.title,
+                                    url: linkBtn.url
+                                }
+                            ];
+                            delete linkBtn.url;
+                            populateLinkEditor();
+                        })));
                         optsMenu.append($("<li/>").addClass("divider"));
                     }
                     optsMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete button").click(function(e) {
