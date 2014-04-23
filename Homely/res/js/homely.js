@@ -176,6 +176,9 @@ $(document).ready(function() {
                 "enable": false,
                 "due": true,
                 "include": false
+            },
+            "twitter": {
+                "enable": false
             }
         },
         "general": {
@@ -225,6 +228,7 @@ $(document).ready(function() {
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
         "steam": ["https://steamcommunity.com/", "http://steamcommunity.com/"],
         "ticktick": ["https://ticktick.com/"],
+        "twitter": ["https://twitter.com/"],
         "weather": ["http://api.openweathermap.org/"],
         "proxy": ["http://www.whatismyproxy.com/"]
     };
@@ -333,6 +337,7 @@ $(document).ready(function() {
                             }
                         }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
                             clearInterval(interval);
+                            document.title = settings.general["title"];
                             reset();
                         })));
                         // show timer
@@ -392,6 +397,7 @@ $(document).ready(function() {
                             }
                         }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
                             clearInterval(interval);
+                            document.title = settings.general["title"];
                             reset();
                         })));
                         // show timer
@@ -758,6 +764,7 @@ $(document).ready(function() {
                                     url: linkBtn.url
                                 }
                             ];
+                            linkBtn.title = "";
                             delete linkBtn.url;
                             populateLinkEditor();
                         })));
@@ -1335,6 +1342,19 @@ $(document).ready(function() {
                         }
                         return [count];
                     }
+                },
+                "twitter": {
+                    title: "Twitter",
+                    api: "https://twitter.com",
+                    items: function(notif) {
+                        return [{
+                            title: "Notifications",
+                            url: "https://twitter.com/i/notifications"
+                        }];
+                    },
+                    count: function(notif, resp) {
+                        return [parseInt($(".count-inner", resp).length ? $($(".count", resp)[0]).text() : "")];
+                    }
                 }
             };
             $.each(settings.notifs, function(key, notif) {
@@ -1460,6 +1480,7 @@ $(document).ready(function() {
             $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include)
                                                   .prop("disabled", !settings.notifs["ticktick"].enable)
                                                   .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
+            $("#settings-notifs-twitter-enable").prop("checked", settings.notifs["twitter"].enable);
             // highlight notification permissions status
             $(".settings-perm").each(function(i, group) {
                 var key = $(group).data("key");
@@ -1745,6 +1766,9 @@ $(document).ready(function() {
                 enable: $("#settings-notifs-ticktick-enable").prop("checked"),
                 due: $("#settings-notifs-ticktick-due").prop("checked"),
                 include: $("#settings-notifs-ticktick-include").prop("checked")
+            };
+            settings.notifs["twitter"] = {
+                enable: $("#settings-notifs-twitter-enable").prop("checked")
             };
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();

@@ -30,6 +30,7 @@
         "https://login.live.com/", "https://*.mail.live.com/",
         "https://steamcommunity.com/", "http://steamcommunity.com/",
         "https://ticktick.com/",
+        "https://twitter.com/",
         "http://api.openweathermap.org/",
         "http://www.whatismyproxy.com/"
     ],
