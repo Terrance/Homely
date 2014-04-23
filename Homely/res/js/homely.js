@@ -333,6 +333,7 @@ $(document).ready(function() {
                             }
                         }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
                             clearInterval(interval);
+                            document.title = settings.general["title"];
                             reset();
                         })));
                         // show timer
@@ -392,6 +393,7 @@ $(document).ready(function() {
                             }
                         }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
                             clearInterval(interval);
+                            document.title = settings.general["title"];
                             reset();
                         })));
                         // show timer
@@ -758,6 +760,7 @@ $(document).ready(function() {
                                     url: linkBtn.url
                                 }
                             ];
+                            linkBtn.title = "";
                             delete linkBtn.url;
                             populateLinkEditor();
                         })));
@@ -1006,16 +1009,20 @@ $(document).ready(function() {
             $("#bookmarks-block").before($("<hr/>"));
         }
         // request tree from Bookmarks API
+        var current;
         chrome.bookmarks.getTree(function bookmarksCallback(tree) {
             tree[0].title = "Bookmarks";
             var route = [];
             var populateBookmarks = function populateBookmarks(root) {
+                current = root;
                 // clear current list
                 $("#bookmarks-title, #bookmarks-block, #bookmarks-block-folders").empty();
                 if (!root.children.length) {
                     $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
                     $("#bookmarks-block-folders").hide();
                 }
+                $("#bookmarks-block-search, hr.bookmarks-search").remove();
+                $("#bookmarks-search").val("");
                 // loop through folder children
                 $(root.children).each(function(i, el) {
                     // bookmark
@@ -1091,6 +1098,55 @@ $(document).ready(function() {
             } else {
                 $("#menu-bookmarks").show();
             }
+        });
+        // bookmark search
+        var timeout = 0;
+        $("#bookmarks-search").on("input", function(e) {
+            var text = $(this).val().toLowerCase();
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                if (!text) {
+                    $("#bookmarks-block-search, hr.bookmarks-search").remove();
+                    return;
+                }
+                var results = [];
+                var search = function search(node) {
+                    // bookmark matching search
+                    if (node.url && node.title.toLowerCase().indexOf(text) > -1) {
+                        results.push(node);
+                    // folder
+                    } else if (node.children) {
+                        $.each(node.children, function(i, child) {
+                            search(child);
+                        });
+                    }
+                };
+                search(current);
+                var block = $("#bookmarks-block-search");
+                if (block.length) {
+                    $("#bookmarks-block-search").empty();
+                } else {
+                    block = $("<div/>").attr("id", "bookmarks-block-search").addClass("panel-body");
+                    $("#bookmarks .panel-heading").after($("<hr/>").addClass("bookmarks-search")).after(block);
+                }
+                if (results.length) {
+                    $.each(results, function(i, node) {
+                        // bookmarklet
+                        if (node.url.substring(0, "javascript:".length) === "javascript:") {
+                            if (settings.bookmarks["bookmarklets"]) {
+                                $("#bookmarks-block-search").append($("<button/>").addClass("btn btn-success disabled").append(fa("code")).append(" " + node.title));
+                            }
+                        } else {
+                            var link = $("<a/>").addClass("btn btn-success").attr("href", node.url).append(fa("file")).append(" " + node.title);
+                            // workaround for accessing Chrome URLs
+                            if (node.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
+                            $("#bookmarks-block-search").append(link);
+                        }
+                    });
+                } else {
+                    $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
+                }
+            }, 200);
         });
         /*
         History: quick drop-down of recent pages
@@ -1710,6 +1766,10 @@ $(document).ready(function() {
                 due: $("#settings-notifs-ticktick-due").prop("checked"),
                 include: $("#settings-notifs-ticktick-include").prop("checked")
             };
+            $.each(settings.notifs, function(key, notif) {
+                if (key === "facebook") return;
+                if (!notif.enable) revoke(key);
+            });
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();
             settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
