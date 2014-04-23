@@ -1569,56 +1569,6 @@ $(document).ready(function() {
             $("#settings-history-limit-value").text($(this).val());
         });
         // notification permission requests
-        $("#settings-notifs-grant").click(function(e) {
-            $("#settings-alerts").empty();
-            // grant all permissions
-            var perms = [];
-            for (var key in ajaxPerms) {
-                perms = perms.concat(ajaxPerms[key]);
-            }
-            chrome.permissions.request({
-                origins: perms
-            }, function(success) {
-                if (success) {
-                    $(".settings-perm").removeClass("has-warning").addClass("has-success");
-                } else {
-                    var text = "Failed to grant all permissions" + (chrome.runtime.lastError ? ": " + chrome.runtime.lastError.message : ".");
-                    $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-                }
-            });
-        });
-        $("#settings-notifs-revoke").click(function(e) {
-            $("#settings-alerts").empty();
-            // disable notifications first
-            for (var key in settings.notifs) {
-                if (typeof(settings.notifs[key].enable) === "string") {
-                    settings.notifs[key].enable = false;
-                } else {
-                    for (var x in settings.notifs[key].enable) {
-                        settings.notifs[key].enable[x] = false;
-                    }
-                }
-            }
-            // force overwrite changed settings
-            chrome.storage.local.set({"notifs": settings.notifs}, function() {
-                // revoke all permissions
-                var perms = [];
-                for (var key in ajaxPerms) {
-                    perms = perms.concat(ajaxPerms[key]);
-                }
-                chrome.permissions.remove({
-                    origins: perms
-                }, function(success) {
-                    if (success) {
-                        $(".settings-perm input[type=checkbox]").prop("checked", false);
-                        $(".settings-perm").removeClass("has-success").addClass("has-warning");
-                    } else {
-                        var text = "Failed to revoke all permissions" + (chrome.runtime.lastError ? ": " + chrome.runtime.lastError.message : ".");
-                        $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-                    }
-                });
-            });
-        });
         $(".settings-perm input[type=checkbox]").change(function(e) {
             $("#settings-alerts").empty();
             // grant requried permissions for notification provider
@@ -1732,6 +1682,14 @@ $(document).ready(function() {
             settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
             if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
             settings.history["limit"] = parseInt($("#settings-history-limit").val());
+            var revoke = function revoke(key) {
+                chrome.permissions.remove({
+                    origins: ajaxPerms[key]
+                }, function(success) {
+                    if (!success) revokeError = true;
+                });
+            }
+            var revokeError = false;
             settings.notifs["facebook"] = {
                 enable: {
                     notifs: $("#settings-notifs-facebook-notifs").prop("checked"),
@@ -1739,6 +1697,12 @@ $(document).ready(function() {
                     friends: $("#settings-notifs-facebook-friends").prop("checked")
                 }
             };
+            var off = true;
+            for (var x in settings.notifs["facebook"].enable) {
+                if (settings.notifs["facebook"].enable[x]) off = false;
+                break;
+            }
+            if (off) revoke("facebook");
             settings.notifs["github"] = {
                 enable: $("#settings-notifs-github-enable").prop("checked")
             };
@@ -1770,6 +1734,10 @@ $(document).ready(function() {
             settings.notifs["twitter"] = {
                 enable: $("#settings-notifs-twitter-enable").prop("checked")
             };
+            $.each(settings.notifs, function(key, notif) {
+                if (key === "facebook") return;
+                if (!notif.enable) revoke(key);
+            });
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
             settings.general["title"] = $("#settings-general-title").val();
             settings.general["keyboard"] = $("#settings-general-keyboard").prop("checked");
@@ -1788,7 +1756,9 @@ $(document).ready(function() {
                 location: $("#settings-general-weather-location").val()
             };
             if (!settings.general["weather"].location) settings.general["weather"].show = false;
+            if (!settings.general["weather"].show) revoke("weather");
             settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
+            if (!settings.general["proxy"]) revoke("proxy");
             settings.style["font"] = $("#settings-style-font").val();
             settings.style["topbar"] = {
                 fix: $("#settings-style-topbar-fix").prop("checked"),
@@ -1812,6 +1782,9 @@ $(document).ready(function() {
                     if (chrome.runtime.lastError) {
                         alert("Unable to save: " + chrome.runtime.lastError.message);
                         return;
+                    }
+                    if (revokeError) {
+                        alert("Failed to revoke some permissions: " + chrome.runtime.lastError.message);
                     }
                     // reload page
                     $("#settings").off("hidden.bs.modal").on("hidden.bs.modal", function(e) {
