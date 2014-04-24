@@ -1963,6 +1963,13 @@ $(document).ready(function() {
                             if (linksHotkeys.curBtn > -1) $(linksHotkeys.blk[linksHotkeys.curBtn]).blur();
                         });
                     }
+                    // if bookmarks page is active
+                    if ($("nav li.active").attr("id") === "menu-bookmarks" || settings.bookmarks["merge"]) {
+                        Mousetrap.bind("/", function(e, key) {
+                            $("#bookmarks-search").focus();
+                            e.preventDefault();
+                        });
+                    }
                 }
             }
         };

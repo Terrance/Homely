@@ -39,6 +39,10 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 * `Enter` - open link
 * `Backspace` - clear selection
 
+### Bookmarks
+
+* `/` - focus search field
+
 ### Settings
 
 * `Tab` `Shift+Tab` - cycle tabs (ignored if a form field is active)
