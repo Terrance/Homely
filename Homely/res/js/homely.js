@@ -192,6 +192,10 @@ $(document).ready(function() {
                 "countdown": false,
                 "beep": true
             },
+            "notepad": {
+                "show": false,
+                "content": ""
+            },
             "weather": {
                 "show": false,
                 "location": ""
@@ -303,7 +307,7 @@ $(document).ready(function() {
             var menu = $("<ul/>").addClass("dropdown-menu");
             root.append(menu);
             var reset = function reset() {
-                link.empty().append(fa("clock-o", false)).append(" No timers ").append($("<span/>").addClass("caret"));
+                link.empty().append(fa("clock-o", false)).append(" No timers ").append($("<b/>").addClass("caret"));
                 menu.empty();
                 var interval = 0;
                 if (settings.general["timer"].stopwatch) {
@@ -339,7 +343,7 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(stopwatch, 1000);
                     })));
@@ -399,13 +403,36 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<span/>").addClass("caret"));
+                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(countdown, 1000);
                     })));
                 }
             };
             reset();
+            $("#menu-left").append(root);
+        }
+        // show notepad
+        if (settings.general["notepad"].show) {
+            var root = $("<li/>").addClass("dropdown");
+            var link = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
+            link.append(fa("edit", false)).append(" Notepad ").append($("<b/>").addClass("caret"));
+            root.append(link);
+            var menu = $("<ul/>").addClass("dropdown-menu").on("click", function(e) {
+                e.stopPropagation();
+            });
+            var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control");
+            var timeout = 0;
+            notepad.val(settings.general["notepad"].content).on("input",function(e) {
+                if (timeout) clearTimeout(timeout);
+                var content = $(this).val();
+                timeout = setTimeout(function() {
+                    settings.general["notepad"].content = content;
+                    chrome.storage.local.set({general: settings.general});
+                }, 500);
+            });
+            menu.append($("<li/>").append(notepad));
+            root.append(menu);
             $("#menu-left").append(root);
         }
         // get weather forecast
@@ -518,7 +545,7 @@ $(document).ready(function() {
                 // edit controls dropdown on header
                 if (settings.links["edit"].menu) {
                     var editRoot = $("<div/>").addClass("btn-group pull-right");
-                    var editBtn = $("<button/>").addClass("btn btn-xs btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")).hide();
+                    var editBtn = $("<button/>").addClass("btn btn-xs btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<b/>").addClass("caret")).hide();
                     editRoot.append(editBtn);
                     var editMenu = $("<ul/>").addClass("dropdown-menu");
                     if (i > 0) {
@@ -643,7 +670,7 @@ $(document).ready(function() {
                     if (linkBtn.menu) {
                         btn = $("<div/>").addClass("btn-group btn-block");
                         btn.append($("<button/>").addClass("btn btn-block btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown")
-                                                 .text(linkBtn.title + " ").append($("<span/>").addClass("caret")));
+                                                 .text(linkBtn.title + " ").append($("<b/>").addClass("caret")));
                         var menu = $("<ul/>").addClass("dropdown-menu");
                         // loop through menu items
                         for (var k in linkBtn.menu) {
@@ -711,7 +738,7 @@ $(document).ready(function() {
                     var group = $("<div/>").addClass("input-group form-control-pad-bottom");
                     // left menu
                     var btnRootLeft = $("<span/>").addClass("input-group-btn");
-                    var optsBtn = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret"));
+                    var optsBtn = $("<button/>").addClass("btn btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<b/>").addClass("caret"));
                     btnRootLeft.append(optsBtn);
                     var optsMenu = $("<ul/>").addClass("dropdown-menu");
                     if (j > 0) {
@@ -806,7 +833,7 @@ $(document).ready(function() {
                         $(linkBtn.menu).each(function(k, linkItem) {
                             var tr = $("<tr/>");
                             var menuOptsRoot = $("<div/>").addClass("btn-group btn-block");
-                            menuOptsRoot.append($("<button/>").addClass("btn btn-block btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<span/>").addClass("caret")));
+                            menuOptsRoot.append($("<button/>").addClass("btn btn-block btn-default dropdown-toggle").attr("data-toggle", "dropdown").append($("<b/>").addClass("caret")));
                             var menuOptsMenu = $("<ul/>").addClass("dropdown-menu");
                             if (k > 0) {
                                 menuOptsMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-up")).append(" Move to top").click(function(e) {
@@ -1238,13 +1265,13 @@ $(document).ready(function() {
                 if (thisTotal) {
                     total += thisTotal;
                     $("#notifs-title").empty().append(fa("bell", false)).append(" Notifications ");
-                    $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<span/>").addClass("caret"));
+                    $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<b/>").addClass("caret"));
                     document.title = "(" + total + ") " + settings.general["title"];
                 }
                 // only once all complete
                 if (--pendingAjax) return;
                 refreshLink.empty().append(fa("refresh")).append(" Refresh").off("click").click(function (e) {
-                    $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<span/>").addClass("caret"));
+                    $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<b/>").addClass("caret"));
                     document.title = settings.general["title"];
                     $("#notifs-list").empty();
                     notifRefresh();
@@ -1549,6 +1576,7 @@ $(document).ready(function() {
             $("#settings-general-timer-beep").prop("checked", settings.general["timer"].beep)
                                              .prop("disabled", !settings.general["timer"].countdown)
                                              .parent().toggleClass("text-muted", !settings.general["timer"].countdown);
+            $("#settings-general-notepad-show").prop("checked", settings.general["notepad"].show);
             $("#settings-general-weather-show").prop("checked", settings.general["weather"].show);
             $("#settings-general-weather-location").val(settings.general["weather"].location)
                                                    .prop("disabled", !settings.general["weather"].show)
@@ -1793,6 +1821,7 @@ $(document).ready(function() {
                 countdown: $("#settings-general-timer-countdown").prop("checked"),
                 beep: $("#settings-general-timer-beep").prop("checked")
             };
+            settings.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
             settings.general["weather"] = {
                 show: $("#settings-general-weather-show").prop("checked"),
                 location: $("#settings-general-weather-location").val()

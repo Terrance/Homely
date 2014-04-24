@@ -17,12 +17,19 @@ body.topbar-fix {
     #time {
         margin-left: 0;
     }
+    #notepad {
+        width: 300px !important;
+    }
 }
 .incognito {
     display: none !important;
 }
 #menu-collapse-toggle {
     display: none;
+}
+#notepad {
+    width: calc(100% - 20px);
+    margin: 5px 10px;
 }
 .btn-light {
     background-color: #ddd;
