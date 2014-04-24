@@ -146,7 +146,8 @@ $(document).ready(function() {
             "bookmarklets": true,
             "foldercontents": true,
             "split": false,
-            "merge": false
+            "merge": false,
+            "above": false
         },
         "history": {
             "limit": 10
@@ -474,6 +475,7 @@ $(document).ready(function() {
         /*
         Links: customizable grid of links and menus
         */
+        if (settings.bookmarks["merge"] && settings.bookmarks["above"]) $("#links").before($("#bookmarks"));
         // monitor Ctrl key to open links in a new tab
         var ctrlDown = false;
         $(window).keydown(function(e) {
@@ -1499,6 +1501,9 @@ $(document).ready(function() {
             $("#settings-bookmarks-foldercontents").prop("checked", settings.bookmarks["foldercontents"]);
             $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
             $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
+            $("#settings-bookmarks-above").prop("checked", settings.bookmarks["above"])
+                                          .prop("disabled", !settings.bookmarks["merge"])
+                                          .parent().toggleClass("text-muted", !settings.bookmarks["merge"]);
             $("#settings-history-limit").val(settings.history["limit"]);
             $("#settings-history-limit-value").text(settings.history["limit"]);
             $("#settings-notifs-facebook-notifs").prop("checked", settings.notifs["facebook"].enable.notifs);
@@ -1599,6 +1604,10 @@ $(document).ready(function() {
             } catch (e) {
                 $(this).closest(".form-group").addClass("has-error");
             }
+        });
+        $("#settings-bookmarks-merge").change(function(e) {
+            $("#settings-bookmarks-above").prop("disabled", !this.checked)
+                                          .parent().toggleClass("text-muted", !this.checked);
         });
         $("#settings-history-limit").on("input change", function(e) {
             $("#settings-history-limit-value").text($(this).val());
@@ -1715,6 +1724,7 @@ $(document).ready(function() {
             settings.bookmarks["foldercontents"] = $("#settings-bookmarks-foldercontents").prop("checked");
             settings.bookmarks["split"] = $("#settings-bookmarks-split").prop("checked");
             settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
+            settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
             if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
             settings.history["limit"] = parseInt($("#settings-history-limit").val());
             var revoke = function revoke(key) {
