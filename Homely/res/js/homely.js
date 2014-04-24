@@ -1178,6 +1178,32 @@ $(document).ready(function() {
             }, 200);
         });
         /*
+        Apps: installed Chrome apps drop-down
+        */
+        chrome.management.getAll(function(apps) {
+            var show = false;
+            $.each(apps, function(i, app) {
+                if (app.enabled && ["hosted_app", "packaged_app", "legacy_packaged_app"].indexOf(app.type) > -1) {
+                    var link = $("<a/>").text(app.name).click(function(e) {
+                        chrome.management.launchApp(app.id);
+                    });
+                    if (app.appLaunchUrl) link.attr("href", app.appLaunchUrl);
+                    $("#apps-list").append($("<li/>").append(link));
+                    show = true;
+                }
+            });
+            if (show) {
+                var all = $("<a/>").attr("href", "chrome://apps").addClass("link-chrome").append(fa("th")).append(" View all apps");
+                var allCont = $("<li/>").append(all);
+                fixLinkHandling(allCont);
+                var store = $("<a/>").attr("href", "https://chrome.google.com/webstore");
+                $("#apps-list").append($("<li/>").addClass("divider"))
+                               .append(allCont)
+                               .append($("<li/>").append(store.append(fa("shopping-cart")).append(" Chrome Web Store")));
+                $("#menu-apps").show();
+            }
+        });
+        /*
         History: quick drop-down of recent pages
         */
         // only show if enabled and not in incognito

@@ -20,6 +20,7 @@
     "permissions": [
         "bookmarks",
         "history",
+        "management",
         "fontSettings",
         "storage"
     ],

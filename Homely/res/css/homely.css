@@ -153,7 +153,7 @@ a {
 #bookmarks hr {
     margin: 0;
 }
-#menu-history, #menu-notifs {
+#menu-apps, #menu-history, #menu-notifs {
     display: none;
 }
 input[type=range] {
