@@ -301,23 +301,23 @@ $(document).ready(function() {
         }
         // show stopwatch / countdown timer
         if (settings.general["timer"].stopwatch || settings.general["timer"].countdown) {
-            var root = $("<li/>").addClass("dropdown");
-            var link = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
-            root.append(link);
-            var menu = $("<ul/>").addClass("dropdown-menu");
-            root.append(menu);
+            var tmRoot = $("<li/>").addClass("dropdown");
+            var tmLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
+            tmRoot.append(tmLink);
+            var tmMenu = $("<ul/>").addClass("dropdown-menu");
+            tmRoot.append(tmMenu);
             var reset = function reset() {
-                link.empty().append(fa("clock-o", false)).append(" No timers ").append($("<b/>").addClass("caret"));
-                menu.empty();
+                tmLink.empty().append(fa("clock-o", false)).append(" No timers ").append($("<b/>").addClass("caret"));
+                tmMenu.empty();
                 var interval = 0;
                 if (settings.general["timer"].stopwatch) {
-                    menu.append($("<li/>").append($("<a/>").append("Start stopwatch").click(function(e) {
+                    tmMenu.append($("<li/>").append($("<a/>").append("Start stopwatch").click(function(e) {
                         var time = 0;
                         var stopwatch = function stopwatch() {
                             time++;
                             if (time) {
                                 var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                                $($("span", link)[0]).text(text);
+                                $($("span", tmLink)[0]).text(text);
                                 document.title = text;
                             } else {
                                 clearInterval(interval);
@@ -326,14 +326,14 @@ $(document).ready(function() {
                             }
                         };
                         // stopwatch menu
-                        menu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function(e) {
+                        tmMenu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function(e) {
                             if ($(this).data("paused")) {
                                 interval = setInterval(stopwatch, 1000);
-                                $("i", link).addClass("fa-spin");
+                                $("i", tmLink).addClass("fa-spin");
                                 $(this).data("paused", false).empty().append(fa("pause")).append(" Pause");
                             } else {
                                 clearInterval(interval);
-                                $("i", link).removeClass("fa-spin");
+                                $("i", tmLink).removeClass("fa-spin");
                                 $(this).data("paused", true).empty().append(fa("play")).append(" Resume");
                             }
                         }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
@@ -343,13 +343,13 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
+                        tmLink.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(stopwatch, 1000);
                     })));
                 }
                 if (settings.general["timer"].countdown) {
-                    menu.append($("<li/>").append($("<a/>").append("Start countdown").click(function(e) {
+                    tmMenu.append($("<li/>").append($("<a/>").append("Start countdown").click(function(e) {
                         // select time
                         var time = prompt("Enter a time to countdown from (e.g. 45s, 2m30s).", "5m");
                         if (!time) return;
@@ -374,7 +374,7 @@ $(document).ready(function() {
                             if (time) {
                                 time--;
                                 var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                                $($("span", link)[0]).text(text);
+                                $($("span", tmLink)[0]).text(text);
                                 document.title = text;
                             } else {
                                 if (settings.general["timer"].beep) {
@@ -386,14 +386,14 @@ $(document).ready(function() {
                             }
                         };
                         // countdown menu
-                        menu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function(e) {
+                        tmMenu.empty().append($("<li/>").append($("<a/>").data("paused", false).append(fa("pause")).append(" Pause").click(function(e) {
                             if ($(this).data("paused")) {
                                 interval = setInterval(countdown, 1000);
-                                $("i", link).addClass("fa-spin");
+                                $("i", tmLink).addClass("fa-spin");
                                 $(this).data("paused", false).empty().append(fa("pause")).append(" Pause");
                             } else {
                                 clearInterval(interval);
-                                $("i", link).removeClass("fa-spin");
+                                $("i", tmLink).removeClass("fa-spin");
                                 $(this).data("paused", true).empty().append(fa("play")).append(" Resume");
                             }
                         }))).append($("<li/>").append($("<a/>").append(fa("stop")).append(" Cancel").click(function(e) {
@@ -403,22 +403,22 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        link.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
+                        tmLink.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(countdown, 1000);
                     })));
                 }
             };
             reset();
-            $("#menu-left").append(root);
+            $("#menu-left").append(tmRoot);
         }
         // show notepad
         if (settings.general["notepad"].show) {
-            var root = $("<li/>").addClass("dropdown");
-            var link = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
-            link.append(fa("edit", false)).append(" Notepad ").append($("<b/>").addClass("caret"));
-            root.append(link);
-            var menu = $("<ul/>").addClass("dropdown-menu").on("click", function(e) {
+            var npRoot = $("<li/>").addClass("dropdown");
+            var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
+            npLink.append(fa("edit", false)).append(" Notepad ").append($("<b/>").addClass("caret"));
+            npRoot.append(npLink);
+            var npMenu = $("<ul/>").addClass("dropdown-menu").on("click", function(e) {
                 e.stopPropagation();
             });
             var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control");
@@ -431,9 +431,9 @@ $(document).ready(function() {
                     chrome.storage.local.set({general: settings.general});
                 }, 500);
             });
-            menu.append($("<li/>").append(notepad));
-            root.append(menu);
-            $("#menu-left").append(root);
+            npMenu.append($("<li/>").append(notepad));
+            npRoot.append(npMenu);
+            $("#menu-left").append(npRoot);
         }
         // get weather forecast
         if (settings.general["weather"].show) {
