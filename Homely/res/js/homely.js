@@ -206,7 +206,8 @@ $(document).ready(function() {
             "font": "Segoe UI",
             "topbar": {
                 "fix": false,
-                "dark": false
+                "dark": false,
+                "labels": true
             },
             "panel": "default",
             "background": {
@@ -258,6 +259,9 @@ $(document).ready(function() {
         }
         if (settings.style["topbar"].dark) {
             $("nav").removeClass("navbar-default").addClass("navbar-inverse");
+        }
+        if (settings.style["topbar"].labels) {
+            $(".menu-label").show();
         }
         if (settings.style["background"].image) {
             css.push("html {\n"
@@ -1293,14 +1297,15 @@ $(document).ready(function() {
                 }
                 if (thisTotal) {
                     total += thisTotal;
-                    $("#notifs-title").empty().append(fa("bell", false)).append(" Notifications ");
-                    $("#notifs-title").append($("<span/>").addClass("badge").text(total)).append(" ").append($("<b/>").addClass("caret"));
+                    $("#notifs-title i").removeClass("fa-bell-o").addClass("fa-bell");
+                    $("#notifs-title .badge").text(total);
                     document.title = "(" + total + ") " + settings.general["title"];
                 }
                 // only once all complete
                 if (--pendingAjax) return;
                 refreshLink.empty().append(fa("refresh")).append(" Refresh").off("click").click(function (e) {
-                    $("#notifs-title").empty().append(fa("bell-o", false)).append(" Notifications ").append($("<b/>").addClass("caret"));
+                    $("#notifs-title i").removeClass("fa-bell").addClass("fa-bell-o");
+                    $("#notifs-title .badge").text("0");
                     document.title = settings.general["title"];
                     $("#notifs-list").empty();
                     notifRefresh();
@@ -1614,6 +1619,7 @@ $(document).ready(function() {
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
             $("#settings-style-topbar-dark").prop("checked", settings.style["topbar"].dark);
+            $("#settings-style-topbar-labels").prop("checked", settings.style["topbar"].labels);
             $("#settings-style-panel label.btn-" + settings.style["panel"]).click();
             $("#settings-style-background-image").data("val", settings.style["background"].image).prop("placeholder", "(unchanged)");
             $("#settings-style-background-repeat").prop("checked", settings.style["background"].repeat);
@@ -1862,7 +1868,8 @@ $(document).ready(function() {
             settings.style["font"] = $("#settings-style-font").val();
             settings.style["topbar"] = {
                 fix: $("#settings-style-topbar-fix").prop("checked"),
-                dark: $("#settings-style-topbar-dark").prop("checked")
+                dark: $("#settings-style-topbar-dark").prop("checked"),
+                labels: $("#settings-style-topbar-labels").prop("checked")
             };
             settings.style["panel"] = $("#settings-style-panel label.active input").val();
             settings.style["background"] = {

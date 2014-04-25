@@ -24,7 +24,7 @@ body.topbar-fix {
 .incognito {
     display: none !important;
 }
-#menu-collapse-toggle {
+.menu-label, #menu-collapse-toggle {
     display: none;
 }
 #notepad {
