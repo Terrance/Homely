@@ -422,9 +422,7 @@ $(document).ready(function() {
             var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
             npLink.append(fa("edit", false)).append(" Notepad ").append($("<b/>").addClass("caret"));
             npRoot.append(npLink);
-            var npMenu = $("<ul/>").addClass("dropdown-menu").on("click", function(e) {
-                e.stopPropagation();
-            });
+            var npMenu = $("<ul/>").addClass("dropdown-menu");
             var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control");
             var timeout = 0;
             notepad.val(settings.general["notepad"].content).on("input",function(e) {
@@ -434,6 +432,8 @@ $(document).ready(function() {
                     settings.general["notepad"].content = content;
                     chrome.storage.local.set({general: settings.general});
                 }, 500);
+            }).click(function(e) {
+                e.stopPropagation();
             });
             npMenu.append($("<li/>").append(notepad));
             npRoot.append(npMenu);
@@ -1972,21 +1972,28 @@ $(document).ready(function() {
                             $("#menu-bookmarks").click();
                         });
                     }
-                    Mousetrap.bind(["h", "e"], function(e, key) {
+                    Mousetrap.bind(["a", "e"], function(e, key) {
+                        if ($("#apps-title").parent().hasClass("open")) {
+                            $("#apps-title").parent().removeClass("open");
+                        } else {
+                            closeDropdowns();
+                            $("#apps-title").click();
+                        }
+                    }).bind(["h", "r"], function(e, key) {
                         if ($("#history-title").parent().hasClass("open")) {
                             $("#history-title").parent().removeClass("open");
                         } else {
                             closeDropdowns();
                             $("#history-title").click();
                         }
-                    }).bind(["n", "r"], function(e, key) {
+                    }).bind(["n", "t"], function(e, key) {
                         if ($("#notifs-title").parent().hasClass("open")) {
                             $("#notifs-title").parent().removeClass("open");
                         } else {
                             closeDropdowns();
                             $("#notifs-title").click();
                         }
-                    }).bind(["s", "t"], function(e, key) {
+                    }).bind(["s", "y"], function(e, key) {
                         closeDropdowns();
                         $("#menu-settings a").click();
                     });
