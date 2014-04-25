@@ -262,6 +262,10 @@ $(document).ready(function() {
         }
         if (settings.style["topbar"].labels) {
             $(".menu-label").show();
+        } else {
+            $(".menu-label").each(function(i) {
+                $(this).parent().attr("title", $(this).text());
+            });
         }
         if (settings.style["background"].image) {
             css.push("html {\n"
@@ -311,7 +315,7 @@ $(document).ready(function() {
             var tmMenu = $("<ul/>").addClass("dropdown-menu");
             tmRoot.append(tmMenu);
             var reset = function reset() {
-                tmLink.empty().append(fa("clock-o", false)).append(" No timers ").append($("<b/>").addClass("caret"));
+                tmLink.empty().append(fa("clock-o", false)).append(settings.style["topbar"].labels ? " No timers " : " ").append($("<b/>").addClass("caret"));
                 tmMenu.empty();
                 var interval = 0;
                 if (settings.general["timer"].stopwatch) {
@@ -419,8 +423,13 @@ $(document).ready(function() {
         // show notepad
         if (settings.general["notepad"].show) {
             var npRoot = $("<li/>").addClass("dropdown");
-            var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown");
-            npLink.append(fa("edit", false)).append(" Notepad ").append($("<b/>").addClass("caret"));
+            var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown").append(fa("edit", false));
+            if (settings.style["topbar"].labels) {
+                npLink.append(" Notepad ");
+            } else {
+                npLink.append(" ").attr("title", "Notepad");
+            }
+            npLink.append($("<b/>").addClass("caret"));
             npRoot.append(npLink);
             var npMenu = $("<ul/>").addClass("dropdown-menu");
             var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control");
@@ -456,9 +465,12 @@ $(document).ready(function() {
                             $.each(resp.weather, function(i, item) {
                                 conds.push(item.description);
                             });
+                            var temp = Math.round(resp.main.temp - 273.15);
+                            var title = resp.name + ": " + cap((settings.style["topbar"].labels ? "" : temp + " degrees, ") + conds.join(", "));
                             var link = $("<a/>").attr("href", "http://www.openweathermap.org/city/" + resp.id)
-                                                .attr("title", resp.name + ": " + cap(conds.join(", "))).hide();
-                            link.append(fa("cloud", false)).append(" " + Math.round(resp.main.temp - 273.15) + "&deg;C");
+                                                .attr("title", title).hide();
+                            link.append(fa("cloud", false));
+                            if (settings.style["topbar"].labels) link.append(" " + temp + "°C");
                             // always show before proxy link if that loads first
                             if ($("#menu-proxy").length) {
                                 $("#menu-proxy").before($("<li/>").append(link));
@@ -486,7 +498,12 @@ $(document).ready(function() {
                         success: function success(resp, stat, xhr) {
                             var params = $(".h1", resp).text().split("IP address: ");
                             var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
-                            link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(" " + params[1]);
+                            link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false));
+                            if (settings.style["topbar"].labels) {
+                                link.append(" " + params[1]);
+                            } else {
+                                link.attr("title", params[1]);
+                            }
                             $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
                         },
