@@ -6,6 +6,7 @@ body {
     padding: 40px 0 20px;
     background: none;
     font-family: "Segoe UI", sans-serif;
+    -webkit-user-select: none;
 }
 body.topbar-fix {
     padding-top: 90px;

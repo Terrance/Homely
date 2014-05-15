@@ -143,6 +143,7 @@ $(document).ready(function() {
             ]
         },
         "bookmarks": {
+            "enable": false,
             "bookmarklets": true,
             "foldercontents": true,
             "split": false,
@@ -237,12 +238,8 @@ $(document).ready(function() {
     // load settings
     chrome.storage.local.get(function(store) {
         var firstRun = $.isEmptyObject(store);
-        // apply settings over defaults, two levels deep then force overwrite
-        for (var x in settings) {
-            for (var y in settings[x]) {
-                if (store[x] && typeof(store[x][y]) !== "undefined") settings[x][y] = store[x][y];
-            }
-        }
+        // merge settings with defaults
+        settings = $.extend(true, {}, settings, store);
         // apply custom styles
         document.title = settings.general["title"];
         var css = [];
@@ -470,7 +467,7 @@ $(document).ready(function() {
                             var link = $("<a/>").attr("href", "http://www.openweathermap.org/city/" + resp.id)
                                                 .attr("title", title).hide();
                             link.append(fa("cloud", false));
-                            if (settings.style["topbar"].labels) link.append(" " + temp + "°C");
+                            if (settings.style["topbar"].labels) link.append(" " + temp + "&deg;C");
                             // always show before proxy link if that loads first
                             if ($("#menu-proxy").length) {
                                 $("#menu-proxy").before($("<li/>").append(link));
@@ -523,7 +520,7 @@ $(document).ready(function() {
         /*
         Links: customizable grid of links and menus
         */
-        if (settings.bookmarks["merge"] && settings.bookmarks["above"]) $("#links").before($("#bookmarks"));
+        if (settings.bookmarks["enable"] && settings.bookmarks["merge"] && settings.bookmarks["above"]) $("#links").before($("#bookmarks"));
         // monitor Ctrl key to open links in a new tab
         var ctrlDown = false;
         $(window).keydown(function(e) {
@@ -1045,159 +1042,161 @@ $(document).ready(function() {
         /*
         Bookmarks: lightweight bookmark browser
         */
-        $("#bookmarks").addClass("panel-" + settings.style["panel"]);
-        // switch to bookmarks page
-        $("#menu-bookmarks").click(function(e) {
-            $(".navbar-right li").removeClass("active");
-            $(this).addClass("active");
-            $(".main").hide();
-            $("#bookmarks").show();
-        });
-        // show split pane if enabled
-        if (settings.bookmarks["split"]) {
-            $("#bookmarks-block").before($("<div/>").attr("id", "bookmarks-block-folders").addClass("panel-body"));
-            $("#bookmarks-block").before($("<hr/>"));
-        }
-        // request tree from Bookmarks API
-        var current;
-        chrome.bookmarks.getTree(function bookmarksCallback(tree) {
-            tree[0].title = "Bookmarks";
-            var route = [];
-            var populateBookmarks = function populateBookmarks(root) {
-                current = root;
-                // clear current list
-                $("#bookmarks-title, #bookmarks-block, #bookmarks-block-folders").empty();
-                if (!root.children.length) {
-                    $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
-                    $("#bookmarks-block-folders").hide();
-                }
-                $("#bookmarks-block-search, hr.bookmarks-search").remove();
-                $("#bookmarks-search").val("");
-                // loop through folder children
-                $(root.children).each(function(i, el) {
-                    // bookmark
-                    if (el.url) {
-                        // bookmarklet
-                        if (el.url.substring(0, "javascript:".length) === "javascript:") {
-                            if (settings.bookmarks["bookmarklets"]) {
-                                $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").append(fa("code")).append(" " + el.title));
-                            }
-                        } else {
-                            var link = $("<a/>").addClass("btn btn-primary").attr("href", el.url).append(fa("file")).append(" " + el.title);
-                            // workaround for accessing Chrome URLs
-                            if (el.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
-                            $("#bookmarks-block").append(link);
-                        }
-                    // folder
-                    } else if (el.children) {
-                        var container = $("#bookmarks-block" + (settings.bookmarks["split"] ? "-folders" : ""));
-                        container.append($("<button/>").addClass("btn btn-warning").append(fa("folder" + (el.children.length ? "" : "-o"))).append(" " + el.title).click(function(e) {
-                            // normal click
-                            if (e.which === 1 && (!ctrlDown || !settings.bookmarks["foldercontents"])) {
-                                route.push(i);
-                                populateBookmarks(el);
-                            // middle click or Ctrl+click, if enabled
-                            } else if (e.which <= 2 && settings.bookmarks["foldercontents"]) {
-                                $(el.children).each(function(i, child) {
-                                    if (child.url && child.url.substring(0, "javascript:".length) !== "javascript:") chrome.tabs.create({url: child.url, active: false});
-                                });
-                            }
-                        }));
-                    }
-                });
-                $("#bookmarks-block, #bookmarks-block-folders").each(function(i, blk) {
-                    $(blk).toggle(!$(blk).is(":empty"));
-                });
-                $("#bookmarks hr").toggle(!$("#bookmarks-block, #bookmarks-block-folders").is(":empty"));
-                // open Chrome links via Tabs API
-                $(".link-chrome", "#bookmarks-block").click(function(e) {
-                    // normal click, not external
-                    if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-                        chrome.tabs.update({url: this.href});
-                        e.preventDefault();
-                    // middle click, Ctrl+click, or set as external
-                    } else if (e.which <= 2) {
-                        chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-                        e.preventDefault();
-                    }
-                });
-                // breadcrumb navigation
-                $(traverse()).each(function(i, el) {
-                    if (i > 0) $("#bookmarks-title").append($("<span/>").addClass("caret-right"));
-                    $("#bookmarks-title").append($("<button/>").addClass("btn btn-sm btn-default").text(el.title).click(function(e) {
-                        var count = route.length - i;
-                        for (var j = 0; j < count; j++) {
-                            route.pop();
-                        }
-                        var els = traverse();
-                        populateBookmarks(els[els.length - 1]);
-                    }));
-                });
+        if (settings.bookmarks["enable"]) {
+            $("#bookmarks").addClass("panel-" + settings.style["panel"]);
+            // switch to bookmarks page
+            $("#menu-bookmarks").click(function(e) {
+                $(".navbar-right li").removeClass("active");
+                $(this).addClass("active");
+                $(".main").hide();
+                $("#bookmarks").show();
+            });
+            // show split pane if enabled
+            if (settings.bookmarks["split"]) {
+                $("#bookmarks-block").before($("<div/>").attr("id", "bookmarks-block-folders").addClass("panel-body"));
+                $("#bookmarks-block").before($("<hr/>"));
             }
-            // get list of items as path through bookmarks
-            var traverse = function traverse() {
-                var els = [tree[0]];
-                for (var i in route) {
-                    els.push(els[els.length - 1].children[route[i]]);
-                }
-                return els;
-            };
-            populateBookmarks(tree[0]);
-            if (settings.bookmarks["merge"]) {
-                $("#bookmarks").fadeIn();
-            } else {
-                $("#menu-bookmarks").show();
-            }
-        });
-        // bookmark search
-        var timeout = 0;
-        $("#bookmarks-search").on("input", function(e) {
-            var text = $(this).val().toLowerCase();
-            if (timeout) clearTimeout(timeout);
-            timeout = setTimeout(function() {
-                if (!text) {
+            // request tree from Bookmarks API
+            var current;
+            chrome.bookmarks.getTree(function bookmarksCallback(tree) {
+                tree[0].title = "Bookmarks";
+                var route = [];
+                var populateBookmarks = function populateBookmarks(root) {
+                    current = root;
+                    // clear current list
+                    $("#bookmarks-title, #bookmarks-block, #bookmarks-block-folders").empty();
+                    if (!root.children.length) {
+                        $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
+                        $("#bookmarks-block-folders").hide();
+                    }
                     $("#bookmarks-block-search, hr.bookmarks-search").remove();
-                    return;
-                }
-                var results = [];
-                var search = function search(node) {
-                    // bookmark matching search
-                    if (node.url && node.title.toLowerCase().indexOf(text) > -1) {
-                        results.push(node);
-                    // folder
-                    } else if (node.children) {
-                        $.each(node.children, function(i, child) {
-                            search(child);
-                        });
-                    }
-                };
-                search(current);
-                var block = $("#bookmarks-block-search");
-                if (block.length) {
-                    $("#bookmarks-block-search").empty();
-                } else {
-                    block = $("<div/>").attr("id", "bookmarks-block-search").addClass("panel-body");
-                    $("#bookmarks .panel-heading").after($("<hr/>").addClass("bookmarks-search")).after(block);
-                }
-                if (results.length) {
-                    $.each(results, function(i, node) {
-                        // bookmarklet
-                        if (node.url.substring(0, "javascript:".length) === "javascript:") {
-                            if (settings.bookmarks["bookmarklets"]) {
-                                $("#bookmarks-block-search").append($("<button/>").addClass("btn btn-success disabled").append(fa("code")).append(" " + node.title));
+                    $("#bookmarks-search").val("");
+                    // loop through folder children
+                    $(root.children).each(function(i, el) {
+                        // bookmark
+                        if (el.url) {
+                            // bookmarklet
+                            if (el.url.substring(0, "javascript:".length) === "javascript:") {
+                                if (settings.bookmarks["bookmarklets"]) {
+                                    $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").append(fa("code")).append(" " + el.title));
+                                }
+                            } else {
+                                var link = $("<a/>").addClass("btn btn-primary").attr("href", el.url).append(fa("file")).append(" " + el.title);
+                                // workaround for accessing Chrome URLs
+                                if (el.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
+                                $("#bookmarks-block").append(link);
                             }
-                        } else {
-                            var link = $("<a/>").addClass("btn btn-success").attr("href", node.url).append(fa("file")).append(" " + node.title);
-                            // workaround for accessing Chrome URLs
-                            if (node.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
-                            $("#bookmarks-block-search").append(link);
+                        // folder
+                        } else if (el.children) {
+                            var container = $("#bookmarks-block" + (settings.bookmarks["split"] ? "-folders" : ""));
+                            container.append($("<button/>").addClass("btn btn-warning").append(fa("folder" + (el.children.length ? "" : "-o"))).append(" " + el.title).click(function(e) {
+                                // normal click
+                                if (e.which === 1 && (!ctrlDown || !settings.bookmarks["foldercontents"])) {
+                                    route.push(i);
+                                    populateBookmarks(el);
+                                // middle click or Ctrl+click, if enabled
+                                } else if (e.which <= 2 && settings.bookmarks["foldercontents"]) {
+                                    $(el.children).each(function(i, child) {
+                                        if (child.url && child.url.substring(0, "javascript:".length) !== "javascript:") chrome.tabs.create({url: child.url, active: false});
+                                    });
+                                }
+                            }));
                         }
                     });
-                } else {
-                    $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
+                    $("#bookmarks-block, #bookmarks-block-folders").each(function(i, blk) {
+                        $(blk).toggle(!$(blk).is(":empty"));
+                    });
+                    $("#bookmarks hr").toggle(!$("#bookmarks-block, #bookmarks-block-folders").is(":empty"));
+                    // open Chrome links via Tabs API
+                    $(".link-chrome", "#bookmarks-block").click(function(e) {
+                        // normal click, not external
+                        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                            chrome.tabs.update({url: this.href});
+                            e.preventDefault();
+                        // middle click, Ctrl+click, or set as external
+                        } else if (e.which <= 2) {
+                            chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                            e.preventDefault();
+                        }
+                    });
+                    // breadcrumb navigation
+                    $(traverse()).each(function(i, el) {
+                        if (i > 0) $("#bookmarks-title").append($("<span/>").addClass("caret-right"));
+                        $("#bookmarks-title").append($("<button/>").addClass("btn btn-sm btn-default").text(el.title).click(function(e) {
+                            var count = route.length - i;
+                            for (var j = 0; j < count; j++) {
+                                route.pop();
+                            }
+                            var els = traverse();
+                            populateBookmarks(els[els.length - 1]);
+                        }));
+                    });
                 }
-            }, 200);
-        });
+                // get list of items as path through bookmarks
+                var traverse = function traverse() {
+                    var els = [tree[0]];
+                    for (var i in route) {
+                        els.push(els[els.length - 1].children[route[i]]);
+                    }
+                    return els;
+                };
+                populateBookmarks(tree[0]);
+                if (settings.bookmarks["merge"]) {
+                    $("#bookmarks").fadeIn();
+                } else {
+                    $("#menu-bookmarks").show();
+                }
+            });
+            // bookmark search
+            var timeout = 0;
+            $("#bookmarks-search").on("input", function(e) {
+                var text = $(this).val().toLowerCase();
+                if (timeout) clearTimeout(timeout);
+                timeout = setTimeout(function() {
+                    if (!text) {
+                        $("#bookmarks-block-search, hr.bookmarks-search").remove();
+                        return;
+                    }
+                    var results = [];
+                    var search = function search(node) {
+                        // bookmark matching search
+                        if (node.url && node.title.toLowerCase().indexOf(text) > -1) {
+                            results.push(node);
+                        // folder
+                        } else if (node.children) {
+                            $.each(node.children, function(i, child) {
+                                search(child);
+                            });
+                        }
+                    };
+                    search(current);
+                    var block = $("#bookmarks-block-search");
+                    if (block.length) {
+                        $("#bookmarks-block-search").empty();
+                    } else {
+                        block = $("<div/>").attr("id", "bookmarks-block-search").addClass("panel-body");
+                        $("#bookmarks .panel-heading").after($("<hr/>").addClass("bookmarks-search")).after(block);
+                    }
+                    if (results.length) {
+                        $.each(results, function(i, node) {
+                            // bookmarklet
+                            if (node.url.substring(0, "javascript:".length) === "javascript:") {
+                                if (settings.bookmarks["bookmarklets"]) {
+                                    $("#bookmarks-block-search").append($("<button/>").addClass("btn btn-success disabled").append(fa("code")).append(" " + node.title));
+                                }
+                            } else {
+                                var link = $("<a/>").addClass("btn btn-success").attr("href", node.url).append(fa("file")).append(" " + node.title);
+                                // workaround for accessing Chrome URLs
+                                if (node.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
+                                $("#bookmarks-block-search").append(link);
+                            }
+                        });
+                    } else {
+                        $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
+                    }
+                }, 200);
+            });
+        }
         /*
         Apps: installed Chrome apps drop-down
         */
@@ -1575,13 +1574,27 @@ $(document).ready(function() {
             $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
             $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
             $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
+            $("#settings-bookmarks-enable").prop("checked", settings.bookmarks["enable"]);
+            // highlight bookmarks permission status
+            chrome.permissions.contains({
+                permissions: ["bookmarks"]
+            }, function(has) {
+                if (has) {
+                    $(".settings-perm-bookmarks").addClass("has-success");
+                } else {
+                    $(".settings-perm-bookmarks").addClass("has-warning");
+                    $("#settings-bookmarks-enable").prop("checked", false);
+                }
+            });
             $("#settings-bookmarks-bookmarklets").prop("checked", settings.bookmarks["bookmarklets"]);
             $("#settings-bookmarks-foldercontents").prop("checked", settings.bookmarks["foldercontents"]);
             $("#settings-bookmarks-split").prop("checked", settings.bookmarks["split"]);
             $("#settings-bookmarks-merge").prop("checked", settings.bookmarks["merge"]);
+            $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, #settings-bookmarks-merge")
+                .prop("disabled", !settings.bookmarks["enable"]).parent().toggleClass("text-muted", !settings.bookmarks["enable"]);
             $("#settings-bookmarks-above").prop("checked", settings.bookmarks["above"])
-                                          .prop("disabled", !settings.bookmarks["merge"])
-                                          .parent().toggleClass("text-muted", !settings.bookmarks["merge"]);
+                                          .prop("disabled", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]))
+                                          .parent().toggleClass("text-muted", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]));
             $("#settings-history-limit").val(settings.history["limit"]);
             $("#settings-history-limit-value").text(settings.history["limit"]);
             $("#settings-notifs-facebook-notifs").prop("checked", settings.notifs["facebook"].enable.notifs);
@@ -1685,9 +1698,35 @@ $(document).ready(function() {
                 $(this).closest(".form-group").addClass("has-error");
             }
         });
+        $("#settings-bookmarks-enable").change(function(e) {
+            $("#settings-alerts").empty();
+            // grant bookmarks permissions
+            if (this.checked) {
+                chrome.permissions.request({
+                    permissions: ["bookmarks"]
+                }, function(success) {
+                    if (success) {
+                        $(".settings-perm-bookmarks").removeClass("has-warning").addClass("has-success");
+                    } else {
+                        var text = "Permission denied for bookmarks.";
+                        $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+                        $(this).prop("checked", false).change();
+                    }
+                    $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, "
+                      + "#settings-bookmarks-merge")
+                        .prop("disabled", false).parent().toggleClass("text-muted", false);
+                    $("#settings-bookmarks-above").prop("disabled", !$("#settings-bookmarks-merge").prop("checked"))
+                                                  .parent().toggleClass("text-muted", !$("#settings-bookmarks-merge").prop("checked"));
+                });
+            } else {
+                $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, "
+                  + "#settings-bookmarks-merge, #settings-bookmarks-above")
+                    .prop("disabled", true).parent().toggleClass("text-muted", true);
+            }
+        });
         $("#settings-bookmarks-merge").change(function(e) {
-            $("#settings-bookmarks-above").prop("disabled", !this.checked)
-                                          .parent().toggleClass("text-muted", !this.checked);
+            $("#settings-bookmarks-above").prop("disabled", !($("#settings-bookmarks-enable").prop("checked") && this.checked))
+                                          .parent().toggleClass("text-muted", !($("#settings-bookmarks-enable").prop("checked") && this.checked));
         });
         $("#settings-history-limit").on("input change", function(e) {
             $("#settings-history-limit-value").text($(this).val());
@@ -1800,6 +1839,14 @@ $(document).ready(function() {
                 menu: $("#settings-links-edit-menu").prop("checked"),
                 dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
             };
+            settings.bookmarks["enable"] = $("#settings-bookmarks-enable").prop("checked");
+            if (!settings.bookmarks["enable"]) {
+                chrome.permissions.remove({
+                    permissions: ["bookmarks"]
+                }, function(success) {
+                    if (!success) revokeError = true;
+                });
+            }
             settings.bookmarks["bookmarklets"] = $("#settings-bookmarks-bookmarklets").prop("checked");
             settings.bookmarks["foldercontents"] = $("#settings-bookmarks-foldercontents").prop("checked");
             settings.bookmarks["split"] = $("#settings-bookmarks-split").prop("checked");
@@ -1980,7 +2027,7 @@ $(document).ready(function() {
             if (settings.general["keyboard"]) {
                 // global page switch keys
                 if (!modal) {
-                    if (!settings.bookmarks["merge"]) {
+                    if (settings.bookmarks["enable"] && !settings.bookmarks["merge"]) {
                         Mousetrap.bind(["l", "q"], function(e, key) {
                             closeDropdowns();
                             $("#menu-links").click();
