@@ -172,6 +172,9 @@ $(document).ready(function() {
             "outlook": {
                 "enable": false
             },
+            "reddit": {
+                "enable": false
+            },
             "steam": {
                 "emable": false
             },
@@ -231,6 +234,7 @@ $(document).ready(function() {
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
+        "reddit": ["https://pay.reddit.com/"],
         "steam": ["https://steamcommunity.com/", "http://steamcommunity.com/"],
         "ticktick": ["https://ticktick.com/"],
         "weather": ["http://api.openweathermap.org/"],
@@ -1453,6 +1457,19 @@ $(document).ready(function() {
                         return [parseInt(c.length ? ($(c[0]).text() ? $(c[0]).text() : "0") : "")];
                     }
                 },
+                "reddit": {
+                    title: "Reddit",
+                    api: "https://pay.reddit.com/message/unread/.json?mark=false",
+                    items: function(notif) {
+                        return [{
+                            title: "Messages",
+                            url: "https://pay.reddit.com/message/inbox/"
+                        }]
+                    },
+                    count: function(notif, resp) {
+                        return [resp["data"]["children"].length];
+                    }
+                },
                 "steam": {
                     title: "Steam",
                     api: "http://steamcommunity.com",
@@ -1637,6 +1654,7 @@ $(document).ready(function() {
             $("#settings-notifs-gmail-enable").prop("checked", settings.notifs["gmail"].enable);
             $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
             $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
+            $("#settings-notifs-reddit-enable").prop("checked", settings.notifs["reddit"].enable);
             $("#settings-notifs-steam-enable").prop("checked", settings.notifs["steam"].enable);
             $("#settings-notifs-ticktick-enable").prop("checked", settings.notifs["ticktick"].enable);
             $("#settings-notifs-ticktick-due").prop("checked", settings.notifs["ticktick"].due)
@@ -1956,6 +1974,9 @@ $(document).ready(function() {
             };
             settings.notifs["outlook"] = {
                 enable: $("#settings-notifs-outlook-enable").prop("checked")
+            };
+            settings.notifs["reddit"] = {
+                enable: $("#settings-notifs-reddit-enable").prop("checked")
             };
             settings.notifs["steam"] = {
                 enable: $("#settings-notifs-steam-enable").prop("checked")
