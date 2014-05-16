@@ -151,6 +151,7 @@ $(document).ready(function() {
             "above": false
         },
         "history": {
+            "enable": false,
             "limit": 10
         },
         "notifs": {
@@ -1043,158 +1044,166 @@ $(document).ready(function() {
         Bookmarks: lightweight bookmark browser
         */
         if (settings.bookmarks["enable"]) {
-            $("#bookmarks").addClass("panel-" + settings.style["panel"]);
-            // switch to bookmarks page
-            $("#menu-bookmarks").click(function(e) {
-                $(".navbar-right li").removeClass("active");
-                $(this).addClass("active");
-                $(".main").hide();
-                $("#bookmarks").show();
-            });
-            // show split pane if enabled
-            if (settings.bookmarks["split"]) {
-                $("#bookmarks-block").before($("<div/>").attr("id", "bookmarks-block-folders").addClass("panel-body"));
-                $("#bookmarks-block").before($("<hr/>"));
-            }
-            // request tree from Bookmarks API
-            var current;
-            chrome.bookmarks.getTree(function bookmarksCallback(tree) {
-                tree[0].title = "Bookmarks";
-                var route = [];
-                var populateBookmarks = function populateBookmarks(root) {
-                    current = root;
-                    // clear current list
-                    $("#bookmarks-title, #bookmarks-block, #bookmarks-block-folders").empty();
-                    if (!root.children.length) {
-                        $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
-                        $("#bookmarks-block-folders").hide();
-                    }
-                    $("#bookmarks-block-search, hr.bookmarks-search").remove();
-                    $("#bookmarks-search").val("");
-                    // loop through folder children
-                    $(root.children).each(function(i, el) {
-                        // bookmark
-                        if (el.url) {
-                            // bookmarklet
-                            if (el.url.substring(0, "javascript:".length) === "javascript:") {
-                                if (settings.bookmarks["bookmarklets"]) {
-                                    $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").append(fa("code")).append(" " + el.title));
-                                }
-                            } else {
-                                var link = $("<a/>").addClass("btn btn-primary").attr("href", el.url).append(fa("file")).append(" " + el.title);
-                                // workaround for accessing Chrome URLs
-                                if (el.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
-                                $("#bookmarks-block").append(link);
-                            }
-                        // folder
-                        } else if (el.children) {
-                            var container = $("#bookmarks-block" + (settings.bookmarks["split"] ? "-folders" : ""));
-                            container.append($("<button/>").addClass("btn btn-warning").append(fa("folder" + (el.children.length ? "" : "-o"))).append(" " + el.title).click(function(e) {
-                                // normal click
-                                if (e.which === 1 && (!ctrlDown || !settings.bookmarks["foldercontents"])) {
-                                    route.push(i);
-                                    populateBookmarks(el);
-                                // middle click or Ctrl+click, if enabled
-                                } else if (e.which <= 2 && settings.bookmarks["foldercontents"]) {
-                                    $(el.children).each(function(i, child) {
-                                        if (child.url && child.url.substring(0, "javascript:".length) !== "javascript:") chrome.tabs.create({url: child.url, active: false});
-                                    });
-                                }
-                            }));
-                        }
-                    });
-                    $("#bookmarks-block, #bookmarks-block-folders").each(function(i, blk) {
-                        $(blk).toggle(!$(blk).is(":empty"));
-                    });
-                    $("#bookmarks hr").toggle(!$("#bookmarks-block, #bookmarks-block-folders").is(":empty"));
-                    // open Chrome links via Tabs API
-                    $(".link-chrome", "#bookmarks-block").click(function(e) {
-                        // normal click, not external
-                        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-                            chrome.tabs.update({url: this.href});
-                            e.preventDefault();
-                        // middle click, Ctrl+click, or set as external
-                        } else if (e.which <= 2) {
-                            chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-                            e.preventDefault();
-                        }
-                    });
-                    // breadcrumb navigation
-                    $(traverse()).each(function(i, el) {
-                        if (i > 0) $("#bookmarks-title").append($("<span/>").addClass("caret-right"));
-                        $("#bookmarks-title").append($("<button/>").addClass("btn btn-sm btn-default").text(el.title).click(function(e) {
-                            var count = route.length - i;
-                            for (var j = 0; j < count; j++) {
-                                route.pop();
-                            }
-                            var els = traverse();
-                            populateBookmarks(els[els.length - 1]);
-                        }));
-                    });
+            chrome.permissions.contains({
+                permissions: ["bookmarks"]
+            }, function(has) {
+                if (!has) {
+                    settings.bookmarks["enable"] = false;
+                    return;
                 }
-                // get list of items as path through bookmarks
-                var traverse = function traverse() {
-                    var els = [tree[0]];
-                    for (var i in route) {
-                        els.push(els[els.length - 1].children[route[i]]);
-                    }
-                    return els;
-                };
-                populateBookmarks(tree[0]);
-                if (settings.bookmarks["merge"]) {
-                    $("#bookmarks").fadeIn();
-                } else {
-                    $("#menu-bookmarks").show();
+                $("#bookmarks").addClass("panel-" + settings.style["panel"]);
+                // switch to bookmarks page
+                $("#menu-bookmarks").click(function(e) {
+                    $(".navbar-right li").removeClass("active");
+                    $(this).addClass("active");
+                    $(".main").hide();
+                    $("#bookmarks").show();
+                });
+                // show split pane if enabled
+                if (settings.bookmarks["split"]) {
+                    $("#bookmarks-block").before($("<div/>").attr("id", "bookmarks-block-folders").addClass("panel-body"));
+                    $("#bookmarks-block").before($("<hr/>"));
                 }
-            });
-            // bookmark search
-            var timeout = 0;
-            $("#bookmarks-search").on("input", function(e) {
-                var text = $(this).val().toLowerCase();
-                if (timeout) clearTimeout(timeout);
-                timeout = setTimeout(function() {
-                    if (!text) {
+                // request tree from Bookmarks API
+                var current;
+                chrome.bookmarks.getTree(function bookmarksCallback(tree) {
+                    tree[0].title = "Bookmarks";
+                    var route = [];
+                    var populateBookmarks = function populateBookmarks(root) {
+                        current = root;
+                        // clear current list
+                        $("#bookmarks-title, #bookmarks-block, #bookmarks-block-folders").empty();
+                        if (!root.children.length) {
+                            $("#bookmarks-block").show().append($("<div/>").addClass("alert alert-info").append("<span>Nothing in this folder.</span>"));
+                            $("#bookmarks-block-folders").hide();
+                        }
                         $("#bookmarks-block-search, hr.bookmarks-search").remove();
-                        return;
-                    }
-                    var results = [];
-                    var search = function search(node) {
-                        // bookmark matching search
-                        if (node.url && node.title.toLowerCase().indexOf(text) > -1) {
-                            results.push(node);
-                        // folder
-                        } else if (node.children) {
-                            $.each(node.children, function(i, child) {
-                                search(child);
-                            });
-                        }
-                    };
-                    search(current);
-                    var block = $("#bookmarks-block-search");
-                    if (block.length) {
-                        $("#bookmarks-block-search").empty();
-                    } else {
-                        block = $("<div/>").attr("id", "bookmarks-block-search").addClass("panel-body");
-                        $("#bookmarks .panel-heading").after($("<hr/>").addClass("bookmarks-search")).after(block);
-                    }
-                    if (results.length) {
-                        $.each(results, function(i, node) {
-                            // bookmarklet
-                            if (node.url.substring(0, "javascript:".length) === "javascript:") {
-                                if (settings.bookmarks["bookmarklets"]) {
-                                    $("#bookmarks-block-search").append($("<button/>").addClass("btn btn-success disabled").append(fa("code")).append(" " + node.title));
+                        $("#bookmarks-search").val("");
+                        // loop through folder children
+                        $(root.children).each(function(i, el) {
+                            // bookmark
+                            if (el.url) {
+                                // bookmarklet
+                                if (el.url.substring(0, "javascript:".length) === "javascript:") {
+                                    if (settings.bookmarks["bookmarklets"]) {
+                                        $("#bookmarks-block").append($("<button/>").addClass("btn btn-info disabled").append(fa("code")).append(" " + el.title));
+                                    }
+                                } else {
+                                    var link = $("<a/>").addClass("btn btn-primary").attr("href", el.url).append(fa("file")).append(" " + el.title);
+                                    // workaround for accessing Chrome URLs
+                                    if (el.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
+                                    $("#bookmarks-block").append(link);
                                 }
-                            } else {
-                                var link = $("<a/>").addClass("btn btn-success").attr("href", node.url).append(fa("file")).append(" " + node.title);
-                                // workaround for accessing Chrome URLs
-                                if (node.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
-                                $("#bookmarks-block-search").append(link);
+                            // folder
+                            } else if (el.children) {
+                                var container = $("#bookmarks-block" + (settings.bookmarks["split"] ? "-folders" : ""));
+                                container.append($("<button/>").addClass("btn btn-warning").append(fa("folder" + (el.children.length ? "" : "-o"))).append(" " + el.title).click(function(e) {
+                                    // normal click
+                                    if (e.which === 1 && (!ctrlDown || !settings.bookmarks["foldercontents"])) {
+                                        route.push(i);
+                                        populateBookmarks(el);
+                                    // middle click or Ctrl+click, if enabled
+                                    } else if (e.which <= 2 && settings.bookmarks["foldercontents"]) {
+                                        $(el.children).each(function(i, child) {
+                                            if (child.url && child.url.substring(0, "javascript:".length) !== "javascript:") chrome.tabs.create({url: child.url, active: false});
+                                        });
+                                    }
+                                }));
                             }
                         });
-                    } else {
-                        $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
+                        $("#bookmarks-block, #bookmarks-block-folders").each(function(i, blk) {
+                            $(blk).toggle(!$(blk).is(":empty"));
+                        });
+                        $("#bookmarks hr").toggle(!$("#bookmarks-block, #bookmarks-block-folders").is(":empty"));
+                        // open Chrome links via Tabs API
+                        $(".link-chrome", "#bookmarks-block").click(function(e) {
+                            // normal click, not external
+                            if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                                chrome.tabs.update({url: this.href});
+                                e.preventDefault();
+                            // middle click, Ctrl+click, or set as external
+                            } else if (e.which <= 2) {
+                                chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                                e.preventDefault();
+                            }
+                        });
+                        // breadcrumb navigation
+                        $(traverse()).each(function(i, el) {
+                            if (i > 0) $("#bookmarks-title").append($("<span/>").addClass("caret-right"));
+                            $("#bookmarks-title").append($("<button/>").addClass("btn btn-sm btn-default").text(el.title).click(function(e) {
+                                var count = route.length - i;
+                                for (var j = 0; j < count; j++) {
+                                    route.pop();
+                                }
+                                var els = traverse();
+                                populateBookmarks(els[els.length - 1]);
+                            }));
+                        });
                     }
-                }, 200);
+                    // get list of items as path through bookmarks
+                    var traverse = function traverse() {
+                        var els = [tree[0]];
+                        for (var i in route) {
+                            els.push(els[els.length - 1].children[route[i]]);
+                        }
+                        return els;
+                    };
+                    populateBookmarks(tree[0]);
+                    if (settings.bookmarks["merge"]) {
+                        $("#bookmarks").fadeIn();
+                    } else {
+                        $("#menu-bookmarks").show();
+                    }
+                });
+                // bookmark search
+                var timeout = 0;
+                $("#bookmarks-search").on("input", function(e) {
+                    var text = $(this).val().toLowerCase();
+                    if (timeout) clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        if (!text) {
+                            $("#bookmarks-block-search, hr.bookmarks-search").remove();
+                            return;
+                        }
+                        var results = [];
+                        var search = function search(node) {
+                            // bookmark matching search
+                            if (node.url && node.title.toLowerCase().indexOf(text) > -1) {
+                                results.push(node);
+                            // folder
+                            } else if (node.children) {
+                                $.each(node.children, function(i, child) {
+                                    search(child);
+                                });
+                            }
+                        };
+                        search(current);
+                        var block = $("#bookmarks-block-search");
+                        if (block.length) {
+                            $("#bookmarks-block-search").empty();
+                        } else {
+                            block = $("<div/>").attr("id", "bookmarks-block-search").addClass("panel-body");
+                            $("#bookmarks .panel-heading").after($("<hr/>").addClass("bookmarks-search")).after(block);
+                        }
+                        if (results.length) {
+                            $.each(results, function(i, node) {
+                                // bookmarklet
+                                if (node.url.substring(0, "javascript:".length) === "javascript:") {
+                                    if (settings.bookmarks["bookmarklets"]) {
+                                        $("#bookmarks-block-search").append($("<button/>").addClass("btn btn-success disabled").append(fa("code")).append(" " + node.title));
+                                    }
+                                } else {
+                                    var link = $("<a/>").addClass("btn btn-success").attr("href", node.url).append(fa("file")).append(" " + node.title);
+                                    // workaround for accessing Chrome URLs
+                                    if (node.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
+                                    $("#bookmarks-block-search").append(link);
+                                }
+                            });
+                        } else {
+                            $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
+                        }
+                    }, 200);
+                });
             });
         }
         /*
@@ -1230,48 +1239,57 @@ $(document).ready(function() {
         History: quick drop-down of recent pages
         */
         // only show if enabled and not in incognito
-        if (settings.history["limit"] && !chrome.extension.inIncognitoContext) {
-            var block = true;
-            $("#history-title").click(function(e) {
-                // delay opening list until loaded
-                if (block && !$(this).hasClass("active")) {
-                    e.stopPropagation();
-                    // request items from History API
-                    chrome.history.search({text: "", maxResults: settings.history["limit"]}, function historyCallback(results) {
-                        $("#history-list").empty();
-                        // loop through history items
-                        for (var i in results) {
-                            var res = results[i];
-                            var link = $("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50));
-                            // workaround for accessing Chrome URLs
-                            if (res.url.substring(0, "chrome://".length) === "chrome://" || res.url.substring(0, "chrome-extension://".length) === "chrome-extension://") {
-                                link.click(function(e) {
-                                    // normal click, not external
-                                    if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-                                        chrome.tabs.update({url: this.href});
-                                        e.preventDefault();
-                                    // middle click, Ctrl+click, or set as external
-                                    } else if (e.which <= 2) {
-                                        chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-                                        e.preventDefault();
-                                    }
-                                });
-                            }
-                            // add to dropdown
-                            $("#history-list").append($("<li/>").append(link));
-                        }
-                        $("#history-list").append($("<li/>").addClass("divider"));
-                        $("#history-list").append($("<li/>").append($("<a/>").addClass("link-chrome").append(fa("search")).append(" More...").attr("href", "chrome://history")));
-                        fixLinkHandling("#history-list");
-                        block = false;
-                        $("#history-title").click();
-                    });
-                // reset block
-                } else {
-                    block = true;
+        if (settings.history["enable"] && !chrome.extension.inIncognitoContext) {
+            chrome.permissions.contains({
+                permissions: ["history"]
+            }, function(has) {
+                if (!has) {
+                    settings.history["enable"] = false;
+                    return;
                 }
+                if (settings.history["limit"] === 0) settings.history["limit"] = 10;
+                var block = true;
+                $("#history-title").click(function(e) {
+                    // delay opening list until loaded
+                    if (block && !$(this).hasClass("active")) {
+                        e.stopPropagation();
+                        // request items from History API
+                        chrome.history.search({text: "", maxResults: settings.history["limit"]}, function historyCallback(results) {
+                            $("#history-list").empty();
+                            // loop through history items
+                            for (var i in results) {
+                                var res = results[i];
+                                var link = $("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50));
+                                // workaround for accessing Chrome URLs
+                                if (res.url.substring(0, "chrome://".length) === "chrome://" || res.url.substring(0, "chrome-extension://".length) === "chrome-extension://") {
+                                    link.click(function(e) {
+                                        // normal click, not external
+                                        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                                            chrome.tabs.update({url: this.href});
+                                            e.preventDefault();
+                                        // middle click, Ctrl+click, or set as external
+                                        } else if (e.which <= 2) {
+                                            chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                                            e.preventDefault();
+                                        }
+                                    });
+                                }
+                                // add to dropdown
+                                $("#history-list").append($("<li/>").append(link));
+                            }
+                            $("#history-list").append($("<li/>").addClass("divider"));
+                            $("#history-list").append($("<li/>").append($("<a/>").addClass("link-chrome").append(fa("search")).append(" More...").attr("href", "chrome://history")));
+                            fixLinkHandling("#history-list");
+                            block = false;
+                            $("#history-title").click();
+                        });
+                    // reset block
+                    } else {
+                        block = true;
+                    }
+                });
+                $("#menu-history").show();
             });
-            $("#menu-history").show();
         }
         /*
         Notifications: poll websites for notification counts
@@ -1595,8 +1613,23 @@ $(document).ready(function() {
             $("#settings-bookmarks-above").prop("checked", settings.bookmarks["above"])
                                           .prop("disabled", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]))
                                           .parent().toggleClass("text-muted", !(settings.bookmarks["enable"] && settings.bookmarks["merge"]));
-            $("#settings-history-limit").val(settings.history["limit"]);
-            $("#settings-history-limit-value").text(settings.history["limit"]);
+            $("#settings-history-enable").prop("checked", settings.history["enable"]);
+            // highlight history permission status
+            chrome.permissions.contains({
+                permissions: ["history"]
+            }, function(has) {
+                if (has) {
+                    $(".settings-perm-history").addClass("has-success");
+                } else {
+                    $(".settings-perm-history").addClass("has-warning");
+                    $("#settings-history-enable").prop("checked", false);
+                }
+            });
+            $("#settings-history-limit").val(settings.history["limit"])
+                                        .prop("disabled", !settings.history["enable"])
+                                        .parent().toggleClass("text-muted", !settings.history["enable"]);
+            $("#settings-history-limit-value").text(settings.history["limit"])
+                                              .parent().toggleClass("text-muted", !settings.history["enable"]);
             $("#settings-notifs-facebook-notifs").prop("checked", settings.notifs["facebook"].enable.notifs);
             $("#settings-notifs-facebook-messages").prop("checked", settings.notifs["facebook"].enable.messages);
             $("#settings-notifs-facebook-friends").prop("checked", settings.notifs["facebook"].enable.friends);
@@ -1707,26 +1740,48 @@ $(document).ready(function() {
                 }, function(success) {
                     if (success) {
                         $(".settings-perm-bookmarks").removeClass("has-warning").addClass("has-success");
+                        $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, "
+                          + "#settings-bookmarks-merge")
+                            .prop("disabled", false).parent().removeClass("text-muted");
+                        $("#settings-bookmarks-above").prop("disabled", !$("#settings-bookmarks-merge").prop("checked"))
+                                                      .parent().toggleClass("text-muted", !$("#settings-bookmarks-merge").prop("checked"));
                     } else {
                         var text = "Permission denied for bookmarks.";
                         $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
-                        $(this).prop("checked", false).change();
+                        $(this).prop("checked", false);
                     }
-                    $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, "
-                      + "#settings-bookmarks-merge")
-                        .prop("disabled", false).parent().toggleClass("text-muted", false);
-                    $("#settings-bookmarks-above").prop("disabled", !$("#settings-bookmarks-merge").prop("checked"))
-                                                  .parent().toggleClass("text-muted", !$("#settings-bookmarks-merge").prop("checked"));
                 });
             } else {
                 $("#settings-bookmarks-bookmarklets, #settings-bookmarks-foldercontents, #settings-bookmarks-split, "
                   + "#settings-bookmarks-merge, #settings-bookmarks-above")
-                    .prop("disabled", true).parent().toggleClass("text-muted", true);
+                    .prop("disabled", true).parent().addClass("text-muted");
             }
         });
         $("#settings-bookmarks-merge").change(function(e) {
             $("#settings-bookmarks-above").prop("disabled", !($("#settings-bookmarks-enable").prop("checked") && this.checked))
                                           .parent().toggleClass("text-muted", !($("#settings-bookmarks-enable").prop("checked") && this.checked));
+        });
+        $("#settings-history-enable").change(function(e) {
+            $("#settings-alerts").empty();
+            // grant history permissions
+            if (this.checked) {
+                chrome.permissions.request({
+                    permissions: ["history"]
+                }, function(success) {
+                    if (success) {
+                        $(".settings-perm-history").removeClass("has-warning").addClass("has-success");
+                        $("#settings-history-limit").prop("disabled", false).parent().removeClass("text-muted");
+                        $("#settings-history-limit-value").parent().removeClass("text-muted");
+                    } else {
+                        var text = "Permission denied for history.";
+                        $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+                        $(this).prop("checked", false);
+                    }
+                });
+            } else {
+                $("#settings-history-limit").prop("disabled", true).parent().addClass("text-muted");
+                $("#settings-history-limit-value").parent().addClass("text-muted");
+            }
         });
         $("#settings-history-limit").on("input change", function(e) {
             $("#settings-history-limit-value").text($(this).val());
@@ -1809,7 +1864,7 @@ $(document).ready(function() {
         // clear image
         $("#settings-style-background-none").click(function(e) {
             $("#settings-style-background-image").data("val", "").prop("placeholder", "(none)").val("");
-            $(".settings-style-background-check").prop("disabled", true).next().toggleClass("text-muted", true);
+            $(".settings-style-background-check").prop("disabled", true).next().addClass("text-muted");
         });
         // reset to default stripes
         $("#settings-style-background-default").click(function(e) {
@@ -1818,7 +1873,7 @@ $(document).ready(function() {
             $("#settings-style-background-centre").prop("checked", true);
             $("#settings-style-background-fixed").prop("checked", false);
             $("#settings-style-background-stretch").prop("checked", false);
-            $(".settings-style-background-check").prop("disabled", false).next().toggleClass("text-muted", false);
+            $(".settings-style-background-check").prop("disabled", false).next().removeClass("text-muted");
         });
         // custom CSS editor
         $("#settings-style-customcss-enable").change(function(e) {
@@ -1852,7 +1907,14 @@ $(document).ready(function() {
             settings.bookmarks["split"] = $("#settings-bookmarks-split").prop("checked");
             settings.bookmarks["merge"] = $("#settings-bookmarks-merge").prop("checked");
             settings.bookmarks["above"] = $("#settings-bookmarks-above").prop("checked");
-            if (!$("#settings-history-limit").val()) $("#settings-history-limit").val("10");
+            settings.history["enable"] = $("#settings-history-enable").prop("checked");
+            if (!settings.history["enable"]) {
+                chrome.permissions.remove({
+                    permissions: ["history"]
+                }, function(success) {
+                    if (!success) revokeError = true;
+                });
+            }
             settings.history["limit"] = parseInt($("#settings-history-limit").val());
             var revoke = function revoke(key) {
                 chrome.permissions.remove({
