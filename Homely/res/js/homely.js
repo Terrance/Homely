@@ -201,6 +201,7 @@ $(document).ready(function() {
                 "show": false,
                 "content": ""
             },
+            "apps": false,
             "weather": {
                 "show": false,
                 "location": ""
@@ -1047,6 +1048,7 @@ $(document).ready(function() {
         /*
         Bookmarks: lightweight bookmark browser
         */
+        var bookmarksCallbacks = [];
         if (settings.bookmarks["enable"]) {
             chrome.permissions.contains({
                 permissions: ["bookmarks"]
@@ -1208,35 +1210,47 @@ $(document).ready(function() {
                         }
                     }, 200);
                 });
+                // return any pending callbacks
+                for (var i in bookmarksCallbacks) {
+                    bookmarksCallbacks[i].call();
+                }
             });
         }
         /*
         Apps: installed Chrome apps drop-down
         */
-        if (!chrome.extension.inIncognitoContext) {
-            chrome.management.getAll(function(apps) {
-                var show = false;
-                $.each(apps, function(i, app) {
-                    if (app.enabled && ["hosted_app", "packaged_app", "legacy_packaged_app"].indexOf(app.type) > -1) {
-                        var link = $("<a/>").text(app.name).click(function(e) {
-                            chrome.management.launchApp(app.id);
-                            e.preventDefault();
-                        });
-                        if (app.appLaunchUrl) link.attr("href", app.appLaunchUrl);
-                        $("#apps-list").append($("<li/>").append(link));
-                        show = true;
+        if (settings.general["apps"] && !chrome.extension.inIncognitoContext) {
+            chrome.permissions.contains({
+                permissions: ["management"]
+            }, function(has) {
+                if (!has) {
+                    settings.general["apps"] = false;
+                    return;
+                }
+                chrome.management.getAll(function(apps) {
+                    var show = false;
+                    $.each(apps, function(i, app) {
+                        if (app.enabled && ["hosted_app", "packaged_app", "legacy_packaged_app"].indexOf(app.type) > -1) {
+                            var link = $("<a/>").text(app.name).click(function(e) {
+                                chrome.management.launchApp(app.id);
+                                e.preventDefault();
+                            });
+                            if (app.appLaunchUrl) link.attr("href", app.appLaunchUrl);
+                            $("#apps-list").append($("<li/>").append(link));
+                            show = true;
+                        }
+                    });
+                    if (show) {
+                        var all = $("<a/>").attr("href", "chrome://apps").addClass("link-chrome").append(fa("th")).append(" View all apps");
+                        var allCont = $("<li/>").append(all);
+                        fixLinkHandling(allCont);
+                        var store = $("<a/>").attr("href", "https://chrome.google.com/webstore");
+                        $("#apps-list").append($("<li/>").addClass("divider"))
+                                       .append(allCont)
+                                       .append($("<li/>").append(store.append(fa("shopping-cart")).append(" Chrome Web Store")));
+                        $("#menu-apps").show();
                     }
                 });
-                if (show) {
-                    var all = $("<a/>").attr("href", "chrome://apps").addClass("link-chrome").append(fa("th")).append(" View all apps");
-                    var allCont = $("<li/>").append(all);
-                    fixLinkHandling(allCont);
-                    var store = $("<a/>").attr("href", "https://chrome.google.com/webstore");
-                    $("#apps-list").append($("<li/>").addClass("divider"))
-                                   .append(allCont)
-                                   .append($("<li/>").append(store.append(fa("shopping-cart")).append(" Chrome Web Store")));
-                    $("#menu-apps").show();
-                }
             });
         }
         /*
@@ -1692,6 +1706,18 @@ $(document).ready(function() {
                                              .prop("disabled", !settings.general["timer"].countdown)
                                              .parent().toggleClass("text-muted", !settings.general["timer"].countdown);
             $("#settings-general-notepad-show").prop("checked", settings.general["notepad"].show);
+            $("#settings-general-apps").prop("checked", settings.general["apps"]);
+            // highlight apps permission status
+            chrome.permissions.contains({
+                permissions: ["management"]
+            }, function(has) {
+                if (has) {
+                    $(".settings-perm-management").addClass("has-success");
+                } else {
+                    $(".settings-perm-management").addClass("has-warning");
+                    $("#settings-general-apps").prop("checked", false);
+                }
+            });
             $("#settings-general-weather-show").prop("checked", settings.general["weather"].show);
             $("#settings-general-weather-location").val(settings.general["weather"].location)
                                                    .prop("disabled", !settings.general["weather"].show)
@@ -1842,6 +1868,24 @@ $(document).ready(function() {
         $("#settings-general-timer-countdown").change(function(e) {
             $("#settings-general-timer-beep").prop("disabled", !this.checked)
                                              .parent().toggleClass("text-muted", !this.checked);
+        });
+        $("#settings-general-apps").change(function(e) {
+            $("#settings-alerts").empty();
+            // grant history permissions
+            if (this.checked) {
+                chrome.permissions.request({
+                    permissions: ["management"]
+                }, function(success) {
+                    if (success) {
+                        $(".settings-perm-management").removeClass("has-warning").addClass("has-success");
+                        $("#settings-general-apps").prop("disabled", false).parent().removeClass("text-muted");
+                    } else {
+                        var text = "Permission denied for management.";
+                        $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(text));
+                        $(this).prop("checked", false);
+                    }
+                });
+            }
         });
         $("#settings-general-weather-show").change(function(e) {
             $("#settings-general-weather-location").prop("disabled", !this.checked);
@@ -2004,6 +2048,14 @@ $(document).ready(function() {
                 beep: $("#settings-general-timer-beep").prop("checked")
             };
             settings.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
+            settings.general["apps"] = $("#settings-general-apps").prop("checked");
+            if (!settings.general["apps"]) {
+                chrome.permissions.remove({
+                    permissions: ["management"]
+                }, function(success) {
+                    if (!success) revokeError = true;
+                });
+            }
             settings.general["weather"] = {
                 show: $("#settings-general-weather-show").prop("checked"),
                 location: $("#settings-general-weather-location").val()
@@ -2119,21 +2171,27 @@ $(document).ready(function() {
                             $("#menu-bookmarks").click();
                         });
                     }
-                    Mousetrap.bind(["a", "e"], function(e, key) {
-                        if ($("#apps-title").parent().hasClass("open")) {
-                            $("#apps-title").parent().removeClass("open");
-                        } else {
-                            closeDropdowns();
-                            $("#apps-title").click();
-                        }
-                    }).bind(["h", "r"], function(e, key) {
-                        if ($("#history-title").parent().hasClass("open")) {
-                            $("#history-title").parent().removeClass("open");
-                        } else {
-                            closeDropdowns();
-                            $("#history-title").click();
-                        }
-                    }).bind(["n", "t"], function(e, key) {
+                    if (settings.general["apps"]) {
+                        Mousetrap.bind(["a", "e"], function(e, key) {
+                            if ($("#apps-title").parent().hasClass("open")) {
+                                $("#apps-title").parent().removeClass("open");
+                            } else {
+                                closeDropdowns();
+                                $("#apps-title").click();
+                            }
+                        });
+                    }
+                    if (settings.history["enable"]) {
+                        Mousetrap.bind(["h", "r"], function(e, key) {
+                            if ($("#history-title").parent().hasClass("open")) {
+                                $("#history-title").parent().removeClass("open");
+                            } else {
+                                closeDropdowns();
+                                $("#history-title").click();
+                            }
+                        });
+                    }
+                    Mousetrap.bind(["n", "t"], function(e, key) {
                         if ($("#notifs-title").parent().hasClass("open")) {
                             $("#notifs-title").parent().removeClass("open");
                         } else {
@@ -2202,7 +2260,10 @@ $(document).ready(function() {
                 }
             }
         };
-        $("#menu-links, #menu-bookmarks").click(setupHotkeys);
+        $("#menu-links").click(setupHotkeys);
+        bookmarksCallbacks.push(function() {
+            $("#menu-bookmarks").click(setupHotkeys);
+        })
         // manually adjust modal-open class as not available at event trigger
         $(".modal").on("show.bs.modal", function(e) {
             $(document.body).addClass("modal-open");
