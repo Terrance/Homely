@@ -21,11 +21,19 @@ body.topbar-fix {
     #notepad {
         width: 300px !important;
     }
+    .menu-label {
+        display: none;
+    }
+}
+@media (max-width: 767px) {
+    .menu-label {
+        display: inline;
+    }
 }
 .incognito {
     display: none !important;
 }
-.menu-label, #menu-collapse-toggle {
+#menu-collapse-toggle {
     display: none;
 }
 #notepad {

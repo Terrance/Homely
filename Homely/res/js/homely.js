@@ -12,6 +12,9 @@ $(document).ready(function() {
     var fa = function fa(icon, fw) {
         return $("<i/>").addClass("fa fa-" + icon).toggleClass("fa-fw", fw !== false);
     }
+    var label = function label(text) {
+        return [" ", $("<span/>").addClass("menu-label").html(text)];
+    }
     var manif = chrome.runtime.getManifest();
     // default settings
     var settings = {
@@ -263,13 +266,6 @@ $(document).ready(function() {
         if (settings.style["topbar"].dark) {
             $("nav").removeClass("navbar-default").addClass("navbar-inverse");
         }
-        if (settings.style["topbar"].labels) {
-            $(".menu-label").show();
-        } else {
-            $(".menu-label").each(function(i) {
-                $(this).parent().attr("title", $(this).text());
-            });
-        }
         if (settings.style["background"].image) {
             css.push("html {\n"
                    + "    background-image: url(" + settings.style["background"].image + ");\n"
@@ -318,7 +314,7 @@ $(document).ready(function() {
             var tmMenu = $("<ul/>").addClass("dropdown-menu");
             tmRoot.append(tmMenu);
             var reset = function reset() {
-                tmLink.empty().append(fa("clock-o", false)).append(settings.style["topbar"].labels ? " No timers " : " ").append($("<b/>").addClass("caret"));
+                tmLink.empty().append(fa("clock-o", false)).append(label("No timers ")).append($("<b/>").addClass("caret"));
                 tmMenu.empty();
                 var interval = 0;
                 if (settings.general["timer"].stopwatch) {
@@ -426,13 +422,8 @@ $(document).ready(function() {
         // show notepad
         if (settings.general["notepad"].show) {
             var npRoot = $("<li/>").addClass("dropdown");
-            var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown").append(fa("edit", false));
-            if (settings.style["topbar"].labels) {
-                npLink.append(" Notepad ");
-            } else {
-                npLink.append(" ").attr("title", "Notepad");
-            }
-            npLink.append($("<b/>").addClass("caret"));
+            var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown")
+                                  .append(fa("edit", false)).append(label("Notepad")).append(" ").append($("<b/>").addClass("caret"));
             npRoot.append(npLink);
             var npMenu = $("<ul/>").addClass("dropdown-menu");
             var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control");
@@ -472,8 +463,7 @@ $(document).ready(function() {
                             var title = resp.name + ": " + cap((settings.style["topbar"].labels ? "" : temp + " degrees, ") + conds.join(", "));
                             var link = $("<a/>").attr("href", "http://www.openweathermap.org/city/" + resp.id)
                                                 .attr("title", title).hide();
-                            link.append(fa("cloud", false));
-                            if (settings.style["topbar"].labels) link.append(" " + temp + "&deg;C");
+                            link.append(fa("cloud", false)).append(label(temp + "&deg;C"));
                             // always show before proxy link if that loads first
                             if ($("#menu-proxy").length) {
                                 $("#menu-proxy").before($("<li/>").append(link));
@@ -487,6 +477,7 @@ $(document).ready(function() {
             });
         }
         // get IP address / proxy status
+        var proxyCallbacks = [];
         if (settings.general["proxy"]) {
             chrome.permissions.contains({
                 origins: ajaxPerms["proxy"]
@@ -501,25 +492,30 @@ $(document).ready(function() {
                         success: function success(resp, stat, xhr) {
                             var params = $(".h1", resp).text().split("IP address: ");
                             var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
-                            link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false));
-                            if (settings.style["topbar"].labels) {
-                                link.append(" " + params[1]);
-                            } else {
-                                link.attr("title", params[1]);
-                            }
+                            link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(label(params[1]));
                             $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
                         },
                         error: function(xhr, stat, err) {
-                            var link = $("<a/>").append(fa("power-off", false)).append(" No connection").hide();
+                            var link = $("<a/>").append(fa("power-off", false)).append(label("No connection")).hide();
                             $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
+                        },
+                        complete: function(xhr, stat) {
+                            // return any pending callbacks
+                            for (var i in proxyCallbacks) {
+                                proxyCallbacks[i].call();
+                            }
                         }
                     });
                 } else {
-                    var link = $("<a/>").append(fa("power-off", false)).append(" No connection").hide();
+                    var link = $("<a/>").append(fa("power-off", false)).append(label("No connection")).hide();
                     $("#menu-left").append($("<li/>").append(link));
                     link.fadeIn();
+                    // return any pending callbacks
+                    for (var i in proxyCallbacks) {
+                        proxyCallbacks[i].call();
+                    }
                 }
             });
         }
@@ -2261,9 +2257,30 @@ $(document).ready(function() {
             }
         };
         $("#menu-links").click(setupHotkeys);
+        if (settings.style["topbar"].labels) {
+            $(".menu-label").show();
+        } else {
+            $(".menu-label").each(function(i) {
+                $(this).parent().attr("title", $(this).text());
+            });
+        };
         bookmarksCallbacks.push(function() {
             $("#menu-bookmarks").click(setupHotkeys);
-        })
+            var label = $("#menu-bookmarks .menu-label");
+            if (settings.style["topbar"].labels) {
+                label.show();
+            } else {
+                label.parent().attr("title", label.text());
+            }
+        });
+        proxyCallbacks.push(function() {
+            var label = $("#menu-proxy .menu-label");
+            if (settings.style["topbar"].labels) {
+                label.show();
+            } else {
+                label.parent().attr("title", label.text());
+            }
+        });
         // manually adjust modal-open class as not available at event trigger
         $(".modal").on("show.bs.modal", function(e) {
             $(document.body).addClass("modal-open");
