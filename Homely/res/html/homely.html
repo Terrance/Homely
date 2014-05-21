@@ -294,7 +294,7 @@
                                             <input id="settings-general-keyboard" type="checkbox">
                                             <span>Enable advanced keyboard navigation</span>
                                         </label>
-                                        <p class="help-block">See the <a href="https://github.com/OllieTerrance/Homely#keyboard-shortcuts" class="link-external">readme</a> for controls.</p>
+                                        <p class="help-block">Press <code>?</code> or see the <a href="https://github.com/OllieTerrance/Homely#keyboard-shortcuts" class="link-external">readme</a> for controls.</p>
                                     </div>
                                 </div>
                                 <div class="form-group form-control-nomar-bottom form-control-pad-bottom">
@@ -489,6 +489,62 @@
                     <div class="modal-footer">
                         <button id="settings-save" class="btn btn-primary"><i class="fa fa-check"></i> Save and reload</button>
                         <button class="btn btn-default" data-dismiss="modal"><i class="fa fa-undo"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="shortcuts" class="modal fade">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
+                        <h4 class="modal-title"><i class="fa fa-magic"></i>&nbsp; Keyboard shortcuts</h4>
+                    </div>
+                    <div class="modal-body row">
+                        <div class="col-sm-6">
+                            <h3>Global</h3>
+                            <ul>
+                                <li><code>Q</code> <code>L</code> &ndash; switch to links</li>
+                                <li><code>W</code> <code>B</code> &ndash; switch to bookmarks</li>
+                                <li><code>E</code> <code>A</code> &ndash; open apps dropdown</li>
+                                <li><code>R</code> <code>H</code> &ndash; open history dropdown</li>
+                                <li><code>T</code> <code>N</code> &ndash; open notifcations dropdown</li>
+                                <li><code>Y</code> <code>S</code> &ndash; open settings modal</li>
+                                <li><code>Tab</code> <code>Shift+Tab</code> &ndash; scroll through dropdown options</li>
+                            </ul>
+                            <h3>Apps</h3>
+                            <ul>
+                                <li><code>Shift+A</code> &ndash; open Chrome Apps page</li>
+                                <li><code>Shift+Alt+A</code> &ndash; go to Chrome Web Store</li>
+                            </ul>
+                            <h3>Links</h3>
+                            <ul>
+                                <li><code>1</code> ... <code>0</code> &ndash; select nth block (<code>0</code> for 10th)</li>
+                                <li><code>-</code> <code>=</code> &ndash; select previous/next block</li>
+                                <li><code>[</code> <code>]</code> &ndash; select previous/next button in block</li>
+                                <li><code>Enter</code> &ndash; open link</li>
+                                <li><code>Backspace</code> &ndash; clear selection</li>
+                            </ul>
+                        </div>
+                        <div class="col-sm-6">
+                            <h3>Bookmarks</h3>
+                            <ul>
+                                <li><code>/</code> &ndash; focus search field</li>
+                            </ul>
+                            <h3>Notifications</h3>
+                            <ul>
+                                <li><code>Shift+N</code> &ndash; refresh notifications</li>
+                                <li><code>Shift+Alt+N</code> &ndash; open all unread notification pages</li>
+                            </ul>
+                            <h3>Settings</h3>
+                            <ul>
+                                <li><code>Tab</code> <code>Shift+Tab</code> &ndash; cycle tabs (ignored if a form field is active)</li>
+                                <li><code>Enter</code> &ndash; switch to fields in tab</li>
+                                <li><code>Ctrl+Enter</code> &ndash; save and reload</li>
+                                <li><code>Esc</code> &ndash; cancel</li>
+                            </ul>
+                            <div class="alert alert-info">Note: shortcuts are disabled whilst input fields (text boxes, selects, buttons) are currently focused.</div>
+                        </div>
                     </div>
                 </div>
             </div>

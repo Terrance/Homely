@@ -2229,6 +2229,8 @@ $(document).ready(function() {
                     }).bind(["s", "y"], function(e, key) {
                         closeDropdowns();
                         $("#menu-settings a").click();
+                    }).bind("?", function(e, key) {
+                        $("#shortcuts").modal();
                     });
                 }
                 // if settings modal is open
@@ -2306,12 +2308,7 @@ $(document).ready(function() {
             }
         });
         weatherCallbacks.push(function() {
-            var label = $("#menu-weather .menu-label");
-            if (settings.style["topbar"].labels) {
-                label.show();
-            } else {
-                label.parent().attr("title", label.text());
-            }
+            if (settings.style["topbar"].labels) $("#menu-weather .menu-label").show();
         });
         proxyCallbacks.push(function() {
             var label = $("#menu-proxy .menu-label");
