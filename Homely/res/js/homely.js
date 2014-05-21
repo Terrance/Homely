@@ -442,7 +442,8 @@ $(document).ready(function() {
             npRoot.append(npMenu);
             $("#menu-left").append(npRoot);
         }
-        // get weather forecast
+        // get weather 
+        var weatherCallbacks = [];
         if (settings.general["weather"].show) {
             chrome.permissions.contains({
                 origins: ajaxPerms["weather"]
@@ -461,7 +462,7 @@ $(document).ready(function() {
                             });
                             var temp = Math.round(resp.main.temp - 273.15);
                             var title = resp.name + ": " + cap((settings.style["topbar"].labels ? "" : temp + " degrees, ") + conds.join(", "));
-                            var link = $("<a/>").attr("href", "http://www.openweathermap.org/city/" + resp.id)
+                            var link = $("<a/>").attr("id", "menu-weather").attr("href", "http://www.openweathermap.org/city/" + resp.id)
                                                 .attr("title", title).hide();
                             link.append(fa("cloud", false)).append(label(temp + "&deg;C"));
                             // always show before proxy link if that loads first
@@ -471,6 +472,10 @@ $(document).ready(function() {
                                 $("#menu-left").append($("<li/>").append(link));
                             }
                             link.fadeIn();
+                            // return any pending callbacks
+                            for (var i in weatherCallbacks) {
+                                weatherCallbacks[i].call();
+                            }
                         }
                     });
                 }
@@ -1546,7 +1551,7 @@ $(document).ready(function() {
                         if (has) {
                             var handle = handlers[key];
                             // add menu items
-                            $("#notifs-list").append($("<li/>").addClass("dropdown-header").append(fa(handle.icon, true)).append("&nbsp; " + handle.title));
+                            $("#notifs-list").append($("<li/>").addClass("dropdown-header").append(fa(handle.icon)).append("&nbsp; " + handle.title));
                             var menu = [];
                             var items = handle.items(notif);
                             $(items).each(function(i, item) {
@@ -2288,6 +2293,14 @@ $(document).ready(function() {
         bookmarksCallbacks.push(function() {
             $("#menu-bookmarks").click(setupHotkeys);
             var label = $("#menu-bookmarks .menu-label");
+            if (settings.style["topbar"].labels) {
+                label.show();
+            } else {
+                label.parent().attr("title", label.text());
+            }
+        });
+        weatherCallbacks.push(function() {
+            var label = $("#menu-weather .menu-label");
             if (settings.style["topbar"].labels) {
                 label.show();
             } else {
