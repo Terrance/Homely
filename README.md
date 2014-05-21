@@ -36,6 +36,11 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 * `Y` `S` - open settings modal
 * `Tab` `Shift+Tab` - scroll through dropdown options
 
+### Apps
+
+* `Shift+A` - open Chrome Apps page
+* `Shift+Alt+A` - go to Chrome Web Store
+
 ### Links
 
 * `1` ... `0` - select nth block (`0` for 10th)
@@ -47,6 +52,11 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 ### Bookmarks
 
 * `/` - focus search field
+
+### Notifications
+
+* `Shift+N` - refresh notifications
+* `Shift+Alt+N` - open all unread notification pages
 
 ### Settings
 

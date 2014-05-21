@@ -1329,7 +1329,7 @@ $(document).ready(function() {
             var pendingCount = function pendingCount() {
                 // only if at least one, once all complete
                 if (--pendingPerm || !has) return;
-                refreshLink = $("<a/>").append(fa("refresh fa-spin")).append(" Refreshing...").click(function (e) {
+                refreshLink = $("<a/>").attr("id", "notifs-refresh").append(fa("refresh fa-spin")).append(" Refreshing...").click(function (e) {
                     e.stopPropagation();
                 });
                 $("#notifs-list").append($("<li/>").addClass("disabled").append(refreshLink));
@@ -2175,6 +2175,10 @@ $(document).ready(function() {
                                 closeDropdowns();
                                 $("#apps-title").click();
                             }
+                        }).bind("shift+a", function(e, key) {
+                            chrome.tabs.update({url: "chrome://apps"});
+                        }).bind("shift+alt+a", function(e, key) {
+                            location.href = "https://chrome.google.com/webstore";
                         });
                     }
                     if (settings.history["enable"]) {
@@ -2194,6 +2198,16 @@ $(document).ready(function() {
                             closeDropdowns();
                             $("#notifs-title").click();
                         }
+                    }).bind("shift+n", function(e, key) {
+                        if (!$("#notifs-title").parent().hasClass("open")) {
+                            closeDropdowns();
+                            $("#notifs-title").click();
+                        }
+                        $("#notifs-refresh").click();
+                    }).bind("shift+alt+n", function(e, key) {
+                        $("#notifs-list a").each(function(i, link) {
+                            if (parseInt($(".badge", link).text()) > 0) chrome.tabs.create({url: link.href, active: false});
+                        });
                     }).bind(["s", "y"], function(e, key) {
                         closeDropdowns();
                         $("#menu-settings a").click();
