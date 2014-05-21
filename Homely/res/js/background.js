@@ -1,7 +1,7 @@
 var links;
 chrome.omnibox.onInputStarted.addListener(function() {
     chrome.storage.local.get("links", function(store) {
-        links = [];
+        var newLinks = [];
         for (var i in store.links["content"]) {
             var blk = store.links["content"][i];
             for (var j in blk.buttons) {
@@ -13,16 +13,17 @@ chrome.omnibox.onInputStarted.addListener(function() {
                             if (!item.title) item.title = item.url;
                             if (btn.title) item.title = btn.title + " > " + item.title;
                             if (blk.title) item.title = blk.title + " > " + item.title;
-                            links.push(item);
+                            newLinks.push(item);
                         }
                     }
                 } else if (btn.url) {
                     if (!btn.title) btn.title = btn.url;
                     if (blk.title) btn.title = blk.title + " > " + btn.title;
-                    links.push(btn);
+                    newLinks.push(btn);
                 }
             }
         }
+        links = newLinks;
     });
 });
 chrome.omnibox.onInputChanged.addListener(function(text, suggest) {

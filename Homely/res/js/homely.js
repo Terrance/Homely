@@ -1952,14 +1952,14 @@ $(document).ready(function() {
         // save and reload
         $("#settings-save").click(function(e) {
             $("#settings-alerts").empty();
-            var ok = true;
             try {
                 settings.links["content"] = JSON.parse($("#settings-links-content").val());
             } catch (e) {
-                ok = false;
                 $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("The blocks source isn't valid JSON."));
                 $($("#settings-tabs a")[0]).click();
+                return;
             }
+            $("#settings-save").prop("disabled", true).empty().append(fa("spinner fa-spin", false)).append(" Saving...");
             settings.links["edit"] = {
                 menu: $("#settings-links-edit-menu").prop("checked"),
                 dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
@@ -2090,22 +2090,28 @@ $(document).ready(function() {
                 enable: $("#settings-style-customcss-content").val() && $("#settings-style-customcss-enable").prop("checked"),
                 content: $("#settings-style-customcss-content").val()
             };
-            if (ok) {
-                // write to local storage
-                chrome.storage.local.set(settings, function() {
-                    if (chrome.runtime.lastError) {
-                        alert("Unable to save: " + chrome.runtime.lastError.message);
-                        return;
-                    }
-                    if (revokeError) {
-                        alert("Failed to revoke some permissions: " + chrome.runtime.lastError.message);
-                    }
-                    // reload page
-                    $("#settings").off("hidden.bs.modal").on("hidden.bs.modal", function(e) {
-                        location.reload();
-                    }).modal("hide");
+            $("#settings").on("hide.bs.modal", function(e) {
+                e.preventDefault();
+            });
+            // write to local storage
+            chrome.storage.local.set(settings, function() {
+                if (chrome.runtime.lastError) {
+                    $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("Unable to save: " + chrome.runtime.lastError.message));
+                    $("#settings-save").prop("disabled", false).empty().append(fa("check", false)).append(" Save and reload");
+                    return;
+                }
+                if (revokeError) {
+                    $("#settings-alerts").append($("<div/>").addClass("alert alert-warning").text("Failed to revoke permissions: " + chrome.runtime.lastError.message));
+                }
+                $("#settings-save").empty().append(fa("check", false)).append(" Saved!");
+                // reload page
+                $("#settings").off("hide.bs.modal").off("hidden.bs.modal").on("hidden.bs.modal", function(e) {
+                    location.reload();
                 });
-            }
+                setTimeout(function() {
+                    $("#settings").modal("hide");
+                }, 250);
+            });
         });
         // links selection state
         var linksHotkeys = {
