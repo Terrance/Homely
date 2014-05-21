@@ -1389,6 +1389,7 @@ $(document).ready(function() {
             var handlers = {
                 "facebook": {
                     title: "Facebook",
+                    icon: "facebook-square",
                     api: "https://www.facebook.com",
                     items: function(notif) {
                         var menu = [];
@@ -1416,6 +1417,7 @@ $(document).ready(function() {
                 },
                 "github": {
                     title: "GitHub",
+                    icon: "github",
                     api: "https://github.com/notifications",
                     items: function(notif) {
                         return [{
@@ -1429,6 +1431,7 @@ $(document).ready(function() {
                 },
                 "gmail": {
                     title: "Gmail",
+                    icon: "envelope-o",
                     items: function(notif) {
                         var accs = notif.accounts;
                         if (!accs.length) return [{
@@ -1455,6 +1458,7 @@ $(document).ready(function() {
                 },
                 "outlook": {
                     title: "Outlook",
+                    icon: "envelope",
                     api: "https://mail.live.com",
                     items: function(notif) {
                         return [{
@@ -1469,6 +1473,7 @@ $(document).ready(function() {
                 },
                 "reddit": {
                     title: "Reddit",
+                    icon: "reddit",
                     api: "https://pay.reddit.com/message/unread/.json?mark=false",
                     items: function(notif) {
                         return [{
@@ -1482,6 +1487,7 @@ $(document).ready(function() {
                 },
                 "steam": {
                     title: "Steam",
+                    icon: "steam",
                     api: "http://steamcommunity.com",
                     items: function(notif) {
                         return [{
@@ -1497,6 +1503,7 @@ $(document).ready(function() {
                 },
                 "ticktick": {
                     title: "TickTick",
+                    icon: "check-circle-o",
                     api: "https://ticktick.com/api/v2/project/all/tasks",
                     items: function(notif) {
                         return [{
@@ -1539,7 +1546,7 @@ $(document).ready(function() {
                         if (has) {
                             var handle = handlers[key];
                             // add menu items
-                            $("#notifs-list").append($("<li/>").addClass("dropdown-header").text(handle.title));
+                            $("#notifs-list").append($("<li/>").addClass("dropdown-header").append(fa(handle.icon, true)).append("&nbsp; " + handle.title));
                             var menu = [];
                             var items = handle.items(notif);
                             $(items).each(function(i, item) {
