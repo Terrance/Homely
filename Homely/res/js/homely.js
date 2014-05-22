@@ -247,6 +247,8 @@ $(document).ready(function() {
     // load settings
     chrome.storage.local.get(function(store) {
         var firstRun = $.isEmptyObject(store);
+        // load links first
+        if (!firstRun) settings.links = store.links;
         // merge settings with defaults
         settings = $.extend(true, {}, settings, store);
         // apply custom styles
