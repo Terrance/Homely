@@ -1029,7 +1029,9 @@ $(document).ready(function() {
             alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;").click(function(e) {
                 chrome.storage.local.set(settings);
             }));
-            alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  Feel free to change or add to them by hovering over the block headings for controls.  Head into Settings for more advanced options.</span>");
+            alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  "
+                         + "Feel free to change or add to them by hovering over the block headings for controls.  "
+                         + "Head into Settings for more advanced options, where you can add bookmarks, history, apps, widgets, keyboard shortcuts and more.</span>");
             $("#alerts").append(alert);
         }
         if (!settings.links["content"].length) {
