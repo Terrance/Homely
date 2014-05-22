@@ -40,6 +40,9 @@ body.topbar-fix {
     width: calc(100% - 20px);
     margin: 5px 10px;
 }
+#notepad.notepad-saved {
+    background: url(../img/check-bg.png) no-repeat right 3px bottom 3px;
+}
 .btn-light {
     background-color: #ddd;
     border-color: #d4d4d4;

@@ -428,14 +428,16 @@ $(document).ready(function() {
                                   .append(fa("edit", false)).append(label("Notepad")).append(" ").append($("<b/>").addClass("caret"));
             npRoot.append(npLink);
             var npMenu = $("<ul/>").addClass("dropdown-menu");
-            var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control");
+            var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control notepad-saved");
             var timeout = 0;
             notepad.val(settings.general["notepad"].content).on("input",function(e) {
+                notepad.removeClass("notepad-saved");
                 if (timeout) clearTimeout(timeout);
-                var content = $(this).val();
+                var content = notepad.val();
                 timeout = setTimeout(function() {
                     settings.general["notepad"].content = content;
                     chrome.storage.local.set({general: settings.general});
+                    notepad.addClass("notepad-saved");
                 }, 500);
             }).click(function(e) {
                 e.stopPropagation();
@@ -560,6 +562,7 @@ $(document).ready(function() {
                 }
             });
         };
+        if (!settings.bookmarks["enable"]) $("#menu-links").hide();
         var populateLinks = function populateLinks() {
             $("#alerts, #links").empty();
             if (settings.links["edit"].dragdrop) $("#links").off("sortupdate");
