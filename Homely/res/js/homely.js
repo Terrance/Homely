@@ -491,18 +491,19 @@ $(document).ready(function() {
                     settings.general["proxy"] = false;
                     return;
                 }
+                var link = $("<a/>").attr("id", "menu-proxy");
                 if (navigator.onLine) {
                     $.ajax({
                         url: "http://www.whatismyproxy.com",
                         success: function success(resp, stat, xhr) {
                             var params = $(".h1", resp).text().split("IP address: ");
-                            var link = $("<a/>").attr("href", "http://www.whatismyproxy.com").hide();
+                            link.attr("href", "http://www.whatismyproxy.com").hide();
                             link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(label(params[1]));
                             $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
                         },
                         error: function(xhr, stat, err) {
-                            var link = $("<a/>").append(fa("power-off", false)).append(label("No connection")).hide();
+                            link.append(fa("power-off", false)).append(label("No connection")).hide();
                             $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
                         },
@@ -514,7 +515,7 @@ $(document).ready(function() {
                         }
                     });
                 } else {
-                    var link = $("<a/>").append(fa("power-off", false)).append(label("No connection")).hide();
+                    link.append(fa("power-off", false)).append(label("No connection")).hide();
                     $("#menu-left").append($("<li/>").append(link));
                     link.fadeIn();
                     // return any pending callbacks
@@ -1317,13 +1318,14 @@ $(document).ready(function() {
         var notifRefresh = function notifRefresh() {
             // disable if no connection
             if (!navigator.onLine) {
+                var refreshLink = $("<a/>").attr("id", "notifs-refresh").append(fa("refresh")).append(" Check again").off("click").click(function (e) {
+                    $("#notifs-list").empty();
+                    notifRefresh();
+                    e.stopPropagation();
+                });
                 $("#notifs-list").append($("<li/>").addClass("disabled").append($("<a/>").append(fa("power-off")).append(" No connection")))
                                  .append($("<li/>").addClass("divider"))
-                                 .append($("<li/>").append($("<a/>").append(fa("refresh")).append(" Check again").off("click").click(function (e) {
-                                     $("#notifs-list").empty();
-                                     notifRefresh();
-                                     e.stopPropagation();
-                                 })));
+                                 .append($("<li/>").append(refreshLink));
                 $("#menu-notifs").show();
                 return;
             }
