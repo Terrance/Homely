@@ -2254,6 +2254,11 @@ $(document).ready(function() {
                     Mousetrap.stopCallback = function(e, element) {
                         return element.tagName === "BUTTON" || mousetrapStop(e, element);
                     }
+                // if shortcuts modal is open
+                } else if ($(e.target).attr("id") === "shortcuts" && e.type === "show") {
+                    Mousetrap.bind("?", function(e, key) {
+                        $("#shortcuts").modal("hide");
+                    });
                 } else {
                     // restore stop callback
                     Mousetrap.stopCallback = mousetrapStop;

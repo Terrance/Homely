@@ -26,6 +26,8 @@ Keyboard shortcuts
 
 If enabled, the page can be navigated by keyboard.  Note that Chrome will, by default, give focus to the onmibox when opening a new tab, so you must first `Tab` into the page.
 
+> Note: shortcuts are disabled whilst input fields (text boxes, selects, buttons) are currently focused.
+
 ### Global
 
 * `Q` `L` - switch to links
@@ -65,7 +67,9 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 * `Ctrl+Enter` - save and reload
 * `Esc` - cancel
 
-> Note: shortcuts are disabled whilst input fields (text boxes, selects, buttons) are currently focused.
+### Misc
+
+* `?` - show keyboard shortcuts modal
 
 Links format
 ------------
