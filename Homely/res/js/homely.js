@@ -238,7 +238,7 @@ $(document).ready(function() {
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
-        "reddit": ["https://pay.reddit.com/"],
+        "reddit": ["https://www.reddit.com/"],
         "steam": ["https://steamcommunity.com/", "http://steamcommunity.com/"],
         "ticktick": ["https://ticktick.com/"],
         "weather": ["http://api.openweathermap.org/"],
@@ -1488,11 +1488,11 @@ $(document).ready(function() {
                 "reddit": {
                     title: "Reddit",
                     icon: "reddit",
-                    api: "https://pay.reddit.com/message/unread/.json?mark=false",
+                    api: "https://www.reddit.com/message/unread/.json?mark=false",
                     items: function(notif) {
                         return [{
                             title: "Messages",
-                            url: "https://pay.reddit.com/message/inbox/"
+                            url: "https://www.reddit.com/message/inbox/"
                         }]
                     },
                     count: function(notif, resp) {
