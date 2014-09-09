@@ -9,7 +9,7 @@ Running from source
 
 This project requires the following libraries:
 
-* [Bootstrap](http://getboostrap.com)
+* [Bootstrap](http://getbootstrap.com)
 * [Font Awesome](http://fontawesome.io)
 * [jQuery](http://jquery.com)
 * [HTML5 Sortable](http://farhadi.ir/projects/html5sortable/)

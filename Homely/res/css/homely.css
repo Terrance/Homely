@@ -33,7 +33,7 @@ body.topbar-fix {
 .incognito {
     display: none !important;
 }
-#menu-collapse-toggle {
+#settings-import-file, #menu-collapse-toggle {
     display: none;
 }
 #notepad {

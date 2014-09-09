@@ -1936,7 +1936,7 @@ $(document).ready(function() {
                        $("#settings-style-background-file").val("");
                     };
                 } else {
-                    $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text(file.name + " doesn't seem to be a valid image file."));
+                    $("#settings-alerts").empty().append($("<div/>").addClass("alert alert-danger").text(file.name + " doesn't seem to be a valid image file."));
                 }
             }
         });
@@ -2121,6 +2121,47 @@ $(document).ready(function() {
                     $("#settings").modal("hide");
                 }, 250);
             });
+        });
+        // import settings from file
+        $("#settings-import").click(function(e) {
+            $("#settings-import-file").click();
+        });
+        $("#settings-import-file").change(function(e) {
+            // if a file is selected
+            if (this.files.length) {
+                var file = this.files.item(0);
+                var reader = new FileReader;
+                reader.readAsText(file);
+                reader.onload = function readerLoaded() {
+                    $("#settings-import-file").val("");
+                    var toImport;
+                    try {
+                        toImport = JSON.parse(reader.result);
+                    } catch (e) {
+                        return window.alert(file.name + " doesn't seem to be a valid JSON file.");
+                    }
+                    if (toImport && confirm("Do you want to replace your current settings with those in " + file.name + "?")) {
+                        // merge with current, import takes priority
+                        settings = $.extend(true, {}, settings, toImport);
+                        // copy links code whole
+                        if (toImport["links"]) settings["links"] = toImport["links"];
+                        // write to local storage
+                        chrome.storage.local.set(settings, function() {
+                            if (chrome.runtime.lastError) window.alert("Unable to save: " + chrome.runtime.lastError.message);
+                            else location.reload();
+                        });
+                    }
+                };
+            }
+        });
+        // export settings to file
+        $("#settings-export").click(function(e) {
+            var toExport = $.extend(true, {}, settings);
+            // converting image to URI takes too long, hangs browser
+            delete toExport.style["background"].image;
+            // link has a download="homely.json" tag to force download
+            $(this).attr("href", "data:application/json;charset=UTF-8," + encodeURIComponent(JSON.stringify(toExport)))
+                   .click().attr("href", "");
         });
         // links selection state
         var linksHotkeys = {
