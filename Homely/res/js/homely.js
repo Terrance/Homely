@@ -207,7 +207,8 @@ $(document).ready(function() {
             "apps": false,
             "weather": {
                 "show": false,
-                "location": ""
+                "location": "",
+                "celsius": true
             },
             "proxy": false
         },
@@ -457,18 +458,20 @@ $(document).ready(function() {
                     return;
                 }
                 if (navigator.onLine) {
+                    var loc = encodeURIComponent(settings.general["weather"].location);
+                    var unit = (settings.general["weather"].celsius ? "metric" : "imperial");
                     $.ajax({
-                        url: "http://api.openweathermap.org/data/2.5/weather?q=" + encodeURIComponent(settings.general["weather"].location),
+                        url: "http://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=" + unit,
                         success: function success(resp, stat, xhr) {
                             var conds = [];
                             $.each(resp.weather, function(i, item) {
                                 conds.push(item.description);
                             });
-                            var temp = Math.round(resp.main.temp - 273.15);
+                            var temp = Math.round(resp.main.temp);
                             var title = resp.name + ": " + cap((settings.style["topbar"].labels ? "" : temp + " degrees, ") + conds.join(", "));
                             var link = $("<a/>").attr("id", "menu-weather").attr("href", "http://www.openweathermap.org/city/" + resp.id)
                                                 .attr("title", title).hide();
-                            link.append(fa("cloud", false)).append(label(temp + "&deg;C"));
+                            link.append(fa("cloud", false)).append(label(temp + "&deg;" + (unit === "metric" ? "C" : "F")));
                             // always show before proxy link if that loads first
                             if ($("#menu-proxy").length) {
                                 $("#menu-proxy").before($("<li/>").append(link));
@@ -1739,6 +1742,8 @@ $(document).ready(function() {
             $("#settings-general-weather-location").val(settings.general["weather"].location)
                                                    .prop("disabled", !settings.general["weather"].show)
                                                    .parent().toggleClass("text-muted", !settings.general["weather"].show);
+            $("#settings-general-weather-celsius").html("&deg;" + (settings.general["weather"].celsius ? "C" : "F"))
+                                                  .prop("disabled", !settings.general["weather"].show);
             $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-style-font").val(settings.style["font"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
@@ -1908,6 +1913,9 @@ $(document).ready(function() {
             $("#settings-general-weather-location").prop("disabled", !this.checked);
             if (this.checked) $("#settings-general-weather-location").focus();
         });
+        $("#settings-general-weather-celsius").click(function(e) {
+            $(this).html("&deg;" + ($(this).text()[1] === "C" ? "F" : "C"));
+        });
         // panel style group
         $("#settings-style-panel label").click(function(e) {
             $("input", this).prop("checked", true);
@@ -2075,7 +2083,8 @@ $(document).ready(function() {
             }
             settings.general["weather"] = {
                 show: $("#settings-general-weather-show").prop("checked"),
-                location: $("#settings-general-weather-location").val()
+                location: $("#settings-general-weather-location").val(),
+                celsius: $("#settings-general-weather-celsius").text()[1] === "C"
             };
             if (!settings.general["weather"].location) settings.general["weather"].show = false;
             if (!settings.general["weather"].show) revoke("weather");
