@@ -2246,12 +2246,8 @@ $(document).ready(function() {
                     }
                     if (settings.general["apps"]) {
                         Mousetrap.bind(["a", "e"], function(e, key) {
-                            if ($("#apps-title").parent().hasClass("open")) {
-                                $("#apps-title").parent().removeClass("open");
-                            } else {
-                                closeDropdowns();
-                                $("#apps-title").click();
-                            }
+                            if (!$("#apps-title").parent().hasClass("open")) closeDropdowns();
+                            $("#apps-title").click();
                         }).bind("shift+a", function(e, key) {
                             chrome.tabs.update({url: "chrome://apps"});
                         }).bind("shift+alt+a", function(e, key) {
@@ -2260,21 +2256,13 @@ $(document).ready(function() {
                     }
                     if (settings.history["enable"]) {
                         Mousetrap.bind(["h", "r"], function(e, key) {
-                            if ($("#history-title").parent().hasClass("open")) {
-                                $("#history-title").parent().removeClass("open");
-                            } else {
-                                closeDropdowns();
-                                $("#history-title").click();
-                            }
+                            if (!$("#history-title").parent().hasClass("open")) closeDropdowns();
+                            $("#history-title").click();
                         });
                     }
                     Mousetrap.bind(["n", "t"], function(e, key) {
-                        if ($("#notifs-title").parent().hasClass("open")) {
-                            $("#notifs-title").parent().removeClass("open");
-                        } else {
-                            closeDropdowns();
-                            $("#notifs-title").click();
-                        }
+                        if (!$("#notifs-title").parent().hasClass("open")) closeDropdowns();
+                        $("#notifs-title").click();
                     }).bind("shift+n", function(e, key) {
                         if (!$("#notifs-title").parent().hasClass("open")) {
                             closeDropdowns();
@@ -2286,10 +2274,15 @@ $(document).ready(function() {
                             if (parseInt($(".badge", link).text()) > 0) chrome.tabs.create({url: link.href, active: false});
                         });
                     }).bind(["s", "y"], function(e, key) {
+                        if (!$("#settings-title").parent().hasClass("open")) closeDropdowns();
+                        $("#settings-title").click();
+                    }).bind(["shift+s", "shift+y"], function(e, key) {
                         closeDropdowns();
-                        $("#menu-settings a").click();
+                        $("#settings-toggle").click();
                     }).bind("?", function(e, key) {
                         $("#shortcuts").modal();
+                    }).bind("esc", function(e, key) {
+                        closeDropdowns();
                     });
                 }
                 // if settings modal is open
