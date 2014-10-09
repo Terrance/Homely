@@ -35,7 +35,7 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 * `E` `A` - open apps dropdown
 * `R` `H` - open history dropdown
 * `T` `N` - open notifcations dropdown
-* `Y` `S` - open settings modal
+* `Y` `S` - open settings dropdown (`Shift` for modal)
 * `Tab` `Shift+Tab` - scroll through dropdown options
 
 ### Apps
@@ -62,7 +62,7 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 
 ### Settings
 
-* `Tab` `Shift+Tab` - cycle tabs (ignored if a form field is active)
+* `Tab` `Shift+Tab` - cycle tabs
 * `Enter` - switch to fields in tab
 * `Ctrl+Enter` - save and reload
 * `Esc` - cancel
