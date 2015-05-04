@@ -1529,13 +1529,10 @@ $(document).ready(function() {
                         }];
                     },
                     count: function(notif, resp) {
-                        var count = resp.length;
-                        if (notif.due) {
-                            count = 0;
-                            var now = new Date();
-                            for (var i in resp) {
-                                if (resp[i].status === 0 && resp[i].dueDate && new Date(resp[i].dueDate) < now) count++;
-                            }
+                        var count = 0;
+                        var now = new Date();
+                        for (var i in resp) {
+                            if (resp[i].status === 0 && (!notif.due || (resp[i].dueDate && new Date(resp[i].dueDate) < now))) count++;
                         }
                         return [count];
                     }
