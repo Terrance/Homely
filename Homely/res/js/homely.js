@@ -1534,7 +1534,7 @@ $(document).ready(function() {
                             count = 0;
                             var now = new Date();
                             for (var i in resp) {
-                                if (resp[i].dueDate && new Date(resp[i].dueDate) < now) count++;
+                                if (resp[i].status === 0 && resp[i].dueDate && new Date(resp[i].dueDate) < now) count++;
                             }
                         }
                         return [count];
@@ -1910,7 +1910,7 @@ $(document).ready(function() {
             }
         });
         $("#settings-general-weather-show").change(function(e) {
-            $("#settings-general-weather-location").prop("disabled", !this.checked);
+            $("#settings-general-weather-location, #settings-general-weather-celsius").prop("disabled", !this.checked);
             if (this.checked) $("#settings-general-weather-location").focus();
         });
         $("#settings-general-weather-celsius").click(function(e) {
