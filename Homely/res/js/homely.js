@@ -172,6 +172,12 @@ $(document).ready(function() {
                 "enable": false,
                 "accounts": []
             },
+            "linkedin": {
+                "enable": {
+                    "messages": false,
+                    "notifs": false
+                }
+            },
             "outlook": {
                 "enable": false
             },
@@ -238,6 +244,7 @@ $(document).ready(function() {
         "facebook": ["https://www.facebook.com/"],
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
+        "linkedin": ["https://www.linkedin.com/"],
         "outlook": ["https://login.live.com/", "https://*.mail.live.com/"],
         "reddit": ["https://www.reddit.com/"],
         "steam": ["https://steamcommunity.com/", "http://steamcommunity.com/"],
@@ -447,7 +454,7 @@ $(document).ready(function() {
             npRoot.append(npMenu);
             $("#menu-left").append(npRoot);
         }
-        // get weather 
+        // get weather
         var weatherCallbacks = [];
         if (settings.general["weather"].show) {
             chrome.permissions.contains({
@@ -1473,6 +1480,30 @@ $(document).ready(function() {
                         return menu;
                     }
                 },
+                "linkedin": {
+                    title: "LinkedIn",
+                    icon: "linkedin-square",
+                    api: "https://www.linkedin.com",
+                    items: function(notif) {
+                        var menu = [];
+                        if (notif.enable.messages) menu.push({
+                            title: "Messages",
+                            url: "https://www.linkedin.com/inbox/"
+                        });
+                        if (notif.enable.notifs) menu.push({
+                            title: "Notifications",
+                            url: "https://www.linkedin.com"
+                        });
+                        return menu;
+                    },
+                    count: function(notif, resp) {
+                        if (!resp) return [NaN, NaN];
+                        var vals = [];
+                        if (notif.enable.messages) vals.push(parseInt($("#header-messages-count", resp).text()) || 0);
+                        if (notif.enable.notifs) vals.push(parseInt($("#nav-primary-inbox-item-total", resp).text()) || 0);
+                        return vals;
+                    }
+                },
                 "outlook": {
                     title: "Outlook",
                     icon: "envelope",
@@ -1684,6 +1715,8 @@ $(document).ready(function() {
             $("#settings-notifs-github-enable").prop("checked", settings.notifs["github"].enable);
             $("#settings-notifs-gmail-enable").prop("checked", settings.notifs["gmail"].enable);
             $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
+            $("#settings-notifs-linkedin-messages").prop("checked", settings.notifs["linkedin"].enable.messages);
+            $("#settings-notifs-linkedin-notifs").prop("checked", settings.notifs["linkedin"].enable.notifs);
             $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
             $("#settings-notifs-reddit-enable").prop("checked", settings.notifs["reddit"].enable);
             $("#settings-notifs-steam-enable").prop("checked", settings.notifs["steam"].enable);
@@ -2038,6 +2071,18 @@ $(document).ready(function() {
                 enable: $("#settings-notifs-gmail-enable").prop("checked"),
                 accounts: accounts.sort()
             };
+            settings.notifs["linkedin"] = {
+                enable: {
+                    messages: $("#settings-notifs-linkedin-messages").prop("checked"),
+                    notifs: $("#settings-notifs-linkedin-notifs").prop("checked")
+                }
+            };
+            off = true;
+            for (var x in settings.notifs["linkedin"].enable) {
+                if (settings.notifs["linkedin"].enable[x]) off = false;
+                break;
+            }
+            if (off) revoke("linkedin");
             settings.notifs["outlook"] = {
                 enable: $("#settings-notifs-outlook-enable").prop("checked")
             };
@@ -2053,7 +2098,7 @@ $(document).ready(function() {
                 include: $("#settings-notifs-ticktick-include").prop("checked")
             };
             $.each(settings.notifs, function(key, notif) {
-                if (key === "facebook") return;
+                if (key === "facebook" || key === "linkedin") return;
                 if (!notif.enable) revoke(key);
             });
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
