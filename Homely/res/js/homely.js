@@ -185,7 +185,13 @@ $(document).ready(function() {
                 "enable": false
             },
             "steam": {
-                "emable": false
+                "emable": {
+                    "comments": false,
+                    "inventory": false,
+                    "invites": false,
+                    "gifts": false,
+                    "messages": false
+                }
             },
             "ticktick": {
                 "enable": false,
@@ -1497,7 +1503,6 @@ $(document).ready(function() {
                         return menu;
                     },
                     count: function(notif, resp) {
-                        if (!resp) return [NaN, NaN];
                         var vals = [];
                         if (notif.enable.messages) vals.push(parseInt($("#header-messages-count", resp).text()) || 0);
                         if (notif.enable.notifs) vals.push(parseInt($("#nav-primary-inbox-item-total", resp).text()) || 0);
@@ -1538,15 +1543,37 @@ $(document).ready(function() {
                     icon: "steam",
                     api: "http://steamcommunity.com",
                     items: function(notif) {
-                        return [{
-                            title: "Notifications",
-                            url: "http://steamcommunity.com"
-                        }];
+                        var menu = [];
+                        if (notif.enable.comments) menu.push({
+                            title: "Comments",
+                            url: "http://steamcommunity.com/my/commentnotifications/"
+                        });
+                        if (notif.enable.inventory) menu.push({
+                            title: "Inventory",
+                            url: "http://steamcommunity.com/my/inventory/"
+                        });
+                        if (notif.enable.invites) menu.push({
+                            title: "Invites",
+                            url: "http://steamcommunity.com/my/home/invites/"
+                        });
+                        if (notif.enable.gifts) menu.push({
+                            title: "Gifts",
+                            url: "http://steamcommunity.com/my/inventory/#pending_gifts"
+                        });
+                        if (notif.enable.messages) menu.push({
+                            title: "Messages",
+                            url: "http://steamcommunity.com/chat/"
+                        });
+                        return menu;
                     },
                     count: function(notif, resp) {
-                        var c = $("#header_notification_link", resp);
-                        window.c = c;
-                        return [parseInt(c.length ? ($(c[0]).text().trim() ? $(c[0]).text().trim() : "0") : "")];
+                        var vals = [];
+                        if (notif.enable.comments) vals.push(parseInt($(".header_notification_comments", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.inventory) vals.push(parseInt($(".header_notification_items", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.invites) vals.push(parseInt($(".header_notification_invites", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.gifts) vals.push(parseInt($(".header_notification_gifts", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.messages) vals.push(parseInt($(".header_notification_offlinemessages", resp).text().trim().split(" ")[0]));
+                        return vals;
                     }
                 },
                 "ticktick": {
@@ -1719,7 +1746,11 @@ $(document).ready(function() {
             $("#settings-notifs-linkedin-notifs").prop("checked", settings.notifs["linkedin"].enable.notifs);
             $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
             $("#settings-notifs-reddit-enable").prop("checked", settings.notifs["reddit"].enable);
-            $("#settings-notifs-steam-enable").prop("checked", settings.notifs["steam"].enable);
+            $("#settings-notifs-steam-comments").prop("checked", settings.notifs["steam"].enable.comments);
+            $("#settings-notifs-steam-inventory").prop("checked", settings.notifs["steam"].enable.inventory);
+            $("#settings-notifs-steam-invites").prop("checked", settings.notifs["steam"].enable.invites);
+            $("#settings-notifs-steam-gifts").prop("checked", settings.notifs["steam"].enable.gifts);
+            $("#settings-notifs-steam-messages").prop("checked", settings.notifs["steam"].enable.messages);
             $("#settings-notifs-ticktick-enable").prop("checked", settings.notifs["ticktick"].enable);
             $("#settings-notifs-ticktick-due").prop("checked", settings.notifs["ticktick"].due)
                                               .prop("disabled", !settings.notifs["ticktick"].enable)
@@ -2090,15 +2121,27 @@ $(document).ready(function() {
                 enable: $("#settings-notifs-reddit-enable").prop("checked")
             };
             settings.notifs["steam"] = {
-                enable: $("#settings-notifs-steam-enable").prop("checked")
+                enable: {
+                    comments: $("#settings-notifs-steam-comments").prop("checked"),
+                    inventory: $("#settings-notifs-steam-inventory").prop("checked"),
+                    invites: $("#settings-notifs-steam-invites").prop("checked"),
+                    gifts: $("#settings-notifs-steam-gifts").prop("checked"),
+                    messages: $("#settings-notifs-steam-messages").prop("checked")
+                }
             };
+            off = true;
+            for (var x in settings.notifs["steam"].enable) {
+                if (settings.notifs["steam"].enable[x]) off = false;
+                break;
+            }
+            if (off) revoke("steam");
             settings.notifs["ticktick"] = {
                 enable: $("#settings-notifs-ticktick-enable").prop("checked"),
                 due: $("#settings-notifs-ticktick-due").prop("checked"),
                 include: $("#settings-notifs-ticktick-include").prop("checked")
             };
             $.each(settings.notifs, function(key, notif) {
-                if (key === "facebook" || key === "linkedin") return;
+                if (["facebook", "linkedin", "steam"].indexOf(key) >= 0) return;
                 if (!notif.enable) revoke(key);
             });
             if (!$("#settings-general-title").val()) $("#settings-general-title").val(manif.name);
