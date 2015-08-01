@@ -23,6 +23,9 @@ $(document).ready(function() {
                 "menu": true,
                 "dragdrop": true
             },
+            "behaviour": {
+                "dropdownmiddle": false
+            },
             "content": [
                 {
                     "title": "Chrome",
@@ -262,7 +265,7 @@ $(document).ready(function() {
     chrome.storage.local.get(function(store) {
         var firstRun = $.isEmptyObject(store);
         // load links first
-        if (!firstRun) settings.links = store.links;
+        if (!firstRun) settings.links.content = store.links.content;
         // merge settings with defaults
         settings = $.extend(true, {}, settings, store);
         // apply custom styles
@@ -712,8 +715,7 @@ $(document).ready(function() {
                 blk.append(head);
                 var body = $("<div/>").addClass("panel-body");
                 // loop through buttons
-                for (var j in linkBlk.buttons) {
-                    var linkBtn = linkBlk.buttons[j];
+                $.each(linkBlk.buttons, function(j, linkBtn) {
                     if (!linkBtn.title) linkBtn.title = "";
                     if (!linkBtn.style) linkBtn.style = "default";
                     var btn;
@@ -723,6 +725,7 @@ $(document).ready(function() {
                                                  .text(linkBtn.title + " ").append($("<b/>").addClass("caret")));
                         var menu = $("<ul/>").addClass("dropdown-menu");
                         // loop through menu items
+                        var urls = [];
                         for (var k in linkBtn.menu) {
                             var linkItem = linkBtn.menu[k];
                             if (typeof(linkItem) === "string") {
@@ -737,7 +740,21 @@ $(document).ready(function() {
                                 // always open in new tab
                                 if (linkItem.external) item.addClass("link-external");
                                 menu.append($("<li/>").append(item));
+                                urls.push(linkItem.url);
                             }
+                        }
+                        // middle-click to open all
+                        if (settings.links["behaviour"].dropdownmiddle) {
+                            var active = false;
+                            btn.mousedown(function(e) {
+                                active = true;
+                            }).mouseup(function(e) {
+                                if (e.which === 2 && active) {
+                                    e.preventDefault();
+                                    for (var i in urls) chrome.tabs.create({url: urls[i], active: false});
+                                    active = false;
+                                }
+                            });
                         }
                         btn.append(menu);
                     } else {
@@ -750,7 +767,7 @@ $(document).ready(function() {
                         if (linkBtn.external) btn.addClass("link-external");
                     }
                     body.append(btn);
-                }
+                });
                 blk.append(body);
                 $("#links").append($("<div/>").addClass("col-lg-2 col-md-3 col-sm-4 col-xs-6").append(blk));
             });
@@ -1700,6 +1717,7 @@ $(document).ready(function() {
         var populateSettings = function populateSettings() {
             $("#settings-links-edit-menu").prop("checked", settings.links["edit"].menu);
             $("#settings-links-edit-dragdrop").prop("checked", settings.links["edit"].dragdrop);
+            $("#settings-links-behaviour-dropdownmiddle").prop("checked", settings.links["behaviour"].dropdownmiddle);
             $("#settings-links-content").val(JSON.stringify(settings.links["content"], undefined, 2));
             $("#settings-bookmarks-enable").prop("checked", settings.bookmarks["enable"]);
             // highlight bookmarks permission status
@@ -2045,6 +2063,7 @@ $(document).ready(function() {
                 menu: $("#settings-links-edit-menu").prop("checked"),
                 dragdrop: $("#settings-links-edit-dragdrop").prop("checked")
             };
+            settings.links["behaviour"].dropdownmiddle = $("#settings-links-behaviour-dropdownmiddle").prop("checked");
             settings.bookmarks["enable"] = $("#settings-bookmarks-enable").prop("checked");
             if (!settings.bookmarks["enable"]) {
                 chrome.permissions.remove({
