@@ -12,8 +12,8 @@ $(document).ready(function() {
     var fa = function fa(icon, fw) {
         return $("<i/>").addClass("fa fa-" + icon).toggleClass("fa-fw", fw !== false);
     }
-    var label = function label(text) {
-        return [" ", $("<span/>").addClass("menu-label").html(text)];
+    var label = function label(text, settings) {
+        return [" ", $("<span/>").addClass("menu-label").html(text).toggle(settings.style["topbar"].labels)];
     }
     var manif = chrome.runtime.getManifest();
     // default settings
@@ -330,7 +330,10 @@ $(document).ready(function() {
             var tmMenu = $("<ul/>").addClass("dropdown-menu");
             tmRoot.append(tmMenu);
             var reset = function reset() {
-                tmLink.empty().append(fa("clock-o", false)).append(label("No timers ")).append($("<b/>").addClass("caret"));
+                tmLink.empty().append(fa("clock-o", false)).append(label("No timers ", settings)).append($("<b/>").addClass("caret"));
+                if (!settings.style["topbar"].labels) {
+                    tmLink.prop("title", "No timers");
+                };
                 tmMenu.empty();
                 var interval = 0;
                 if (settings.general["timer"].stopwatch) {
@@ -366,7 +369,7 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        tmLink.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
+                        tmLink.empty().prop("title", "").append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(stopwatch, 1000);
                     })));
@@ -426,7 +429,7 @@ $(document).ready(function() {
                         })));
                         // show timer
                         var text = pad(Math.floor(time / (60 * 60))) + ":" + pad(Math.floor((time / 60) % 60)) + ":" + pad(time % 60);
-                        tmLink.empty().append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
+                        tmLink.empty().prop("title", "").append(fa("spinner fa-spin", false)).append(" ").append($("<span/>").text(text)).append(" ").append($("<b/>").addClass("caret"));
                         document.title = text;
                         interval = setInterval(countdown, 1000);
                     })));
@@ -439,7 +442,7 @@ $(document).ready(function() {
         if (settings.general["notepad"].show) {
             var npRoot = $("<li/>").addClass("dropdown");
             var npLink = $("<a/>").addClass("dropdown-toggle").attr("data-toggle", "dropdown")
-                                  .append(fa("edit", false)).append(label("Notepad")).append(" ").append($("<b/>").addClass("caret"));
+                                  .append(fa("edit", false)).append(label("Notepad", settings)).append(" ").append($("<b/>").addClass("caret"));
             npRoot.append(npLink);
             var npMenu = $("<ul/>").addClass("dropdown-menu");
             var notepad = $("<textarea/>").attr("id", "notepad").attr("rows", 10).addClass("form-control notepad-saved");
@@ -484,7 +487,7 @@ $(document).ready(function() {
                             var title = resp.name + ": " + cap((settings.style["topbar"].labels ? "" : temp + " degrees, ") + conds.join(", "));
                             var link = $("<a/>").attr("id", "menu-weather").attr("href", "http://www.openweathermap.org/city/" + resp.id)
                                                 .attr("title", title).hide();
-                            link.append(fa("cloud", false)).append(label(temp + "&deg;" + (unit === "metric" ? "C" : "F")));
+                            link.append(fa("cloud", false)).append(label(temp + "&deg;" + (unit === "metric" ? "C" : "F"), settings));
                             // always show before proxy link if that loads first
                             if ($("#menu-proxy").length) {
                                 $("#menu-proxy").before($("<li/>").append(link));
@@ -518,12 +521,12 @@ $(document).ready(function() {
                         success: function success(resp, stat, xhr) {
                             var params = $(".h1", resp).text().split("IP address: ");
                             link.attr("href", "http://www.whatismyproxy.com").hide();
-                            link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(label(params[1]));
+                            link.append(fa(params[0] === "No proxies were detected." ? "desktop" : "exchange", false)).append(label(params[1], settings));
                             $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
                         },
                         error: function(xhr, stat, err) {
-                            link.append(fa("power-off", false)).append(label("No connection")).hide();
+                            link.append(fa("power-off", false)).append(label("No connection", settings)).hide();
                             $("#menu-left").append($("<li/>").attr("id", "menu-proxy").append(link));
                             link.fadeIn();
                         },
@@ -535,7 +538,7 @@ $(document).ready(function() {
                         }
                     });
                 } else {
-                    link.append(fa("power-off", false)).append(label("No connection")).hide();
+                    link.append(fa("power-off", false)).append(label("No connection", settings)).hide();
                     $("#menu-left").append($("<li/>").append(link));
                     link.fadeIn();
                     // return any pending callbacks
