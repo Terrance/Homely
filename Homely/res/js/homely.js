@@ -188,7 +188,7 @@ $(document).ready(function() {
                 "enable": false
             },
             "steam": {
-                "emable": {
+                "enable": {
                     "comments": false,
                     "inventory": false,
                     "invites": false,
@@ -268,6 +268,17 @@ $(document).ready(function() {
         if (!firstRun) settings.links.content = store.links.content;
         // merge settings with defaults
         settings = $.extend(true, {}, settings, store);
+        // upgrade code for Steam
+        if (typeof(settings.notifs["steam"].enable) === "boolean") {
+            var enable = settings.notifs["steam"].enable;
+            settings.notifs["steam"].enable = {
+                "comments": enable,
+                "inventory": enable,
+                "invites": enable,
+                "gifts": enable,
+                "messages": enable
+            };
+        }
         // apply custom styles
         document.title = settings.general["title"];
         var css = [];
@@ -2104,7 +2115,6 @@ $(document).ready(function() {
             var off = true;
             for (var x in settings.notifs["facebook"].enable) {
                 if (settings.notifs["facebook"].enable[x]) off = false;
-                break;
             }
             if (off) revoke("facebook");
             settings.notifs["github"] = {
@@ -2133,7 +2143,6 @@ $(document).ready(function() {
             off = true;
             for (var x in settings.notifs["linkedin"].enable) {
                 if (settings.notifs["linkedin"].enable[x]) off = false;
-                break;
             }
             if (off) revoke("linkedin");
             settings.notifs["outlook"] = {
@@ -2154,7 +2163,6 @@ $(document).ready(function() {
             off = true;
             for (var x in settings.notifs["steam"].enable) {
                 if (settings.notifs["steam"].enable[x]) off = false;
-                break;
             }
             if (off) revoke("steam");
             settings.notifs["ticktick"] = {
