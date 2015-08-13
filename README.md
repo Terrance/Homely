@@ -144,11 +144,11 @@ With the above steps, you should end up with a block and dropdown like this:
 Notifications
 -------------
 
-Enabling a notification option will prompt for the relevant permission in order to access the given website.  Disabling it will not remove this - use the revoke all option to clear any given permissions.
+Enabling a notification option will prompt for the relevant permission in order to access the given website (and the corresponding block will be highlighted with green text).  Disabling it will not immediately remove this, but any unnecessary permissions will be dropped when settings are saved.
 
 In order to read arbitrary websites, the global permissions `http://*/` and/or `https://*/` must be granted.  If not (i.e. adding a permission just for a given site), it will be lost if the browser is restarted, unless explicitly declared in `optional_permissions` in the manifest (see [Chrome issue #158004](https://code.google.com/p/chromium/issues/detail?id=158004)).
 
-> Note: if an option is later re-enabled, Chrome may not seek your permission to grant the permission, however all currently granted permissions can be seen from Chrome's extension settings page (chrome://extensions).
+> Note: if an option is later re-enabled, Chrome may not re-request the permission, however all currently granted permissions can be seen from Chrome's extension settings page (chrome://extensions).
 
 ### Gmail
 
