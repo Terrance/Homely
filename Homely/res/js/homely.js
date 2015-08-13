@@ -1588,11 +1588,11 @@ $(document).ready(function() {
                     },
                     count: function(notif, resp) {
                         var vals = [];
-                        if (notif.enable.comments) vals.push(parseInt($(".header_notification_comments", resp).text().trim().split(" ")[0]));
-                        if (notif.enable.inventory) vals.push(parseInt($(".header_notification_items", resp).text().trim().split(" ")[0]));
-                        if (notif.enable.invites) vals.push(parseInt($(".header_notification_invites", resp).text().trim().split(" ")[0]));
-                        if (notif.enable.gifts) vals.push(parseInt($(".header_notification_gifts", resp).text().trim().split(" ")[0]));
-                        if (notif.enable.messages) vals.push(parseInt($(".header_notification_offlinemessages", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.comments) vals.push(parseInt($(".header_notification_comments span[style='']", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.inventory) vals.push(parseInt($(".header_notification_items span[style='']", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.invites) vals.push(parseInt($(".header_notification_invites span[style='']", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.gifts) vals.push(parseInt($(".header_notification_gifts span[style='']", resp).text().trim().split(" ")[0]));
+                        if (notif.enable.messages) vals.push(parseInt($(".header_notification_offlinemessages span[style='']", resp).text().trim().split(" ")[0]));
                         return vals;
                     }
                 },
