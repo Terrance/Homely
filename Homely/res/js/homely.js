@@ -268,17 +268,6 @@ $(document).ready(function() {
         if (!firstRun) settings.links.content = store.links.content;
         // merge settings with defaults
         settings = $.extend(true, {}, settings, store);
-        // upgrade code for Steam
-        if (typeof(settings.notifs["steam"].enable) === "boolean") {
-            var enable = settings.notifs["steam"].enable;
-            settings.notifs["steam"].enable = {
-                "comments": enable,
-                "inventory": enable,
-                "invites": enable,
-                "gifts": enable,
-                "messages": enable
-            };
-        }
         // apply custom styles
         document.title = settings.general["title"];
         var css = [];
