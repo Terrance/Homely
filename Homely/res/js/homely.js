@@ -178,7 +178,8 @@ $(document).ready(function() {
             "linkedin": {
                 "enable": {
                     "messages": false,
-                    "notifs": false
+                    "notifs": false,
+                    "invites": false
                 }
             },
             "outlook": {
@@ -1520,12 +1521,17 @@ $(document).ready(function() {
                             title: "Notifications",
                             url: "https://www.linkedin.com"
                         });
+                        if (notif.enable.invites) menu.push({
+                            title: "Invitations",
+                            url: "https://www.linkedin.com/people/pymk/hub?ref=global-nav"
+                        });
                         return menu;
                     },
                     count: function(notif, resp) {
                         var vals = [];
                         if (notif.enable.messages) vals.push(parseInt($("#header-messages-count", resp).text()) || 0);
                         if (notif.enable.notifs) vals.push(parseInt($("#nav-primary-inbox-item-total", resp).text()) || 0);
+                        if (notif.enable.invites) vals.push(parseInt($("#header-invitations-count", resp).text()) || 0);
                         return vals;
                     }
                 },
@@ -1765,6 +1771,7 @@ $(document).ready(function() {
             $("#settings-notifs-gmail-accounts").prop("disabled", !settings.notifs["gmail"].enable).val(settings.notifs["gmail"].accounts.join(", "));
             $("#settings-notifs-linkedin-messages").prop("checked", settings.notifs["linkedin"].enable.messages);
             $("#settings-notifs-linkedin-notifs").prop("checked", settings.notifs["linkedin"].enable.notifs);
+            $("#settings-notifs-linkedin-invites").prop("checked", settings.notifs["linkedin"].enable.invites);
             $("#settings-notifs-outlook-enable").prop("checked", settings.notifs["outlook"].enable);
             $("#settings-notifs-reddit-enable").prop("checked", settings.notifs["reddit"].enable);
             $("#settings-notifs-steam-comments").prop("checked", settings.notifs["steam"].enable.comments);
@@ -2126,7 +2133,8 @@ $(document).ready(function() {
             settings.notifs["linkedin"] = {
                 enable: {
                     messages: $("#settings-notifs-linkedin-messages").prop("checked"),
-                    notifs: $("#settings-notifs-linkedin-notifs").prop("checked")
+                    notifs: $("#settings-notifs-linkedin-notifs").prop("checked"),
+                    invites: $("#settings-notifs-linkedin-invites").prop("checked")
                 }
             };
             off = true;
