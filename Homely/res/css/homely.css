@@ -55,21 +55,6 @@ body.topbar-fix {
     background-color: #cfcfcf;
     border-color: #c3c3c3;
 }
-.btn-light.disabled:hover,
-.btn-light.disabled:focus,
-.btn-light.disabled:active,
-.btn-light.disabled.active,
-.btn-light[disabled]:hover,
-.btn-light[disabled]:focus,
-.btn-light[disabled]:active,
-.btn-light[disabled].active,
-fieldset[disabled] .btn-light:hover,
-fieldset[disabled] .btn-light:focus,
-fieldset[disabled] .btn-light:active,
-fieldset[disabled] .btn-light.active {
-    background-color: #ccc;
-    border-color: #ccc;
-}
 .btn-dark {
     background-color: #444;
     border-color: #404040;
@@ -83,20 +68,14 @@ fieldset[disabled] .btn-light.active {
     border-color: #222;
     color: #fff;
 }
-.btn-dark.disabled:hover,
-.btn-dark.disabled:focus,
-.btn-dark.disabled:active,
-.btn-dark.disabled.active,
-.btn-dark[disabled]:hover,
-.btn-dark[disabled]:focus,
-.btn-dark[disabled]:active,
-.btn-dark[disabled].active,
-fieldset[disabled] .btn-dark:hover,
-fieldset[disabled] .btn-dark:focus,
-fieldset[disabled] .btn-dark:active,
-fieldset[disabled] .btn-dark.active {
-    background-color: #444;
-    border-color: #444;
+.panel.panel-dark {
+  background-color: #222;
+  border-color: #080808;
+}
+.panel.panel-dark > .panel-heading {
+  background-color: #333;
+  border-color: #080808;
+  color: #999;
 }
 .caret-right {
     border-bottom: 4px solid transparent;
