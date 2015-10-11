@@ -879,19 +879,29 @@ $(document).ready(function() {
                     if (!linkBtn.style) {
                         linkBtn.style = "default";
                     }
-                    var stylesBtn = $("<button/>").addClass("btn btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown").text(cap(linkBtn.style));
+                    var styles = ["default", "light", "dark", "primary", "info", "success", "warning", "danger"];
+                    var stylesBtn = $("<button/>").addClass("btn btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown").text(styles.indexOf(linkBtn.style) === -1 ? "Custom: " + linkBtn.style : cap(linkBtn.style));
                     btnRootRight.append(stylesBtn);
                     var stylesMenu = $("<ul/>").addClass("dropdown-menu pull-right");
-                    var styles = ["default", "light", "dark", "primary", "info", "success", "warning", "danger"];
                     $(styles).each(function(k, style) {
                         stylesMenu.append($("<li/>").append($("<a/>").text(cap(style)).click(function(e) {
                             linkBtn.style = style;
-                            // remote all button style classes
+                            // remove all button style classes
                             stylesBtn.removeClass(function(l, css) {
                                 return (css.match(/\bbtn-\S+/g) || []).join(" ");
-                            }).addClass("btn btn-" + styles[k]).text(cap(style));
+                            }).addClass("btn-" + styles[k]).text(cap(style));
                         })));
                     });
+                    stylesMenu.append($("<li/>").addClass("divider"));
+                    stylesMenu.append($("<li/>").append($("<a/>").text("Custom...").click(function(e) {
+                        var cls = prompt("Enter a class name to apply to the button.  Use the custom CSS box in Settings to add a button style for this name.", "");
+                        if (!cls) return;
+                        linkBtn.style = cls;
+                        // remove all button style classes
+                        stylesBtn.removeClass(function(l, css) {
+                            return (css.match(/\bbtn-\S+/g) || []).join(" ");
+                        }).addClass(cls).text(styles.indexOf(cls) === -1 ? "Custom: " + cls : cap(cls));
+                    })));
                     btnRootRight.append(stylesMenu);
                     group.append(btnRootRight);
                     blk.append(group);
