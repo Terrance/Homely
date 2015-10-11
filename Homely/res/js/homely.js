@@ -481,7 +481,7 @@ $(document).ready(function() {
                     var loc = encodeURIComponent(settings.general["weather"].location);
                     var unit = (settings.general["weather"].celsius ? "metric" : "imperial");
                     $.ajax({
-                        url: "http://api.openweathermap.org/data/2.5/weather?q=" + loc + "&units=" + unit,
+                        url: "http://api.openweathermap.org/data/2.5/weather?APPID=833b8b2bb6161e0c2b43dab37d0c93a7&q=" + loc + "&units=" + unit,
                         success: function success(resp, stat, xhr) {
                             var conds = [];
                             $.each(resp.weather, function(i, item) {
