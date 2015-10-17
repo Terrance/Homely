@@ -469,7 +469,7 @@ $(document).ready(function() {
         }
         // get weather
         var weatherCallbacks = [];
-        if (settings.general["weather"].show) {
+        if (settings.general["weather"].show && !chrome.extension.inIncognitoContext) {
             chrome.permissions.contains({
                 origins: ajaxPerms["weather"]
             }, function(has) {
