@@ -144,8 +144,11 @@ a {
 #bookmarks hr {
     margin: 0;
 }
-#menu-apps, #menu-history, #menu-notifs {
+#menu-apps, #menu-history, #menu-baskets, #menu-notifs {
     display: none;
+}
+#menu-baskets span.title {
+    margin-right: 35px;
 }
 input[type=range] {
     margin-top: 6px;

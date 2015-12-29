@@ -34,6 +34,10 @@
                             <a id="history-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-repeat"></i> <span class="menu-label">History</span> <b class="caret"></b></a>
                             <ul id="history-list" class="dropdown-menu"></ul>
                         </li>
+                        <li id="menu-baskets" class="dropdown">
+                            <a id="baskets-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-shopping-cart"></i> <span class="menu-label">Baskets</span> <span class="badge">0</span> <b class="caret"></b></a>
+                            <ul id="baskets-list" class="dropdown-menu"></ul>
+                        </li>
                         <li id="menu-notifs" class="dropdown">
                             <a id="notifs-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell-o"></i> <span class="menu-label">Notifications</span> <span class="badge">0</span> <b class="caret"></b></a>
                             <ul id="notifs-list" class="dropdown-menu"></ul>
@@ -99,6 +103,7 @@
                             <li><a data-toggle="tab" data-target="#settings-tab-bookmarks"><i class="fa fa-bookmark"></i> <span class="hidden-sm">Bookmarks</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-history"><i class="fa fa-repeat"></i> <span class="hidden-sm">History</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-notifs"><i class="fa fa-bell-o"></i> <span class="hidden-sm">Notifications</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-baskets"><i class="fa fa-shopping-cart"></i> <span class="hidden-sm">Baskets</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-general"><i class="fa fa-star"></i> <span class="hidden-sm">General</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-style"><i class="fa fa-eye"></i> <span class="hidden-sm">Style</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-about"><i class="fa fa-home"></i> <span class="hidden-sm">About</span></a></li>
@@ -326,6 +331,40 @@
                                         <label class="checkbox-inline">
                                             <input id="settings-notifs-ticktick-include" type="checkbox">
                                             <span>Include in total count</span>
+                                        </label>
+                                        <p class="help-block"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane form-horizontal" id="settings-tab-baskets">
+                                <div class="alert alert-warning incognito"><strong>Note:</strong> the baskets dropdown is disabled whilst in incognito mode.</div>
+                                <div class="form-group form-control-nomar-bottom">
+                                    <label class="col-sm-3 control-label">Sites</label>
+                                    <div class="col-sm-8">
+                                        <p class="form-control-static">Select websites to check counts in shopping baskets.</p>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="amazon-uk">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-baskets-amazon-uk" type="checkbox">
+                                            <span>Amazon UK</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group form-control-nomar-bottom settings-perm" data-key="amazon-usa">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-baskets-amazon-usa" type="checkbox">
+                                            <span>Amazon USA</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group settings-perm" data-key="steam-store">
+                                    <div class="col-sm-offset-3 col-sm-8">
+                                        <label class="checkbox-inline">
+                                            <input id="settings-baskets-steam" type="checkbox">
+                                            <span>Steam</span>
                                         </label>
                                         <p class="help-block"></p>
                                     </div>
