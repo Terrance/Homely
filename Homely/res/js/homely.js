@@ -2542,7 +2542,20 @@ $(document).ready(function() {
                             $("#history-title").click();
                         });
                     }
-                    Mousetrap.bind(["n", "t"], function(e, key) {
+                    Mousetrap.bind(["k", "t"], function(e, key) {
+                        if (!$("#baskets-title").parent().hasClass("open")) closeDropdowns();
+                        $("#baskets-title").click();
+                    }).bind("shift+k", function(e, key) {
+                        if (!$("#baskets-title").parent().hasClass("open")) {
+                            closeDropdowns();
+                            $("#baskets-title").click();
+                        }
+                        $("#baskets-refresh").click();
+                    }).bind("shift+alt+k", function(e, key) {
+                        $("#baskets-list a").each(function(i, link) {
+                            if (parseInt($(".badge", link).text()) > 0) chrome.tabs.create({url: link.href, active: false});
+                        });
+                    }).bind(["n", "y"], function(e, key) {
                         if (!$("#notifs-title").parent().hasClass("open")) closeDropdowns();
                         $("#notifs-title").click();
                     }).bind("shift+n", function(e, key) {
@@ -2555,7 +2568,7 @@ $(document).ready(function() {
                         $("#notifs-list a").each(function(i, link) {
                             if (parseInt($(".badge", link).text()) > 0) chrome.tabs.create({url: link.href, active: false});
                         });
-                    }).bind(["s", "y"], function(e, key) {
+                    }).bind(["s", "u"], function(e, key) {
                         if (!$("#settings-title").parent().hasClass("open")) closeDropdowns();
                         $("#settings-title").click();
                     }).bind(["shift+s", "shift+y"], function(e, key) {

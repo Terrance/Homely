@@ -22,8 +22,9 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 * `W` `B` - switch to bookmarks
 * `E` `A` - open apps dropdown
 * `R` `H` - open history dropdown
-* `T` `N` - open notifcations dropdown
-* `Y` `S` - open settings dropdown (`Shift` for modal)
+* `T` `K` - open baskets dropdown
+* `Y` `N` - open notifcations dropdown
+* `U` `S` - open settings dropdown (`Shift` for modal)
 * `Tab` `Shift+Tab` - scroll through dropdown options
 
 ### Apps
@@ -42,6 +43,11 @@ If enabled, the page can be navigated by keyboard.  Note that Chrome will, by de
 ### Bookmarks
 
 * `/` - focus search field
+
+### Baskets
+
+* `Shift+K` - refresh baskets
+* `Shift+Alt+K` - open all non-empty basket pages
 
 ### Notifications
 
