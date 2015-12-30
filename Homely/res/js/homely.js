@@ -13,7 +13,7 @@ $(document).ready(function() {
         return $("<i/>").addClass("fa fa-" + icon).toggleClass("fa-fw", fw !== false);
     }
     var label = function label(text, settings) {
-        return [" ", $("<span/>").addClass("menu-label").html(text).toggle(settings.style["topbar"].labels)];
+        return [" ", $("<span/>").addClass("menu-label").html(text)];
     }
     var manif = chrome.runtime.getManifest();
     // default settings
