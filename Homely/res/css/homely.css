@@ -211,3 +211,10 @@ input[type=range] {
     margin-top: 20px;
     margin-bottom: 10px;
 }
+#about h2 {
+    margin-top: 0;
+}
+#about .btn-group {
+    margin-top: 8px;
+    margin-bottom: 16px;
+}

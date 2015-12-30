@@ -2040,7 +2040,8 @@ $(document).ready(function() {
             }
             $("#settings-style-font").val(settings.style["font"]);
         });
-        $("#settings-about-title").html(manif.name + " <small>" + manif.version + "</small>");
+        $(".ext-name").text(manif.name);
+        $(".ext-ver").text(manif.version);
         // reset modal on show
         $("#settings").on("show.bs.modal", function(e) {
             $("#settings-alerts").empty();
