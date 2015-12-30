@@ -206,6 +206,7 @@ $(document).ready(function() {
         "baskets": {
             "amazon-uk": false,
             "amazon-usa": false,
+            "ebay": false,
             "steam": false
         },
         "general": {
@@ -258,6 +259,7 @@ $(document).ready(function() {
     var ajaxPerms = {
         "amazon-uk": ["https://www.amazon.co.uk/"],
         "amazon-usa": ["https://www.amazon.com/"],
+        "ebay": ["http://cart.payments.ebay.co.uk/"],
         "facebook": ["https://www.facebook.com/"],
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
@@ -1817,6 +1819,17 @@ $(document).ready(function() {
                         return parseInt($("#nav-cart-count", resp).text());
                     }
                 },
+                "ebay": {
+                    title: "eBay",
+                    icon: "shopping-bag",
+                    api: "http://cart.payments.ebay.co.uk/sc/view",
+                    count: function(basket, resp) {
+                        var text = $(".cartsummarytitle", resp).next().text();
+                        if (text === "") return 0;
+                        var match = /[0-9]+/.exec(text);
+                        return match ? parseInt(match[0]) : NaN;
+                    }
+                },
                 "steam": {
                     title: "Steam",
                     icon: "steam",
@@ -1947,6 +1960,7 @@ $(document).ready(function() {
                                                   .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
             $("#settings-baskets-amazon-uk").prop("checked", settings.baskets["amazon-uk"]);
             $("#settings-baskets-amazon-usa").prop("checked", settings.baskets["amazon-usa"]);
+            $("#settings-baskets-ebay").prop("checked", settings.baskets["ebay"]);
             $("#settings-baskets-steam").prop("checked", settings.baskets["steam"]);
             // highlight notif/basket permissions status
             $(".settings-perm").each(function(i, group) {
@@ -2336,6 +2350,7 @@ $(document).ready(function() {
             settings.baskets = {
                 "amazon-uk": $("#settings-baskets-amazon-uk").prop("checked"),
                 "amazon-usa": $("#settings-baskets-amazon-usa").prop("checked"),
+                "ebay": $("#settings-baskets-ebay").prop("checked"),
                 "steam": $("#settings-baskets-steam").prop("checked")
             };
             $.each(settings.baskets, function(key, basket) {
