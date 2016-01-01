@@ -27,11 +27,11 @@
                         <li id="menu-links"><a><i class="fa fa-link"></i> <span class="menu-label">Links</span></a></li>
                         <li id="menu-bookmarks"><a><i class="fa fa-bookmark"></i> <span class="menu-label">Bookmarks</span></a></li>
                         <li id="menu-apps" class="dropdown">
-                            <a id="apps-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-tablet"></i> <span class="menu-label">Apps</span> <b class="caret"></b></a>
+                            <a id="apps-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-chrome"></i> <span class="menu-label">Apps</span> <b class="caret"></b></a>
                             <ul id="apps-list" class="dropdown-menu"></ul>
                         </li>
                         <li id="menu-history" class="dropdown">
-                            <a id="history-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-repeat"></i> <span class="menu-label">History</span> <b class="caret"></b></a>
+                            <a id="history-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-history"></i> <span class="menu-label">History</span> <b class="caret"></b></a>
                             <ul id="history-list" class="dropdown-menu"></ul>
                         </li>
                         <li id="menu-baskets" class="dropdown">
@@ -45,7 +45,7 @@
                         <li id="menu-settings" class="dropdown">
                             <a id="settings-title" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i> <span class="menu-label">Settings</span> <b class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                <li><a id="settings-toggle" data-toggle="modal" data-target="#settings"><i class="fa fa-fw fa-cog"></i> Show settings</a></li>
+                                <li><a id="settings-toggle" data-toggle="modal" data-target="#settings"><i class="fa fa-fw fa-magic"></i> Customise</a></li>
                                 <li class="divider"></li>
                                 <li><a id="settings-import"><i class="fa fa-fw fa-arrow-left"></i> Import from file</a></li>
                                 <li><a id="settings-export" download="homely.json"><i class="fa fa-fw fa-arrow-right"></i> Export to file</a></li>
@@ -96,18 +96,18 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
-                        <h4 class="modal-title"><i class="fa fa-cog"></i>&nbsp; Settings</h4>
+                        <h4 class="modal-title"><i class="fa fa-magic"></i>&nbsp; Customise</h4>
                     </div>
                     <div class="modal-body">
                         <div id="settings-alerts"></div>
                         <ul id="settings-tabs" class="nav nav-tabs nav-justified">
                             <li class="active"><a data-toggle="tab" data-target="#settings-tab-links"><i class="fa fa-link"></i> <span class="hidden-sm">Links</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-bookmarks"><i class="fa fa-bookmark"></i> <span class="hidden-sm">Bookmarks</span></a></li>
-                            <li><a data-toggle="tab" data-target="#settings-tab-history"><i class="fa fa-repeat"></i> <span class="hidden-sm">History</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-history"><i class="fa fa-history"></i> <span class="hidden-sm">History</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-notifs"><i class="fa fa-bell-o"></i> <span class="hidden-sm">Notifications</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-baskets"><i class="fa fa-shopping-basket"></i> <span class="hidden-sm">Baskets</span></a></li>
                             <li><a data-toggle="tab" data-target="#settings-tab-general"><i class="fa fa-star"></i> <span class="hidden-sm">General</span></a></li>
-                            <li><a data-toggle="tab" data-target="#settings-tab-style"><i class="fa fa-eye"></i> <span class="hidden-sm">Style</span></a></li>
+                            <li><a data-toggle="tab" data-target="#settings-tab-style"><i class="fa fa-paint-brush"></i> <span class="hidden-sm">Style</span></a></li>
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active form-horizontal" id="settings-tab-links">
@@ -500,25 +500,31 @@
                                         <div id="settings-style-panel" class="btn-group btn-group-justified" data-toggle="buttons">
                                             <label class="btn btn-default">
                                                 <input type="radio" name="settings-style-panel" value="default">
-                                                <span>&nbsp;</span>
+                                                <i class="fa fa-check"></i>
                                             </label>
                                             <label class="btn btn-dark">
                                                 <input type="radio" name="settings-style-panel" value="dark">
+                                                <i class="fa fa-check"></i>
                                             </label>
                                             <label class="btn btn-primary">
                                                 <input type="radio" name="settings-style-panel" value="primary">
+                                                <i class="fa fa-check"></i>
                                             </label>
                                             <label class="btn btn-info">
                                                 <input type="radio" name="settings-style-panel" value="info">
+                                                <i class="fa fa-check"></i>
                                             </label>
                                             <label class="btn btn-success">
                                                 <input type="radio" name="settings-style-panel" value="success">
+                                                <i class="fa fa-check"></i>
                                             </label>
                                             <label class="btn btn-warning">
                                                 <input type="radio" name="settings-style-panel" value="warning">
+                                                <i class="fa fa-check"></i>
                                             </label>
                                             <label class="btn btn-danger">
                                                 <input type="radio" name="settings-style-panel" value="danger">
+                                                <i class="fa fa-check"></i>
                                             </label>
                                         </div>
                                         <p class="help-block">The colour scheme used for links and bookmarks blocks.</p>
@@ -589,7 +595,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <button class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-times"></i></button>
-                        <h4 class="modal-title"><i class="fa fa-magic"></i>&nbsp; Keyboard shortcuts</h4>
+                        <h4 class="modal-title"><i class="fa fa-keyboard-o"></i>&nbsp; Keyboard shortcuts</h4>
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-info">Note: shortcuts are disabled whilst input fields (text boxes, selects, buttons) are currently focused.  In addition, focus on the new tab starts in the omnibox &ndash; you will need to <code>Tab</code> into the page before keyboard shortcuts become active.</div>

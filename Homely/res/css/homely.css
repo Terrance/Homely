@@ -192,14 +192,8 @@ input[type=range] {
 #settings-general-weather-location {
     width: 180px;
 }
-#settings-tab-about {
-    text-align: center;
-}
-#settings-tab-about img {
-    margin-bottom: 5px;
-}
-#settings-tab-about h2 {
-    margin-top: 0;
+#settings-style-panel label:not(.active) i.fa {
+    display: none;
 }
 #settings .form-group:last-of-type {
     margin-bottom: 0;

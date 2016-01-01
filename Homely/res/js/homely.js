@@ -1362,7 +1362,7 @@ $(document).ready(function() {
                                 $("#history-list").append($("<li/>").append(link));
                             }
                             $("#history-list").append($("<li/>").addClass("divider"));
-                            $("#history-list").append($("<li/>").append($("<a/>").addClass("link-chrome").append(fa("search")).append(" More...").attr("href", "chrome://history")));
+                            $("#history-list").append($("<li/>").append($("<a/>").addClass("link-chrome").append(fa("search")).append(" View full history").attr("href", "chrome://history")));
                             fixLinkHandling("#history-list");
                             block = false;
                             $("#history-title").click();
