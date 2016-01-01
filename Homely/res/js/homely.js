@@ -890,29 +890,40 @@ $(document).ready(function() {
                         linkBtn.style = "default";
                     }
                     var styles = ["default", "light", "dark", "primary", "info", "success", "warning", "danger"];
-                    var stylesBtn = $("<button/>").addClass("btn btn-" + linkBtn.style + " dropdown-toggle").attr("data-toggle", "dropdown").text(styles.indexOf(linkBtn.style) === -1 ? "Custom: " + linkBtn.style : cap(linkBtn.style));
-                    btnRootRight.append(stylesBtn);
-                    var stylesMenu = $("<ul/>").addClass("dropdown-menu pull-right");
-                    $(styles).each(function(k, style) {
-                        stylesMenu.append($("<li/>").append($("<a/>").text(cap(style)).click(function(e) {
-                            linkBtn.style = style;
-                            // remove all button style classes
-                            stylesBtn.removeClass(function(l, css) {
-                                return (css.match(/\bbtn-\S+/g) || []).join(" ");
-                            }).addClass("btn-" + styles[k]).text(cap(style));
-                        })));
+                    var stylePreview = $("<button/>").addClass("btn btn-" + linkBtn.style).html("&nbsp");
+                    var styleOpts = [];
+                    stylePreview.click(function(e) {
+                       stylePreview.detach();
+                       btnRootRight.append(styleOpts);
                     });
-                    stylesMenu.append($("<li/>").addClass("divider"));
-                    stylesMenu.append($("<li/>").append($("<a/>").text("Custom...").click(function(e) {
-                        var cls = prompt("Enter a class name to apply to the button.  Use the custom CSS box in Settings to add a button style for this name.", "");
+                    $(styles).each(function(k, style) {
+                        styleOpts.push($("<button/>").addClass("btn btn-" + style).html("&nbsp;").click(function(e) {
+                            linkBtn.style = style;
+                            $(styleOpts).each(function(l, opt) {
+                                $(opt).detach();
+                            });
+                            // remove all button style classes
+                            stylePreview.removeClass(function(l, css) {
+                                return (css.match(/\bbtn-\S+/g) || []).join(" ");
+                            }).addClass("btn-" + styles[k]);
+                            btnRootRight.append(stylePreview);
+                        }));
+                    });
+                    styleOpts.push($("<button/>").addClass("btn btn-default").append($("<i/>").addClass("fa fa-magic")).click(function(e) {
+                        var cls = prompt("Enter a class name to apply to the button.\n\nUse the custom CSS box in Settings to add a button style for this name.", "");
                         if (!cls) return;
                         linkBtn.style = cls;
+                        if (styles.indexOf(cls) > -1) cls = "btn-" + cls;
+                        $(styleOpts).each(function(l, opt) {
+                            $(opt).detach();
+                        });
                         // remove all button style classes
-                        stylesBtn.removeClass(function(l, css) {
+                        stylePreview.removeClass(function(l, css) {
                             return (css.match(/\bbtn-\S+/g) || []).join(" ");
-                        }).addClass(cls).text(styles.indexOf(cls) === -1 ? "Custom: " + cls : cap(cls));
-                    })));
-                    btnRootRight.append(stylesMenu);
+                        }).addClass(cls);
+                        btnRootRight.append(stylePreview);
+                    }));
+                    btnRootRight.append(stylePreview);
                     group.append(btnRootRight);
                     blk.append(group);
                     // link/menu options
