@@ -236,6 +236,7 @@ $(document).ready(function() {
         },
         "style": {
             "font": "Segoe UI",
+            "fluid": false,
             "topbar": {
                 "fix": false,
                 "dark": false,
@@ -287,6 +288,7 @@ $(document).ready(function() {
                    + "    font-family: '" + settings.style["font"] + "';\n"
                    + "}");
         }
+        $("body").addClass(settings.style["fluid"] ? "container-fluid" : "container");
         if (settings.style["topbar"].fix) {
             $("body").addClass("topbar-fix");
             $("nav").addClass("navbar-fixed-top");
@@ -2022,6 +2024,7 @@ $(document).ready(function() {
                                                   .prop("disabled", !settings.general["weather"].show);
             $("#settings-general-proxy").prop("checked", settings.general["proxy"]);
             $("#settings-style-font").val(settings.style["font"]);
+            $("#settings-style-fluid").prop("checked", settings.style["fluid"]);
             $("#settings-style-topbar-fix").prop("checked", settings.style["topbar"].fix);
             $("#settings-style-topbar-dark").prop("checked", settings.style["topbar"].dark);
             $("#settings-style-topbar-labels").prop("checked", settings.style["topbar"].labels);
@@ -2400,6 +2403,7 @@ $(document).ready(function() {
             settings.general["proxy"] = $("#settings-general-proxy").prop("checked");
             if (!settings.general["proxy"]) revoke("proxy");
             settings.style["font"] = $("#settings-style-font").val();
+            settings.style["fluid"] = $("#settings-style-fluid").prop("checked");
             settings.style["topbar"] = {
                 fix: $("#settings-style-topbar-fix").prop("checked"),
                 dark: $("#settings-style-topbar-dark").prop("checked"),
