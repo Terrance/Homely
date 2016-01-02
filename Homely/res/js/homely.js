@@ -606,7 +606,9 @@ $(document).ready(function() {
                 if (!linkBlk.title) linkBlk.title = "";
                 if (!linkBlk.buttons) linkBlk.buttons = [];
                 var blk = $("<div/>").addClass("panel panel-" + settings.style["panel"] + " sortable").data("pos", i);
-                var head = $("<div/>").addClass("panel-heading").text(linkBlk.title);
+                var head = $("<div/>").addClass("panel-heading").text(linkBlk.title).dblclick(function(e) {
+                    $("#links-editor").data("block", i).modal("show");
+                });
                 if (!linkBlk.title) head.html("&nbsp;");
                 // edit controls dropdown on header
                 if (settings.links["edit"].menu) {
