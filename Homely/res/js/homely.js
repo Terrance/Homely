@@ -261,7 +261,7 @@ $(document).ready(function() {
         "amazon-uk": ["https://www.amazon.co.uk/"],
         "amazon-usa": ["https://www.amazon.com/"],
         "ebay": ["http://cart.payments.ebay.co.uk/"],
-        "facebook": ["https://www.facebook.com/"],
+        "facebook": ["https://www.facebook.com/", "https://m.facebook.com/"],
         "github": ["https://github.com/"],
         "gmail": ["https://accounts.google.com/", "https://mail.google.com/"],
         "linkedin": ["https://www.linkedin.com/"],
@@ -1477,7 +1477,7 @@ $(document).ready(function() {
                 "facebook": {
                     title: "Facebook",
                     icon: "facebook-square",
-                    api: "https://www.facebook.com",
+                    api: "https://m.facebook.com",
                     items: function(notif) {
                         var menu = [];
                         if (notif.enable.notifs) menu.push({
@@ -1496,9 +1496,9 @@ $(document).ready(function() {
                     },
                     count: function(notif, resp) {
                         var vals = [];
-                        if (notif.enable.notifs) vals.push(parseInt($("#notificationsCountValue", resp).text()));
-                        if (notif.enable.messages) vals.push(parseInt($("#mercurymessagesCountValue", resp).text()));
-                        if (notif.enable.friends) vals.push(parseInt($("#requestsCountValue", resp).text()));
+                        if (notif.enable.notifs) vals.push(parseInt($("#notifications_jewel span._59tg", resp).text()));
+                        if (notif.enable.messages) vals.push(parseInt($("#messages_jewel span._59tg", resp).text()));
+                        if (notif.enable.friends) vals.push(parseInt($("#requests_jewel span._59tg", resp).text()));
                         return vals;
                     }
                 },
