@@ -1280,6 +1280,18 @@ $(document).ready(function() {
                                 $.each(results, function(i, node) {
                                     $("#bookmarks-block-search").append(renderBookmark(node));
                                 });
+                                // open Chrome links via Tabs API
+                                $(".link-chrome", "#bookmarks-block-search").click(function(e) {
+                                    // normal click, not external
+                                    if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                                        chrome.tabs.update({url: this.href});
+                                        e.preventDefault();
+                                    // middle click, Ctrl+click, or set as external
+                                    } else if (e.which <= 2) {
+                                        chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                                        e.preventDefault();
+                                    }
+                                });
                             } else {
                                 $("#bookmarks-block-search").append($("<div/>").addClass("alert alert-info").text("No results."));
                             }
