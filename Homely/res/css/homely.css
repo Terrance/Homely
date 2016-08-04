@@ -69,23 +69,26 @@ body.topbar-fix {
     color: #fff;
 }
 .panel.panel-dark {
-  background-color: #222;
-  border-color: #080808;
+    background-color: #222;
+    border-color: #080808;
 }
 .panel.panel-dark > .panel-heading {
-  background-color: #333;
-  border-color: #080808;
-  color: #999;
+    background-color: #333;
+    border-color: #080808;
+    color: #999;
 }
 .caret-right {
     border-bottom: 4px solid transparent;
     border-top: 4px solid transparent;
-    border-left: 4px solid #000000;
+    border-left: 4px solid #000;
     display: inline-block;
     height: 0;
     opacity: 0.3;
     vertical-align: top;
     width: 0;
+}
+.panel.panel-dark > .panel-heading .caret-right {
+    border-left-color: #fff;
 }
 a {
     cursor: pointer;
@@ -143,6 +146,9 @@ a {
 }
 #bookmarks hr {
     margin: 0;
+}
+#bookmarks.panel-dark hr {
+    border-color: #080808;
 }
 #menu-apps, #menu-history, #menu-baskets, #menu-notifs {
     display: none;
