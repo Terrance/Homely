@@ -202,7 +202,7 @@ input[type=range] {
     display: none;
 }
 #settings .form-group:last-of-type {
-    margin-bottom: 0;
+    margin-bottom: 10px;
 }
 #shortcuts .modal-body {
     padding: 0 20px 10px;

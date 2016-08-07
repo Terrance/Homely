@@ -201,6 +201,9 @@ $(document).ready(function() {
                 "enable": false,
                 "due": true,
                 "include": false
+            },
+            "twitter": {
+                "enable": false
             }
         },
         "baskets": {
@@ -270,6 +273,7 @@ $(document).ready(function() {
         "steam": ["https://steamcommunity.com/"],
         "steam-store": ["https://store.steampowered.com/"],
         "ticktick": ["https://ticktick.com/"],
+        "twitter": ["https://twitter.com/"],
         "weather": ["http://api.openweathermap.org/"],
         "proxy": ["http://www.whatismyproxy.com/"]
     };
@@ -1460,6 +1464,8 @@ $(document).ready(function() {
                     title: section header,
                     icon: header icon,
                     api: URL to query for all counts,
+                    headers: {extra HTTP headers to include},
+                    format: expected return type (maps to dataType in $.ajax),
                     items: function(notif) {
                         return [
                             {
@@ -1663,6 +1669,24 @@ $(document).ready(function() {
                         }
                         return [count];
                     }
+                },
+                "twitter": {
+                    title: "Twitter",
+                    icon: "twitter",
+                    api: "https://twitter.com/i/users/recommendations",
+                    // no idea why Twitter requires this
+                    headers: {"X-Requested-With": "XMLHTTPRequest"},
+                    // don't let jQuery eval response
+                    format: "text",
+                    items: function(notif) {
+                        return [{
+                            title: "Notifications",
+                            url: "https://twitter.com/i/notifications"
+                        }];
+                    },
+                    count: function(notif, resp) {
+                        return [JSON.parse(resp)["note"]["b"]["response"]["count"]];
+                    }
                 }
             };
             $.each(settings.notifs, function(key, notif) {
@@ -1701,6 +1725,8 @@ $(document).ready(function() {
                                 pendingAjax++;
                                 $.ajax({
                                     url: handle.api,
+                                    headers: handle.headers,
+                                    dataType: handle.format,
                                     success: function(resp, stat, xhr) {
                                         if (typeof(resp) === "string") {
                                             resp = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "");
@@ -1725,6 +1751,8 @@ $(document).ready(function() {
                                     pendingAjax++;
                                     $.ajax({
                                         url: item.api,
+                                        headers: handle.headers,
+                                        dataType: handle.format,
                                         success: function(resp, stat, xhr) {
                                             if (typeof(resp) === "string") {
                                                 resp = resp.replace(/<img[\S\s]*?>/g, "").replace(/<script[\S\s]*?>[\S\s]*?<\/script>/g, "");
@@ -1980,6 +2008,7 @@ $(document).ready(function() {
             $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include)
                                                   .prop("disabled", !settings.notifs["ticktick"].enable)
                                                   .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
+            $("#settings-notifs-twitter-enable").prop("checked", settings.notifs["twitter"].enable);
             $("#settings-baskets-amazon-uk").prop("checked", settings.baskets["amazon-uk"]);
             $("#settings-baskets-amazon-usa").prop("checked", settings.baskets["amazon-usa"]);
             $("#settings-baskets-ebay").prop("checked", settings.baskets["ebay"]);
@@ -2366,6 +2395,9 @@ $(document).ready(function() {
                 enable: $("#settings-notifs-ticktick-enable").prop("checked"),
                 due: $("#settings-notifs-ticktick-due").prop("checked"),
                 include: $("#settings-notifs-ticktick-include").prop("checked")
+            };
+            settings.notifs["twitter"] = {
+                enable: $("#settings-notifs-twitter-enable").prop("checked")
             };
             $.each(settings.notifs, function(key, notif) {
                 if (["facebook", "linkedin", "steam"].indexOf(key) >= 0) return;
