@@ -753,9 +753,13 @@ $(document).ready(function() {
                             } else {
                                 if (!linkItem.title) linkItem.title = "";
                                 var item = $("<a/>").attr("href", linkItem.url).text(linkItem.title);
-                                // workaround for accessing Chrome URLs
-                                if (linkItem.url.substring(0, "chrome://".length) === "chrome://") item.addClass("link-chrome");
-                                if (linkItem.url.substring(0, "chrome-extension://".length) === "chrome-extension://") item.addClass("link-chrome");
+                                // workaround for accessing Chrome and file URLs
+                                for (var prefix of ["chrome", "chrome-extension", "file"]) {
+                                    if (linkItem.url.substring(0, prefix.length + 3) === prefix + "://") {
+                                        item.addClass("link-chrome");
+                                        break;
+                                    }
+                                }
                                 // always open in new tab
                                 if (linkItem.external) item.addClass("link-external");
                                 menu.append($("<li/>").append(item));
@@ -779,9 +783,13 @@ $(document).ready(function() {
                     } else {
                         btn = $("<a/>").addClass("btn btn-block btn-" + linkBtn.style).attr("href", linkBtn.url).text(linkBtn.title);
                         if (!linkBtn.title) btn.html("&nbsp;");
-                        // workaround for accessing Chrome URLs
-                        if (linkBtn.url.substring(0, "chrome://".length) === "chrome://") btn.addClass("link-chrome");
-                        if (linkBtn.url.substring(0, "chrome-extension://".length) === "chrome-extension://") btn.addClass("link-chrome");
+                        // workaround for accessing Chrome and file URLs
+                        for (var prefix of ["chrome", "chrome-extension", "file"]) {
+                            if (linkBtn.url.substring(0, prefix.length + 3) === prefix + "://") {
+                                btn.addClass("link-chrome");
+                                break;
+                            }
+                        }
                         // always open in new tab
                         if (linkBtn.external) btn.addClass("link-external");
                     }
@@ -1174,8 +1182,13 @@ $(document).ready(function() {
                             }
                         } else {
                             var link = $("<a/>").addClass("btn btn-primary").attr("href", node.url).append(fa("file")).append(" " + node.title);
-                            // workaround for accessing Chrome URLs
-                            if (node.url.substring(0, "chrome://".length) === "chrome://") link.addClass("link-chrome");
+                            // workaround for accessing Chrome and URLs
+                            for (var prefix of ["chrome", "chrome-extension", "file"]) {
+                                if (node.url.substring(0, prefix.length + 3) === prefix + "://") {
+                                    link.addClass("link-chrome");
+                                    break;
+                                }
+                            }
                             return link;
                         }
                     // folder
@@ -1370,19 +1383,22 @@ $(document).ready(function() {
                             for (var i in results) {
                                 var res = results[i];
                                 var link = $("<a/>").attr("href", res.url).text(trim(res.title ? res.title : res.url, 50));
-                                // workaround for accessing Chrome URLs
-                                if (res.url.substring(0, "chrome://".length) === "chrome://" || res.url.substring(0, "chrome-extension://".length) === "chrome-extension://") {
-                                    link.click(function(e) {
-                                        // normal click, not external
-                                        if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
-                                            chrome.tabs.update({url: this.href});
-                                            e.preventDefault();
-                                        // middle click, Ctrl+click, or set as external
-                                        } else if (e.which <= 2) {
-                                            chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
-                                            e.preventDefault();
-                                        }
-                                    });
+                                // workaround for accessing Chrome and file URLs
+                                for (var prefix of ["chrome", "chrome-extension", "file"]) {
+                                    if (res.url.substring(0, prefix.length + 3) === prefix + "://") {
+                                        link.click(function(e) {
+                                            // normal click, not external
+                                            if (e.which === 1 && !ctrlDown && !$(this).hasClass("link-external")) {
+                                                chrome.tabs.update({url: this.href});
+                                                e.preventDefault();
+                                            // middle click, Ctrl+click, or set as external
+                                            } else if (e.which <= 2) {
+                                                chrome.tabs.create({url: this.href, active: $(this).hasClass("link-external")});
+                                                e.preventDefault();
+                                            }
+                                        });
+                                        break;
+                                    }
                                 }
                                 // add to dropdown
                                 $("#history-list").append($("<li/>").append(link));
