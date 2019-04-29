@@ -238,7 +238,7 @@ $(document).ready(function() {
             "proxy": false
         },
         "style": {
-            "font": "Segoe UI",
+            "font": "",
             "fluid": false,
             "topbar": {
                 "fix": false,
@@ -2102,12 +2102,16 @@ $(document).ready(function() {
                 break;
         }
         // request list of fonts from FontSettings API
-        chrome.fontSettings.getFontList(function fontsCallback(fonts) {
-            for (var i in fonts) {
-                $("#settings-style-font").append($("<option/>").text(fonts[i].displayName));
-            }
-            $("#settings-style-font").val(settings.style["font"]);
-        });
+        if (chrome.fontSettings) {
+            chrome.fontSettings.getFontList(function fontsCallback(fonts) {
+                for (var i in fonts) {
+                    $("#settings-style-font").append($("<option/>").text(fonts[i].displayName));
+                }
+                $("#settings-style-font").val(settings.style["font"]);
+            });
+        } else {
+            $("#settings-style-font").closest(".form-group").hide();
+        }
         $(".ext-name").text(manif.name);
         $(".ext-ver").text(manif.version);
         // reset modal on show
@@ -2444,10 +2448,16 @@ $(document).ready(function() {
             settings.general["notepad"].show = $("#settings-general-notepad-show").prop("checked");
             settings.general["apps"] = $("#settings-general-apps").prop("checked");
             if (!settings.general["apps"]) {
-                chrome.permissions.remove({
+                chrome.permissions.contains({
                     permissions: ["management"]
-                }, function(success) {
-                    if (!success) revokeError = true;
+                }, function(has) {
+                    if (has) {
+                        chrome.permissions.remove({
+                            permissions: ["management"]
+                        }, function(success) {
+                            if (!success) revokeError = true;
+                        });
+                    }
                 });
             }
             settings.general["weather"] = {
