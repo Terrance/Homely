@@ -202,6 +202,9 @@ $(document).ready(function() {
                 "due": true,
                 "include": false
             },
+            "trello": {
+                "enable": false
+            },
             "twitter": {
                 "enable": false
             }
@@ -273,6 +276,7 @@ $(document).ready(function() {
         "steam": ["https://steamcommunity.com/"],
         "steam-store": ["https://store.steampowered.com/"],
         "ticktick": ["https://ticktick.com/"],
+        "trello": ["https://trello.com/"],
         "twitter": ["https://twitter.com/"],
         "weather": ["http://api.openweathermap.org/"],
         "proxy": ["http://www.whatismyproxy.com/"]
@@ -1686,6 +1690,23 @@ $(document).ready(function() {
                         return [count];
                     }
                 },
+                "trello": {
+                    title: "Trello",
+                    icon: "trello",
+                    api: "https://trello.com/1/members/me/notificationsCount?filter=all",
+                    items: function(notif) {
+                        return [{
+                            title: "Notifications",
+                            url: "https://trello.com"
+                        }];
+                    },
+                    count: function(notif, resp) {
+                        let json = resp;
+                        if ((typeof json) === "string")
+                            json = JSON.parse(json);
+                        return [Object.values(json).reduce((curr, next) => curr + next, 0)];
+                    }
+                },
                 "twitter": {
                     title: "Twitter",
                     icon: "twitter",
@@ -2024,6 +2045,7 @@ $(document).ready(function() {
             $("#settings-notifs-ticktick-include").prop("checked", settings.notifs["ticktick"].include)
                                                   .prop("disabled", !settings.notifs["ticktick"].enable)
                                                   .parent().toggleClass("text-muted", !settings.notifs["ticktick"].enable);
+            $("#settings-notifs-trello-enable").prop("checked", settings.notifs["trello"].enable);
             $("#settings-notifs-twitter-enable").prop("checked", settings.notifs["twitter"].enable);
             $("#settings-baskets-amazon-uk").prop("checked", settings.baskets["amazon-uk"]);
             $("#settings-baskets-amazon-usa").prop("checked", settings.baskets["amazon-usa"]);
@@ -2415,6 +2437,9 @@ $(document).ready(function() {
                 enable: $("#settings-notifs-ticktick-enable").prop("checked"),
                 due: $("#settings-notifs-ticktick-due").prop("checked"),
                 include: $("#settings-notifs-ticktick-include").prop("checked")
+            };
+            settings.notifs["trello"] = {
+                enable: $("#settings-notifs-trello-enable").prop("checked")
             };
             settings.notifs["twitter"] = {
                 enable: $("#settings-notifs-twitter-enable").prop("checked")
