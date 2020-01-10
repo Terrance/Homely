@@ -10,20 +10,6 @@ Homely is a custom New Tab page replacement for Google Chrome.  It aims to provi
 * [HTML5 Sortable](http://farhadi.ir/projects/html5sortable/)
 * [Mousetrap](http://craig.is/killing/mice)
 
-The minimum set of files should be laid out inside the Homely folder as follows:
-
-* lib
-  * css
-    * bootstrap.min.css
-    * font-awesome.min.css
-  * fonts
-    * fontawesome-webfont.woff2
-  * js
-    * bootstrap.min.js
-    * jquery.min.js
-    * jquery.sortable.js
-    * mousetrap.min.js
-
 ## Keyboard shortcuts
 
 If enabled, the page can be navigated by keyboard.  Note that Chrome will, by default, give focus to the onmibox when opening a new tab, so you must first `Tab` into the page.
