@@ -1,6 +1,6 @@
 var links;
 chrome.omnibox.onInputStarted.addListener(function() {
-    chrome.storage.local.get("links", function(store) {
+    chrome.storage.sync.get("links", function(store) {
         var newLinks = [];
         for (var i in store.links["content"]) {
             var blk = store.links["content"][i];
