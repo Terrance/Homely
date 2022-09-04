@@ -282,7 +282,7 @@ $(document).ready(function() {
         "proxy": ["http://www.whatismyproxy.com/"]
     };
     // load settings
-    chrome.storage.local.get(function(store) {
+    chrome.storage.sync.get(function(store) {
         var firstRun = $.isEmptyObject(store);
         // load links first
         if (!firstRun) settings.links.content = store.links.content;
@@ -477,7 +477,7 @@ $(document).ready(function() {
                 var content = notepad.val();
                 timeout = setTimeout(function() {
                     settings.general["notepad"].content = content;
-                    chrome.storage.local.set({general: settings.general});
+                    chrome.storage.sync.set({general: settings.general});
                     notepad.addClass("notepad-saved");
                 }, 500);
             }).click(function(e) {
@@ -631,13 +631,13 @@ $(document).ready(function() {
                             }
                             settings.links["content"][0] = linkBlk;
                             populateLinks();
-                            chrome.storage.local.set({"links": settings.links});
+                            chrome.storage.sync.set({"links": settings.links});
                         })));
                         editMenu.append($("<li/>").append($("<a/>").append(fa("angle-left")).append(" Move left").click(function(e) {
                             settings.links["content"][i] = settings.links["content"][i - 1];
                             settings.links["content"][i - 1] = linkBlk;
                             populateLinks();
-                            chrome.storage.local.set({"links": settings.links});
+                            chrome.storage.sync.set({"links": settings.links});
                         })));
                     }
                     var max = settings.links["content"].length - 1;
@@ -646,7 +646,7 @@ $(document).ready(function() {
                             settings.links["content"][i] = settings.links["content"][i + 1];
                             settings.links["content"][i + 1] = linkBlk;
                             populateLinks();
-                            chrome.storage.local.set({"links": settings.links});
+                            chrome.storage.sync.set({"links": settings.links});
                         })));
                         editMenu.append($("<li/>").append($("<a/>").append(fa("angle-double-right")).append(" Move to end").click(function(e) {
                             for (var x = i; x < max; x++) {
@@ -654,7 +654,7 @@ $(document).ready(function() {
                             }
                             settings.links["content"][max] = linkBlk;
                             populateLinks();
-                            chrome.storage.local.set({"links": settings.links});
+                            chrome.storage.sync.set({"links": settings.links});
                         })));
                     }
                     if (i > 0 || i < max) {
@@ -676,7 +676,7 @@ $(document).ready(function() {
                                     }
                                     settings.links["content"][pos] = linkBlk;
                                     populateLinks();
-                                    chrome.storage.local.set({"links": settings.links});
+                                    chrome.storage.sync.set({"links": settings.links});
                                 }
                             }
                         })));
@@ -689,7 +689,7 @@ $(document).ready(function() {
                         });
                         $("#links-editor").data("block", i).modal("show");
                         populateLinks();
-                        chrome.storage.local.set({"links": settings.links});
+                        chrome.storage.sync.set({"links": settings.links});
                     })));
                     editMenu.append($("<li/>").append($("<a/>").append(fa("step-forward")).append(" New block after").click(function(e) {
                         settings.links["content"].splice(i + 1, 0, {
@@ -698,12 +698,12 @@ $(document).ready(function() {
                         });
                         $("#links-editor").data("block", i + 1).modal("show");
                         populateLinks();
-                        chrome.storage.local.set({"links": settings.links});
+                        chrome.storage.sync.set({"links": settings.links});
                     })));
                     editMenu.append($("<li/>").append($("<a/>").append(fa("files-o")).append(" Duplicate block").click(function(e) {
                         settings.links["content"].splice(i + 1, 0, $.extend(true, {}, linkBlk));
                         populateLinks();
-                        chrome.storage.local.set({"links": settings.links});
+                        chrome.storage.sync.set({"links": settings.links});
                     })));
                     editMenu.append($("<li/>").addClass("divider"));
                     editMenu.append($("<li/>").append($("<a/>").append(fa("pencil")).append(" Edit block").click(function(e) {
@@ -714,14 +714,14 @@ $(document).ready(function() {
                         if (typeof(name) === "string") {
                             linkBlk.title = name;
                             populateLinks();
-                            chrome.storage.local.set({"links": settings.links});
+                            chrome.storage.sync.set({"links": settings.links});
                         }
                     })));
                     editMenu.append($("<li/>").append($("<a/>").append(fa("trash-o")).append(" Delete block").click(function(e) {
                         if (confirm("Are you sure you want to delete " + (linkBlk.title ? linkBlk.title : "this block") + "?")) {
                             settings.links["content"].splice(i, 1);
                             populateLinks();
-                            chrome.storage.local.set({"links": settings.links});
+                            chrome.storage.sync.set({"links": settings.links});
                         }
                     })));
                     editRoot.append(editMenu);
@@ -811,7 +811,7 @@ $(document).ready(function() {
                         settings.links["content"].push(old[$(blk).data("pos")]);
                     });
                     populateLinks();
-                    chrome.storage.local.set({"links": settings.links});
+                    chrome.storage.sync.set({"links": settings.links});
                 });
             }
             fixLinkHandling();
@@ -1097,7 +1097,7 @@ $(document).ready(function() {
                 settings.links["content"][i] = linkBlk;
                 $("#links-editor").modal("hide");
                 populateLinks();
-                chrome.storage.local.set({"links": settings.links});
+                chrome.storage.sync.set({"links": settings.links});
             })
             // delete block
             $("#links-editor-delete").click(function(e) {
@@ -1105,7 +1105,7 @@ $(document).ready(function() {
                     settings.links["content"].splice(i, 1);
                     $("#links-editor").modal("hide");
                     populateLinks();
-                    chrome.storage.local.set({"links": settings.links});
+                    chrome.storage.sync.set({"links": settings.links});
                 }
             })
             populateLinkEditor(true);
@@ -1115,7 +1115,7 @@ $(document).ready(function() {
         if (firstRun) {
             var alert = $("<div/>").addClass("alert alert-success alert-dismissable");
             alert.append($("<button/>").addClass("close").attr("data-dismiss", "alert").html("&times;").click(function(e) {
-                chrome.storage.local.set(settings);
+                chrome.storage.sync.set(settings);
             }));
             alert.append("<span><strong>Welcome to " + manif.name + "!</strong>  To get you started, here are a few sample blocks for your new New Tab page.  "
                          + "Feel free to change or add to them by hovering over the block headings for controls.  "
@@ -1131,7 +1131,7 @@ $(document).ready(function() {
                 });
                 $("#links-editor").data("block", settings.links["content"].length - 1).modal("show");
                 populateLinks();
-                chrome.storage.local.set({"links": settings.links});
+                chrome.storage.sync.set({"links": settings.links});
             })
             $("#alerts").append($("<div/>").addClass("alert alert-info").append(text));
         }
@@ -2517,7 +2517,7 @@ $(document).ready(function() {
                 e.preventDefault();
             });
             // write to local storage
-            chrome.storage.local.set(settings, function() {
+            chrome.storage.sync.set(settings, function() {
                 if (chrome.runtime.lastError) {
                     $("#settings-alerts").append($("<div/>").addClass("alert alert-danger").text("Unable to save: " + chrome.runtime.lastError.message));
                     $("#settings-save").prop("disabled", false).empty().append(fa("check", false)).append(" Save and reload");
@@ -2560,7 +2560,7 @@ $(document).ready(function() {
                         // copy links code whole
                         if (toImport["links"]) settings["links"] = toImport["links"];
                         // write to local storage
-                        chrome.storage.local.set(settings, function() {
+                        chrome.storage.sync.set(settings, function() {
                             if (chrome.runtime.lastError) window.alert("Unable to save: " + chrome.runtime.lastError.message);
                             else location.reload();
                         });
