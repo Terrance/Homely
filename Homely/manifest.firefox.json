@@ -1,0 +1,47 @@
+{
+    "name": "Homely",
+    "short_name": "Homely",
+    "description": "A custom New Tab page, providing a quick, customizable layout of links and menus, as well as simple bookmark and history components.",
+    "version": "1.8.0",
+    "author": "Terrance",
+    "homepage_url": "https://github.com/Terrance/Homely",
+    "chrome_url_overrides": {
+        "newtab": "res/html/homely.html"
+    },
+    "omnibox": {
+        "keyword": "hl"
+    },
+    "background": {
+        "scripts": ["res/js/background.js"]
+    },
+    "permissions": [
+        "storage"
+    ],
+    "optional_permissions": [
+        "bookmarks",
+        "history",
+        "management",
+        "https://www.amazon.co.uk/",
+        "https://www.amazon.com/",
+        "http://cart.payments.ebay.co.uk/",
+        "https://www.facebook.com/", "https://m.facebook.com/",
+        "https://github.com/",
+        "https://accounts.google.com/", "https://mail.google.com/",
+        "https://www.linkedin.com/",
+        "https://login.live.com/", "https://*.mail.live.com/",
+        "https://www.reddit.com/",
+        "https://steamcommunity.com/",
+        "https://store.steampowered.com/",
+        "https://ticktick.com/",
+        "https://trello.com/",
+        "https://twitter.com/",
+        "http://api.openweathermap.org/",
+        "http://www.whatismyproxy.com/"
+    ],
+    "icons": {
+        "16": "res/img/icon-16.png",
+        "48": "res/img/logo-48.png",
+        "128": "res/img/logo-128.png"
+    },
+    "manifest_version": 3
+}
