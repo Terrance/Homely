@@ -2,10 +2,10 @@
     "name": "Homely",
     "short_name": "Homely",
     "description": "A custom New Tab page, providing a quick, customizable layout of links and menus, as well as simple bookmark and history components.",
-    "version": "1.7.2",
+    "version": "1.8.0",
     "author": "Terrance",
     "homepage_url": "https://github.com/Terrance/Homely",
-    "offline_enabled": true,
+    "incognito": "split",
     "chrome_url_overrides": {
         "newtab": "res/html/homely.html"
     },
@@ -13,8 +13,7 @@
         "keyword": "hl"
     },
     "background": {
-        "scripts": ["res/js/background.js"],
-        "persistent": false
+        "service_worker": "res/js/background.js"
     },
     "permissions": [
         "fontSettings",
@@ -23,7 +22,9 @@
     "optional_permissions": [
         "bookmarks",
         "history",
-        "management",
+        "management"
+    ],
+    "optional_host_permissions": [
         "https://www.amazon.co.uk/",
         "https://www.amazon.com/",
         "http://cart.payments.ebay.co.uk/",
@@ -46,5 +47,5 @@
         "48": "res/img/logo-48.png",
         "128": "res/img/logo-128.png"
     },
-    "manifest_version": 2
+    "manifest_version": 3
 }
